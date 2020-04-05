@@ -20,7 +20,7 @@ int main(void)
     // Draw something on it.
     DrawCircle(50,50, 10, BLACK);
 
-    EndTextureMode();
+    EndTextureMode();               // This needs to be called after every different draw command used. Do not forget to use begintexture also..
  
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
