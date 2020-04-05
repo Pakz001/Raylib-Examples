@@ -56,15 +56,25 @@ int main(void)
         // and if that happens we restore it to the old position. We check x and z different
         // so we get sliding in stead of complete stop when hitting an edge.
         // 
-        Vector3 oldCamPos = camera.position;    // Store old camera position        
-        UpdateCamera(&camera);      // Update internal camera and our camera
-        if (camera.position.x<1 || camera.position.x>mapwidth-2){
-        camera.position.x = oldCamPos.x;
-        }
-        if (camera.position.z<1 || camera.position.z>mapdepth-2){
-        camera.position.z = oldCamPos.z;
-        }
+        Vector3 oldCamPos = camera.position;    // Store old camera position
 
+        // Default walking speed
+        int moveSpeed=1;
+        // Sprint speed
+        if (IsKeyDown(KEY_LEFT_SHIFT)){
+            moveSpeed=2;
+        }
+        // We check collision and movement x amount of times. 
+        for(int i=0;i<moveSpeed;i++){
+            UpdateCamera(&camera);      // Update internal camera and our camera        
+            if (camera.position.x<1 || camera.position.x>mapwidth-2){
+            camera.position.x = oldCamPos.x;
+            }
+            if (camera.position.z<1 || camera.position.z>mapdepth-2){
+            camera.position.z = oldCamPos.z;
+            }
+        }
+        
         //----------------------------------------------------------------------------------
         // Draw
         //----------------------------------------------------------------------------------
