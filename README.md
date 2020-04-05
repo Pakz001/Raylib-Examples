@@ -1,7 +1,18 @@
 # Raylib-Examples
-My collection of raylib examples
+My collection of raylib examples. ( https://www.raylib.com/index.html )
 
-Raylib Version of 4 april 2020 ( Notepad++ windows installer version )
+For Raylib Version of 4 april 2020 ( Notepad++ windows installer version )
+
+So far every different file in the repo are standalone. GFX and maybe sound wil be included inside the code files as array data.
+
+I might end up storing and creating a few hundred game related code examples in this repo over the next couple of years.
+
+Points of interest for me and this repo are :
+
+*learning C with Raylib
+*Learning more about how Rts/Fps/Rpg/Tbs/Shooter/Action/Puzzle games work.
+*Tools for eq. Sprite editing(For direct pasting into code)
+*Main focus - Minecraft and Civilization 1/2 style games.
 
 Dotate to author (book and motivation funds) https://www.paypal.me/RudyvanEtten/5
 
