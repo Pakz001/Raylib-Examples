@@ -1,7 +1,8 @@
 
 #include "raylib.h"
 
-void floodit();
+// Our flood path function
+void floodmap(int map[][10],int x, int y);
 
 int main(void)
 {
@@ -9,6 +10,7 @@ int main(void)
     //--------------------------------------------------------------------------------------
     const int screenWidth = 800;
     const int screenHeight = 450;
+
 
     InitWindow(screenWidth, screenHeight, "raylib example.");
 
@@ -62,26 +64,10 @@ int main(void)
     }
 
     int map[10][10] = {0};
-    map[5][5]=1;
-    // flood map
-    int low = 1;
-    bool end=false;
-    while(end==false){
-        end = true;
+    floodmap(map,3,3);
+    
 
-        for(int y=0;y<10;y++){
-        for(int x=0;x<10;x++){
-            if(map[x][y]==low){                               
-                if(map[x-1][y]==0){map[x-1][y]=low+1;end = false;}
-                if(map[x+1][y]==0){map[x+1][y]=low+1;end = false;}
-                if(map[x][y-1]==0){map[x][y-1]=low+1;end = false;}
-                if(map[x][y+1]==0){map[x][y+1]=low+1;end = false;}
-            }
-        }        
-        }
-        low++;  
-        
-    }
+
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
@@ -91,6 +77,11 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
         Vector2 mousePos = GetMousePosition();
+        if(IsMouseButtonPressed(0)){
+            int x = GetMouseX()/20;
+            int y = GetMouseY()/20;
+            if(x<10 && y<10)floodmap(map,x,y);
+        }
         //----------------------------------------------------------------------------------
         // Draw
         //----------------------------------------------------------------------------------
@@ -104,6 +95,8 @@ int main(void)
             for(int x=0;x<10;x++){
                 DrawText(TextFormat("%i",map[x][y]),x*20,y*20,20,BLACK);
             }}
+            
+           
 
 
             // NOTE: Render texture must be y-flipped due to default OpenGL coordinates (left-bottom)
@@ -125,4 +118,32 @@ int main(void)
     return 0;
 
 
+}
+
+// Here we flood the map from the destination to the other parts of the map.
+void floodmap(int map[][10],int x,int y){
+    // Clear the old map
+    for(int y=0;y<10;y++){
+        for(int x=0;x<10;x++){
+            map[x][y]=0;
+    }}
+    // set our destination
+    map[x][y]=1;
+    // flood map
+    int low = 1;
+    bool end=false;
+    while(end==false){
+        end = true;
+        for(int y=0;y<10;y++){
+        for(int x=0;x<10;x++){
+            if(map[x][y]==low){                               
+                if(map[x-1][y]==0){map[x-1][y]=low+1;end = false;}
+                if(map[x+1][y]==0){map[x+1][y]=low+1;end = false;}
+                if(map[x][y-1]==0){map[x][y-1]=low+1;end = false;}
+                if(map[x][y+1]==0){map[x][y+1]=low+1;end = false;}
+            }
+        }        
+        }
+        low++;              
+    }    
 }
