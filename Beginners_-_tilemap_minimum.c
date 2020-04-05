@@ -8,7 +8,7 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - generate random values");
+    InitWindow(screenWidth, screenHeight, "raylib example.");
 
     
     int mymap[3][5] = { {1,1,1,1,1},
