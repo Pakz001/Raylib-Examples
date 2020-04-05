@@ -1,5 +1,6 @@
 
 #include "raylib.h"
+#include <stdlib.h>
 // math.h is needed for cos and sin.
 #include <math.h>
 
@@ -118,6 +119,7 @@ int main(void)
     }
 
     // De-Initialization
+    free(mybullets);              // Unload points data array
     UnloadRenderTexture(target);    // Unload render texture    
     //--------------------------------------------------------------------------------------
     CloseWindow();        // Close window and OpenGL context
