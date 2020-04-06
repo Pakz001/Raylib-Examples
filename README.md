@@ -21,3 +21,5 @@ Dotate to author (book and motivation funds) https://www.paypal.me/RudyvanEtten/
 How to use these examples :
 
 Each example in here is a standalone .c file. I myself just copy and paste the one I need into notepad++ and save it as a new .c file and it just works. You should also be able to save this repo as a zip and unzip it and be able to load each example and run it.
+
+Possibly a .h file like raymath.h sometimes is not found, this happens with certain examples in the official examples. You can copy that .h files from the /src files into the folder with the example that needs it. That seemed to have worked for me.
