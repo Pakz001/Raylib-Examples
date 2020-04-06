@@ -114,7 +114,7 @@ int main(void)
                                      targetboxposition.y + 0.5f,
                                      targetboxposition.z + 0.5f }})){
             // Put the target box at a new position.
-            targetboxposition = (Vector3){(float)GetRandomValue(5,40),10.0f,(float)GetRandomValue(5,40)};
+            targetboxposition = (Vector3){(float)GetRandomValue(5,40),(float)GetRandomValue(2,10),(float)GetRandomValue(5,40)};
         }
         //----------------------------------------------------------------------------------
         // Draw
