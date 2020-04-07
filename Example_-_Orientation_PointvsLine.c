@@ -44,9 +44,10 @@ int main(void)
             // Here we check if the mouse if left or right or on the same path of the line.
             // line starts at a.xy to b.xy.
             // This orientation function could be useful for turrets etc.
-            if(orientation(line1a.x,line1a.y,line1b.x,line1b.y,point.x,point.y)==-1)DrawText("left",0,0,20,RED);
-            if(orientation(line1a.x,line1a.y,line1b.x,line1b.y,point.x,point.y)==0)DrawText("Same",0,0,20,RED);
-            if(orientation(line1a.x,line1a.y,line1b.x,line1b.y,point.x,point.y)==1)DrawText("right",0,0,20,RED);
+            int orien = orientation(line1a.x,line1a.y,line1b.x,line1b.y,point.x,point.y);
+            if(orien==-1)DrawText("left",0,0,20,RED);
+            if(orien==0)DrawText("Same",0,0,20,RED);
+            if(orien==1)DrawText("right",0,0,20,RED);
 
 
 
