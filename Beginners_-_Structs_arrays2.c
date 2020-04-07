@@ -41,11 +41,10 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
         // Update blueBullets
-        // Note: I had to use the += character since the + character alone did not seem to work.
         for(int i=0;i<2;i++){
             if(arr_blueBullet[i].active){
-                arr_blueBullet[i].position.x += arr_blueBullet[i].movement.x;
-                arr_blueBullet[i].position.y += arr_blueBullet[i].movement.y;
+                arr_blueBullet[i].position = (Vector2){ arr_blueBullet[i].position.x+arr_blueBullet[i].movement.x,
+                                                        arr_blueBullet[i].position.y+arr_blueBullet[i].movement.y};
                 // If outside the screen reset position.
                 if(     arr_blueBullet[i].position.x<-10 || 
                         arr_blueBullet[i].position.x>screenWidth+10 || 
@@ -59,8 +58,8 @@ int main(void)
         // Update bluebullets2
         for(int i=0;i<MAX_BULLETS;i++){
             if(arr_blueBullet2[i].active){
-                arr_blueBullet2[i].position.x += arr_blueBullet2[i].movement.x;
-                arr_blueBullet2[i].position.y += arr_blueBullet2[i].movement.y;
+                arr_blueBullet2[i].position = (Vector2){    arr_blueBullet2[i].position.x+arr_blueBullet2[i].movement.x,
+                                                            arr_blueBullet2[i].position.y+arr_blueBullet2[i].movement.y};
                 // If outside the screen reset position.
                 if(     arr_blueBullet2[i].position.x<-10 || 
                         arr_blueBullet2[i].position.x>screenWidth+10 || 
