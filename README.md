@@ -27,4 +27,5 @@ Possibly a .h file like raymath.h sometimes is not found, this happens with cert
 
 Below here is a Windows sprite editor tool I programmed that can be used to create sprites and copy that sprite data to the clipboard buffer. I use this for some of the example in this repo. I might rewrite it for Raylib in the future. The spritedata copied in the clipboard by the sprite tool are inside a array. It uses the c64 palette or the db32 palette. The color values can be found online.
 
+(use the c key inside the editor to export the current cell data into the clipboard buffer)
 https://cromdesi.home.xs4all.nl/tools/raylibspriteed.zip
