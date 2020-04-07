@@ -36,6 +36,8 @@ int main(void)
                 
             // Here we draw the first line.
             DrawLine(line1a.x,line1a.y,line1b.x,line1b.y,RED);
+            DrawText("Back",line1a.x,line1a.y,10,BLACK);
+            DrawText("Front",line1b.x,line1b.y,10,BLACK);
             // Draw the Point under the mouse.
             DrawCircle(point.x,point.y,10,RED);
 
