@@ -55,7 +55,7 @@ int main(void)
     // Source rectangle (part of the texture to use for drawing)
     Rectangle sourceRec = { 0.0f, 0.0f, 32, 32 };
     // Origin of the texture (rotation/scale point), it's relative to destination rectangle size
-    Vector2 origin = { 32, 32 }; 
+    Vector2 origin = { 16, 16 }; 
  
     float rotation=0.0f;
     
@@ -79,7 +79,7 @@ int main(void)
 
             DrawText("Sprite Creation and Rotation.", 100, 180, 40, LIGHTGRAY);
 
-            DrawTexturePro(target.texture, sourceRec, (Rectangle){ GetMouseX(), GetMouseY(), 32*2, 32*2 }, origin, (float)rotation, WHITE);
+            DrawTexturePro(target.texture, sourceRec, (Rectangle){ GetMouseX(), GetMouseY(), 32, 32 }, origin, (float)rotation, WHITE);
  
 
         EndDrawing();
