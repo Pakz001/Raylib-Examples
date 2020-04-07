@@ -1,6 +1,5 @@
 
 #include "raylib.h"
-#include <math.h>
 
 int orientation(int ax,int ay,int bx, int by, int cx, int cy);
 
