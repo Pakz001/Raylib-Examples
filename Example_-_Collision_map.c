@@ -25,7 +25,7 @@ int main(void)
     float tileheight = (float)screenHeight/10.0f;
 
     // This is out collision map.
-    bool colmap[20][20] = {false};
+    bool colmap[10][20] = {false};
     // This is our tile map.
     int map[10][20] = { {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
                         {1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,1,1,1,1},
