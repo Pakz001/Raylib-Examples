@@ -9,16 +9,16 @@ I might end up storing and creating a few hundred game related code examples in 
 
 Points of interest for me and this repo are :
 
-*learning C with Raylib
-*Learning more about how Rts/Fps/Rpg/Tbs/Shooter/Action/Puzzle games work.
-*Tools for eq. Sprite editing(For direct pasting into code)
-*Main focus - Minecraft and Civilization 1/2 style games.
++learning C with Raylib
++Learning more about how Rts/Fps/Rpg/Tbs/Shooter/Action/Puzzle games work.
++Tools for eq. Sprite editing(For direct pasting into code)
++Main focus - Minecraft and Civilization 1/2 style games.
 
 Dotate to author (book and motivation funds) https://www.paypal.me/RudyvanEtten/5
 
-
-
-
+.
+.
+.
 
 How to use these examples :
 
