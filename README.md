@@ -18,7 +18,7 @@ Points of interest for me and this repo are :
 
 Dotate to author (book and motivation funds) https://www.paypal.me/RudyvanEtten/5
 
-<br><br><br>
+<br>
 
 How to use these examples :
 
@@ -26,11 +26,9 @@ Each example in here is a standalone .c file. I myself just copy and paste the o
 
 Possibly a .h file like raymath.h sometimes is not found, this happens with certain examples in the official examples. You can copy that .h files from the /src files into the folder with the example that needs it. That seemed to have worked for me.
 
-<br><br>
-
-Below here is a Windows sprite editor tool I programmed that can be used to create sprites and copy that sprite data to the clipboard buffer. I use this for some of the example in this repo. I might rewrite it for Raylib in the future. The spritedata copied in the clipboard by the sprite tool are inside a array. It uses the c64 palette or the db32 palette. The color values can be found online.
+Below here is a download link to a Windows sprite editor tool that I programmed that can be used to create sprites and copy that sprite data to the clipboard buffer. I use this for some of the example in this repo. I might rewrite it for Raylib in the future. The spritedata copied in the clipboard by the sprite tool are inside a array. It uses the c64 palette or the db32 palette. The color values can be found online.
 
 The editor is based on the Pico8 sprite and map editor.
 
-(use the c key inside the editor to export the current cell data into the clipboard buffer)
+(use the c key on the keyboard inside the editor to export the current cell data into the clipboard buffer)
 https://cromdesi.home.xs4all.nl/tools/raylibspriteed.zip
