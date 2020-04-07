@@ -1,6 +1,8 @@
 
 #include "raylib.h"
 
+// Return on which side of the line the point is. l-1 0= r=1
+// lineback x,y linefront x,y point x,y
 int orientation(int ax,int ay,int bx, int by, int cx, int cy);
 
 int main(void)
