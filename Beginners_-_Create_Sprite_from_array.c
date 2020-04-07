@@ -1,8 +1,6 @@
 
 #include "raylib.h"
 
-void floodit();
-
 int main(void)
 {
     // Initialization
