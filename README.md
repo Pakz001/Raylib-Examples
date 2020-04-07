@@ -18,6 +18,8 @@ Dotate to author (book and motivation funds) https://www.paypal.me/RudyvanEtten/
 
 
 
+
+
 How to use these examples :
 
 Each example in here is a standalone .c file. I myself just copy and paste the one I need into notepad++ and save it as a new .c file and it just works. You should also be able to save this repo as a zip and unzip it and be able to load each example and run it.
