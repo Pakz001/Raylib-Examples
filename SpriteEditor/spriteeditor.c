@@ -1065,7 +1065,7 @@ void setuptoolview(){
     for(int x=0;x<8;x++){
         //toolcan[toolcopyid].Color = c64color[copy[y][x]]
         BeginTextureMode(toolim[toolcopyid]);
-        //toolcan[toolcopyid].DrawRect(x*4,y*4,4,4)
+        DrawRectangle(x*4,y*4,4,4,c64color[copy[7-y][x]]);
         EndTextureMode();
     }
     }
