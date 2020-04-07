@@ -61,7 +61,7 @@ static    int spritelibheight;
 static	int numspritelib;
 static RenderTexture2D spritelibim[80*4]; // 80*4 = numspritelib
 	//Field spritelibcan:Canvas[]
-static	int spritelibmap[80*4][8][8]; // numspritelib,
+static	int spritelibmap[80*4][32][32]; // numspritelib,
 static	int spritelibselected = 0;
 static	float spritelibscale;
 	
@@ -196,6 +196,11 @@ static void setuptopbar(void);
 static void paletteview(void);
 static void spritegrid(void);
 static void toolview(void);
+static void spritelibview(void);
+static void spriteview(void);
+static void updatespritelib(void);
+static void updatepreview(void);
+static void spritelibcopytocanvas(void);
 
 int main(void)
 {
@@ -300,6 +305,34 @@ int main(void)
     }
     setuptopbar();
 
+
+    //'	
+    //'spritelib setup
+    spritelibx = 0;
+    spriteliby = canvasheight+32+32;
+    spritelibwidth = 640;
+    spritelibheight = 128;
+    numspritelib = 80*4;
+    spritelibselected = 0;
+    spritelibscale = 2;
+    //spritelibim = New Image[numspritelib]
+    //spritelibcan = New Canvas[numspritelib]		
+ //   For Local i:Int=0 Until numspritelib
+ //       spritelibim[i] = New Image(spritewidth*spritelibscale,spriteheight*spritelibscale)
+ //       spritelibcan[i] = New Canvas(spritelibim[i])
+ //       spritelibcan[i].Clear(Color.Black)
+  //      spritelibcan[i].Flush()
+//    Next	
+    for(int i=0;i<numspritelib;i++){
+        spritelibim[i] = LoadRenderTexture(32, 32);
+        BeginTextureMode(spritelibim[i]);
+        ClearBackground(BLANK);
+        EndTextureMode();
+        
+    }
+    
+
+
     //' tool view
     toolx = 340;
     tooly = 186-32;
@@ -349,13 +382,13 @@ int main(void)
                     bottombarview();
                     middlebarview();                    
                     topbarview();
-                    //spriteview();
+                    spriteview();
                     //previewline();
                     spritegrid();
                     //previewselection();		
                     paletteview();
                     //previewview();
-                    //spritelibview();
+                    spritelibview();
                     toolview();
                 }else if(topbarcurrentid == topbarmapeditid){
                     //bottombarview();
@@ -365,7 +398,7 @@ int main(void)
                     //spritelibview();
                 }
             }
-            DrawText(FormatText("%i",weasel),0,0,20,BLACK);
+            //DrawText(FormatText("%i",spritewidth),0,0,20,BLACK);
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
@@ -1394,6 +1427,428 @@ void toolview(){
         }
         num+=1;
         
+    }
+    }
+}
+
+void spritelibview(){
+    //canvas.Color = Color.Black
+    DrawRectangle(spritelibx,spriteliby,spritelibwidth,spritelibheight,BLACK);
+    //canvas.Color = Color.White
+    int num=(middlebarcurrentid*80);
+    for(int y=spriteliby;y<spriteliby+spritelibheight;y+=spriteheight*spritelibscale){
+    for(int x=spritelibx;x<spritelibx+spritelibwidth;x+=spritewidth*spritelibscale){
+        int pointx=x;
+        int pointy=y;
+
+        if(num == spritelibselected){
+            
+            //canvas.Color = Color.White
+            //DrawRectangle(pointx,pointy,spritewidth*spritelibscale,spriteheight*spritelibscale,WHITE);
+            //canvas.Scissor = New Recti(pointx+2,pointy+2,pointx+spritewidth*spritelibscale-3,pointy+spriteheight*spritelibscale-3)
+            //'canvas.Scissor(z1)
+            //DrawTextureRec(spritelibim[num].texture,(Rectangle){0,0,spritewidth,spriteheight},pointx,pointy,WHITE);
+            //DrawTextureEx(spritelibim[num].texture,(Vector2){pointx,pointy},0,spritelibscale,WHITE);
+            //DrawTexture(spritelibim[num].texture,pointx,pointy,WHITE);
+            // NOTE: Render texture must be y-flipped due to default OpenGL coordinates (left-bottom)
+            DrawTextureRec(spritelibim[num].texture, (Rectangle){ 0, 0, spritelibim[num].texture.width, -spritelibim[num].texture.height }, (Vector2){pointx,pointy}, WHITE);
+            DrawRectangle(pointx,pointy,spritewidth*spritelibscale,spriteheight*spritelibscale,(Color){100,100,100,100});
+            //'Local z2:=New Recti(0,0,640,480)
+            //canvas.Scissor = New Recti(0,0,640,480)
+        }else{
+            //canvas.Color = Color.White
+            //canvas.DrawImage(spritelibim[num],pointx,pointy)	
+            //DrawTexture(spritelibim[num].texture,pointx,pointy,WHITE);	
+            //DrawTextureEx(spritelibim[num].texture,(Vector2){pointx,pointy},0,spritelibscale,WHITE);
+            //DrawTexture(spritelibim[num].texture,pointx,pointy,WHITE);
+            //DrawTextureRec(spritelibim[num].texture, (Rectangle){ 0, 0, spritewidth, -spriteheight }, (Vector2){ 0, 0 }, WHITE);            
+            DrawTextureRec(spritelibim[num].texture, (Rectangle){ 0, 0, spritelibim[num].texture.width, -spritelibim[num].texture.height }, (Vector2){pointx,pointy}, WHITE);
+        }
+
+        
+
+
+        
+        if(IsMouseButtonDown(0)){
+            if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,spritewidth*spritelibscale,spriteheight*spritelibscale)){
+                spritelibselected = num;
+                spritelibcopytocanvas();
+            }
+        }
+                
+        num+=1;
+        if(num>=numspritelib)break;
+    }
+        if(num>=numspritelib)break;
+    }
+
+}	
+
+
+void spriteview(){
+    
+    //canvas.Color = Color.Grey
+    
+    for(int y=0;y<spriteheight;y++){
+    for(int x=0;x<spritewidth;x++){
+        int pointx=(x*gridwidth)+canvasx;
+        int pointy=(y*gridheight)+canvasy;
+        //'canvas.DrawRect()
+        if(startsetuppalettemode == 0){
+            //canvas.Color = c64color[map[x,y]]
+            DrawRectangle(pointx,pointy,gridwidth,gridheight,c64color[map[x][y]]);			
+        }else{
+            //canvas.Color = db32color[map[x,y]]			
+            DrawRectangle(pointx,pointy,gridwidth,gridheight,db32color[map[x][y]]);
+        }
+        //canvas.DrawRect(pointx,pointy,gridwidth,gridheight)
+        
+        //'
+        //' Mouse down (LEFT)
+        if(IsMouseButtonDown(0)){
+            if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,gridwidth,gridheight)){								
+                if(toolselected == toolpencilid){
+                    map[x][y] = paletteselected;
+                }
+                if(toolselected == tooleraserid){
+                    map[x][y] = paletteeraser;
+                }
+                if(toolselected == toolfillid){
+                    fillatposition(x,y);
+                }
+
+            }
+        }
+/*
+        ' Line tool
+        If Mouse.ButtonDown(MouseButton.Left)
+            If rectsoverlap(Mouse.X,Mouse.Y,1,1,pointx,pointy,gridwidth,gridheight)
+                If toolselected = toollineid
+                    If linepressed = False And lineactive = False
+                        lineactive = True
+                        linepressed = True
+                        linestartx = x
+                        linestarty = y							
+                    End If
+                    If lineactive = True
+                        lineendx = x
+                        lineendy = y
+                        
+                    End If					
+                End If
+            End If
+        End If
+        If Mouse.ButtonDown(MouseButton.Left) = False
+            If toolselected = toollineid
+                If lineactive = True						
+                    previewline(canvas,True)
+                    lineactive = False
+                    linepressed = False						
+                End If
+            End If
+        End if
+        
+        ' Selection Tool
+        If Mouse.ButtonDown(MouseButton.Left)
+            If rectsoverlap(Mouse.X,Mouse.Y,1,1,pointx,pointy,gridwidth,gridheight)
+                If toolselected = toolselectionid
+                    If selectionpressed = False And selectionactive = False
+                        selectionactive = True
+                        selectionpressed = True
+                        selectionstartx = x
+                        selectionstarty = y
+                        selectionnegativeswitchx = True
+                        selectionnegativeswitchy = True
+                    End If
+                    If selectionactive = True
+                        selectionendx = x
+                        selectionendy = y
+                        If selectionendx < selectionstartx Then 
+                            selectionendx-=1
+                            If selectionnegativeswitchx Then 
+                                selectionnegativeswitchx = False
+                                selectionstartx+=1
+                            End If
+                        End If
+                        If selectionendy < selectionstarty Then 
+                            selectionendy-=1
+                            If selectionnegativeswitchy Then 
+                                selectionnegativeswitchy = False
+                                selectionstarty+=1
+                            End If
+                        End If
+                        
+                    End If						
+                End If
+            End If
+        End If
+        If Mouse.ButtonDown(MouseButton.Left) = False
+            If toolselected = toolselectionid
+                If selectionactive = True						
+                    'previewselection(canvas,True)
+                    selectionactive = False
+                    selectionpressed = False	
+
+                    ' if the end is smaller then then start then switch them
+                    If selectionendx<selectionstartx Then 
+                        Local a:Int=selectionstartx
+                        Local b:Int=selectionendx
+                        selectionstartx = b+1 
+                        selectionendx = a -1
+                    End If
+                    If selectionendy<selectionstarty Then
+                        Local a:Int=selectionstarty
+                        Local b:Int=selectionendy
+                        selectionstarty = b +1
+                        selectionendy = a -1 
+                    End If
+
+                    '
+                End If
+            End If
+        End if
+
+        ' Remove the selection with rmb
+        If Mouse.ButtonDown(MouseButton.Right) = True
+            selectionstartx=0
+            selectionstarty=0
+            selectionendx=0
+            selectionendy=0
+        End If
+                
+        '		
+        ' Mouse down (MIDDLE) Color Picker
+        If Mouse.ButtonDown(MouseButton.Middle)
+            If rectsoverlap(Mouse.X,Mouse.Y,1,1,pointx,pointy,gridwidth,gridheight)
+                paletteselected = map[x,y]
+            End If
+        End if
+        If Mouse.ButtonDown(MouseButton.Left)
+            If rectsoverlap(Mouse.X,Mouse.Y,1,1,pointx,pointy,gridwidth,gridheight)
+                If toolselected = toolcolorpickerid
+                    paletteselected = map[x,y]
+                End If
+            End If
+        End if
+
+        '
+        ' Mouse Down(LEFT) Filled rect / outlined rect / filled circle / outlined circle
+        If Mouse.ButtonDown(MouseButton.Left)
+            If rectsoverlap(Mouse.X,Mouse.Y,1,1,pointx,pointy,gridwidth,gridheight)
+                If toolselected = toolfilledrectid Or toolselected = tooloutlinerectid Or toolselected = toolfilledcircleid Or toolselected = tooloutlinecircleid
+                    If bcselectionpressed = False And bcselectionactive = False
+                        bcselectionactive = True
+                        bcselectionpressed = True
+                        bcselectionstartx = x
+                        bcselectionstarty = y
+                        bcselectionnegativeswitchx = True
+                        bcselectionnegativeswitchy = True
+                    End If
+                    If bcselectionactive = True
+                        bcselectionendx = x
+                        bcselectionendy = y
+                        If bcselectionendx < bcselectionstartx Then 
+                            bcselectionendx-=1
+                            If bcselectionnegativeswitchx Then 
+                                bcselectionnegativeswitchx = False
+                                bcselectionstartx+=1
+                            End If
+                        End If
+                        If bcselectionendy < bcselectionstarty Then 
+                            bcselectionendy-=1
+                            If bcselectionnegativeswitchy Then 
+                                bcselectionnegativeswitchy = False
+                                bcselectionstarty+=1
+                            End If
+                        End If
+                        
+                    End If						
+                End If
+            End If
+        End If
+        If Mouse.ButtonDown(MouseButton.Left) = False
+            If toolselected = toolfilledrectid Or toolselected = tooloutlinerectid Or toolselected = toolfilledcircleid Or toolselected = tooloutlinecircleid
+                If bcselectionactive = True						
+                    'previewselection(canvas,True)
+                    bcselectionactive = False
+                    bcselectionpressed = False	
+
+                    ' if the end is smaller then then start then switch them
+                    If bcselectionendx<bcselectionstartx Then 
+                        Local a:Int=bcselectionstartx
+                        Local b:Int=bcselectionendx
+                        bcselectionstartx = b+1 
+                        bcselectionendx = a -1
+                    End If
+                    If bcselectionendy<bcselectionstarty Then
+                        Local a:Int=bcselectionstarty
+                        Local b:Int=bcselectionendy
+                        bcselectionstarty = b +1
+                        bcselectionendy = a -1 
+                    End If
+                    '
+                    ' Do the filling
+                    If toolselected = toolfilledrectid Or toolselected = tooloutlinerectid
+                        For Local y:Int=bcselectionstarty To bcselectionendy
+                        For Local x:Int=bcselectionstartx To bcselectionendx
+                            If toolselected = toolfilledrectid Then map[x,y] = paletteselected
+                            If toolselected = tooloutlinerectid
+                                If x = bcselectionstartx Or x = bcselectionendx Or y = bcselectionendy Or y=bcselectionstarty
+                                    map[x,y] = paletteselected
+                                End If
+                            End If
+                        Next
+                        Next
+                    Elseif toolselected = toolfilledcircleid Or toolselected = tooloutlinecircleid
+                        ' add circle code here	
+                        
+                        Local w:Int=Abs(bcselectionstartx-bcselectionendx)+1
+                        Local h:Int=Abs(bcselectionstarty-bcselectionendy)+1
+
+                        If toolselected = tooloutlinecircleid						
+                            Local ti:Image = New Image(spritewidth,spriteheight)
+                            Local tc:Canvas = New Canvas(ti)
+                            tc.Clear(Color.Black)
+                            tc.Color = Color.White
+                            tc.OutlineMode=OutlineMode.Smooth
+                            tc.OutlineColor = Color.Green
+                            tc.OutlineWidth = 0
+                            tc.DrawOval(bcselectionstartx,bcselectionstarty,w-1,h-1)
+                            tc.Flush()
+                            For Local y:Int=0 Until spriteheight
+                            For Local x:Int=0 Until spritewidth
+                                If ti.GetPixel(x,y) = Color.Green
+                                    map[x,y] = paletteselected
+                                End If
+                            Next
+                            Next
+                        Else
+                            Local ti:Image = New Image(spritewidth,spriteheight)
+                            Local tc:Canvas = New Canvas(ti)
+                            tc.Clear(Color.Black)
+                            tc.Color = Color.White
+                            tc.DrawOval(bcselectionstartx-1,bcselectionstarty-1,w+1,h+1)
+                            tc.Flush()
+                            For Local y:Int=0 Until spriteheight
+                            For Local x:Int=0 Until spritewidth
+                                If ti.GetPixel(x,y) <> Color.Black
+                                    map[x,y] = paletteselected
+                                End If
+                            Next
+                            Next
+
+                        End If
+                    
+                    End If
+                    '
+                    bcselectionendy=0
+                    bcselectionendx=0
+                    bcselectionstarty=0
+                    bcselectionstartx=0
+                End If
+            End If
+        End if
+            
+        
+        ' Copy to clipboard
+        If Keyboard.KeyReleased(Key.C)
+            copytoclipboard()
+        End if
+    */
+    }
+    }
+    
+    updatepreview();
+    updatespritelib();
+}
+
+void updatepreview(){			
+/*
+    previewcan.Clear(Color.Black)	
+    For Local y:Int=0 Until map.GetSize(1)
+    For Local x:Int=0 Until map.GetSize(0)
+        Local pointx:Int=x*previewcellwidth
+        Local pointy:Int=y*previewcellheight
+        If startsetuppalettemode = 0
+            previewcan.Color = c64color[map[x,y]]
+            Else
+            previewcan.Color = db32color[map[x,y]]
+        End If
+        previewcan.DrawRect(pointx,pointy,previewcellwidth,previewcellheight)
+    Next
+    Next
+    previewcan.Flush()
+*/
+}
+
+void updatespritelib(){
+
+    for(int y=0;y<spriteheight;y++){
+    for(int x=0;x<spritewidth;x++){
+        float pointx=x*spritelibscale;
+        float pointy=y*spritelibscale;
+        BeginTextureMode(spritelibim[spritelibselected]);
+        if(startsetuppalettemode == 0){
+            DrawRectangle(pointx,pointy,spritelibscale,spritelibscale,c64color[map[x][y]]);
+            //spritelibcan[spritelibselected].Color = c64color[map[x,y]]
+        }else{
+            DrawRectangle(pointx,pointy,spritelibscale,spritelibscale,db32color[map[x][y]]);
+            //spritelibcan[spritelibselected].Color = db32color[map[x,y]]
+        }
+        //spritelibcan[spritelibselected].DrawRect(pointx,pointy,spritelibscale,spritelibscale)			
+        spritelibmap[spritelibselected][x][y] = map[x][y];
+        EndTextureMode();
+    }
+    }
+    //spritelibcan[spritelibselected].Flush()
+
+}
+
+void fillatposition(int x,int y){
+    /*
+    Local ol:List<pathnode> = New List<pathnode>
+    ' Add the start position on the list
+    ol.AddLast(New pathnode(x,y))
+    ' set the cloes map at the start position to distance 1
+    Local colorundermouse:Int=map[x,y]
+    map[x,y] = paletteselected
+    
+    ' some helper arrays. We can determine the top,right,and bottom
+    ' and left position cells with these numbers.
+    Local dx:Int[] = New Int[](0,1,0,-1)
+    Local dy:Int[] = New Int[](-1,0,1,0)
+    ' While there is contents in the list
+    While ol.Count() <> 0
+        
+        ' Get the current location
+        Local x1:Int=ol.First.x
+        Local y1:Int=ol.First.y
+        ' Remove the current location from the list
+        ol.RemoveFirst()
+        ' Get 4 new positions around the current positions
+        For Local i:=0 Until 4
+            ' Set new x and y
+            Local nx:Int=x1+dx[i]
+            Local ny:Int=y1+dy[i]
+            ' If the coordinates are inside the map
+            If nx>=0 And ny>=0 And nx<spritewidth And ny<spriteheight
+                ' If the closedmap is not written to yet
+                If map[nx,ny] = colorundermouse And map[nx,ny] <> paletteselected
+                    ' Set the new distance based on the current distance
+                    map[nx,ny] = paletteselected
+                    ' Add new position to the list
+                    ol.AddLast(New pathnode(nx,ny))
+                End If
+            End If
+        Next
+    Wend
+    */    
+}
+
+void spritelibcopytocanvas(){
+    for(int y=0;y<spriteheight;y++){
+    for(int x=0;x<spritewidth;x++){
+        map[x][y] = spritelibmap[spritelibselected][x][y];
     }
     }
 }
