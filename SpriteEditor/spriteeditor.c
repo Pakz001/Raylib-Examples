@@ -210,6 +210,7 @@ static void previewline(bool drawit);
 static void previewselection(bool drawit);
 static void tilemapview(void);
 static void fillatposition(int x, int y,int oldcolor,int newcolor);
+static void midptellipse(int rx, int ry, int xc, int yc);
     
 int main(void)
 {
@@ -1761,8 +1762,8 @@ void spriteview(){
                             }
                         }
                         }
-                    }/*else if(toolselected == toolfilledcircleid || toolselected == tooloutlinecircleid){
-                    /*    //' add circle code here	
+                    }else if(toolselected == toolfilledcircleid || toolselected == tooloutlinecircleid){
+                        //' add circle code here	
                         
                         int w=abs(bcselectionstartx-bcselectionendx)+1;
                         int h=abs(bcselectionstarty-bcselectionendy)+1;
@@ -1774,25 +1775,26 @@ void spriteview(){
                             //tc.Clear(Color.Black)
                             //tc.Color = Color.White
                             
-                            BeginTextureMode(ti);
-                            ClearBackground(BLANK);
-                            EndTextureMode();
+                            //BeginTextureMode(ti);
+                            //ClearBackground(BLANK);
+                            //EndTextureMode();
 
                             //tc.OutlineMode=OutlineMode.Smooth
                             //tc.OutlineColor = Color.Green
                             //tc.OutlineWidth = 0
                             //tc.DrawOval(bcselectionstartx,bcselectionstarty,w-1,h-1)
-                            tc.DrawOval(bcselectionstartx,bcselectionstarty,w-1,h-1)
-                            
+                            //tc.DrawOval(bcselectionstartx,bcselectionstarty,w-1,h-1)
+                            midptellipse((w/2)-1,(h/2)-1,bcselectionstartx+w/2,bcselectionstarty+h/2);
                             //tc.Flush()
-                            For Local y:Int=0 Until spriteheight
-                            For Local x:Int=0 Until spritewidth
-                                If ti.GetPixel(x,y) = Color.Green
-                                    map[x,y] = paletteselected
-                                End If
-                            Next
-                            Next
-                        Else
+                            for(int y=0;y<spriteheight;y++){
+                            for(int x=0;x<spritewidth;x++){
+                                if(tempmap[x][y] == 1){
+                                    map[x][y] = paletteselected;
+                                }
+                            }
+                            }
+                        }else{
+                            /*
                             Local ti:Image = New Image(spritewidth,spriteheight)
                             Local tc:Canvas = New Canvas(ti)
                             tc.Clear(Color.Black)
@@ -1806,11 +1808,11 @@ void spriteview(){
                                 End If
                             Next
                             Next
-
+                            */
                         }
                     
                     }
-                    */
+                    
                     bcselectionendy=0;
                     bcselectionendx=0;
                     bcselectionstarty=0;
@@ -2198,6 +2200,90 @@ void fillatposition(int x, int y,int oldcolor,int newcolor)
  	 		
 	End Method
 */
+
+// For creating ovals(circles)
+//
+void midptellipse(int rx, int ry,  
+                  int xc, int yc){ 
+
+    // Erase the tempmap array.
+    for(int y=0;y<32;y++){
+        for(int x=0;x<32;x++){
+            tempmap[x][y] = 0;
+        }
+    }
+
+    float dx, dy, d1, d2, x, y; 
+    x = 0; 
+    y = ry; 
+  
+    // Initial decision parameter of region 1 
+    d1 = (ry * ry) - (rx * rx * ry) +  
+                     (0.25 * rx * rx); 
+    dx = 2 * ry * ry * x; 
+    dy = 2 * rx * rx * y; 
+  
+    // For region 1 
+    while (dx < dy)  
+    { 
+  
+        // Print points based on 4-way symmetry 
+        int tx[4] = {x+xc,-x+xc,x+xc,-x+xc};
+        int ty[4] = {y+yc,y+yc,-y+yc,-y+yc};
+        for(int i=0;i<4;i++){
+            if(tx[i]>=0 && tx[i]<32 && ty[i]>=0 && ty[i]<32)tempmap[tx[i]][ty[i]] = 1;
+        }
+        // Checking and updating value of 
+        // decision parameter based on algorithm 
+        if (d1 < 0) 
+        { 
+            x++; 
+            dx = dx + (2 * ry * ry); 
+            d1 = d1 + dx + (ry * ry); 
+        } 
+        else 
+        { 
+            x++; 
+            y--; 
+            dx = dx + (2 * ry * ry); 
+            dy = dy - (2 * rx * rx); 
+            d1 = d1 + dx - dy + (ry * ry); 
+        } 
+    } 
+  
+    // Decision parameter of region 2 
+    d2 = ((ry * ry) * ((x + 0.5) * (x + 0.5))) +  
+         ((rx * rx) * ((y - 1) * (y - 1))) - 
+          (rx * rx * ry * ry); 
+  
+    // Plotting points of region 2 
+    while (y >= 0) 
+    { 
+  
+        int tx[4] = {x+xc,-x+xc,x+xc,-x+xc};
+        int ty[4] = {y+yc,y+yc,-y+yc,-y+yc};
+        for(int i=0;i<4;i++){
+            if(tx[i]>=0 && tx[i]<32 && ty[i]>=0 && ty[i]<32)tempmap[tx[i]][ty[i]] = 1;
+        }
+
+        // Checking and updating parameter 
+        // value based on algorithm 
+        if (d2 > 0)  
+        { 
+            y--; 
+            dy = dy - (2 * rx * rx); 
+            d2 = d2 + (rx * rx) - dy; 
+        } 
+        else 
+        { 
+            y--; 
+            x++; 
+            dx = dx + (2 * ry * ry); 
+            dy = dy - (2 * rx * rx); 
+            d2 = d2 + dx - dy + (rx * rx); 
+        } 
+    } 
+} 
 
 bool rectsoverlap(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2){
     if((x1 >= (x2 + w2) || (x1 + w1) <= x2))return false;
