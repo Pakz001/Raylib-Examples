@@ -1,5 +1,8 @@
 // WORK IN PROGRESS CONVERSION....
-// 
+//
+// Conversion from the Monkey2 version that I wrote.
+//
+// Todo : the map editor, copy to clipboard, ovals!, testing. 
 
 #include "raylib.h"
 #include <math.h>
@@ -1798,7 +1801,7 @@ void spriteview(){
        
         //' Copy to clipboard
         if(IsKeyReleased(KEY_C)){
-            //copytoclipboard();
+            copytoclipboard();
         }
 
     }
@@ -2034,6 +2037,25 @@ void previewselection(bool drawit){
         DrawLine(x2,y1,x2,y2,BLACK);
     }
 }
+
+void copytoclipboard(){
+/*
+    Local out:String="int sprite["+spriteheight+"]["+spritewidth+"] = {"+String.FromChar(10)
+    For Local y:Int=spriteheight-1 to 0 Step -1
+        Local a:String
+    For Local x:Int=0 Until spritewidth
+        a+=map[x,y]+","
+    Next
+    Local l:Int=a.Length
+    a=a.Slice(0,a.Length-1)
+    out += "{"+a+"},"+String.FromChar(10)
+    Next
+    out=out.Slice(0,out.Length-2)
+    out+="};"
+    instance.ClipboardText = out
+*/
+}
+
 
 bool rectsoverlap(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2){
     if((x1 >= (x2 + w2) || (x1 + w1) <= x2))return false;
