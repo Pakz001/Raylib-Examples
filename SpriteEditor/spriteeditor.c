@@ -2,6 +2,8 @@
 //
 // Conversion from the Monkey2 version that I wrote.
 //
+// Press the 'c' key on the keyboard to export the current sprite data as a c array to the clipboard buffer.  
+//
 // Todo : the map editor,  ovals!, testing. 
 
 #include "raylib.h"
