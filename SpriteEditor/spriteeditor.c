@@ -354,6 +354,22 @@ int main(void)
     setuptoolview();
 
 
+    //' previewview setup
+    previewx = 640-100;
+    previewy = 200;
+    previewcellwidth = 2;
+    previewcellheight = 2;
+    previewwidth = 64;
+    previewheight = 64;
+    previewim = LoadRenderTexture(previewwidth,previewheight);//New Image(previewwidth,previewheight)
+    BeginTextureMode(previewim);
+    ClearBackground(BLANK);
+    EndTextureMode();
+
+    //previewcan = New Canvas(previewim)
+    updatepreview();
+
+
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -387,7 +403,7 @@ int main(void)
                     spritegrid();
                     //previewselection();		
                     paletteview();
-                    //previewview();
+                    previewview();
                     spritelibview();
                     toolview();
                 }else if(topbarcurrentid == topbarmapeditid){
@@ -1763,22 +1779,28 @@ void spriteview(){
 }
 
 void updatepreview(){			
-/*
-    previewcan.Clear(Color.Black)	
-    For Local y:Int=0 Until map.GetSize(1)
-    For Local x:Int=0 Until map.GetSize(0)
-        Local pointx:Int=x*previewcellwidth
-        Local pointy:Int=y*previewcellheight
-        If startsetuppalettemode = 0
-            previewcan.Color = c64color[map[x,y]]
-            Else
-            previewcan.Color = db32color[map[x,y]]
-        End If
-        previewcan.DrawRect(pointx,pointy,previewcellwidth,previewcellheight)
-    Next
-    Next
-    previewcan.Flush()
-*/
+    if(spritewidth==8)previewcellwidth=8;
+    if(spritewidth==16)previewcellwidth=4;
+    if(spritewidth==32)previewcellwidth=2;
+    //previewcan.Clear(Color.Black)	
+    for(int y=0;y<spriteheight;y++){
+    for(int x=0;x<spritewidth;x++){
+        int pointx=x*previewcellwidth;
+        int pointy=y*previewcellwidth;
+        BeginTextureMode(previewim);
+        if(startsetuppalettemode == 0){
+            DrawRectangle(pointx,pointy,previewcellwidth,previewcellwidth,c64color[map[x][y]]);
+            //previewcan.Color = c64color[map[x,y]]
+        }else{
+            //previewcan.Color = db32color[map[x,y]]
+            DrawRectangle(pointx,pointy,previewcellwidth,previewcellwidth,db32color[map[x][y]]);
+        }
+        EndTextureMode();
+        //previewcan.DrawRect(pointx,pointy,previewcellwidth,previewcellheight)
+    }
+    }
+    //previewcan.Flush()
+
 }
 
 void updatespritelib(){
@@ -1844,6 +1866,14 @@ void fillatposition(int x,int y){
     Wend
     */    
 }
+
+void previewview(){
+    //canvas.Color = Color.White
+    DrawRectangle(previewx,previewy,previewwidth,previewheight,WHITE);
+    //DrawTexture(previewim.texture,previewx+1,previewy+1,WHITE);		
+    DrawTextureRec(previewim.texture, (Rectangle){ 0,0, 64, -64 }, (Vector2){previewx,previewy}, WHITE);       
+}
+
 
 void spritelibcopytocanvas(){
     for(int y=0;y<spriteheight;y++){
