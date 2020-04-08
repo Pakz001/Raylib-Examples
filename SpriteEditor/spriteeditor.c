@@ -1,8 +1,9 @@
 // WORK IN PROGRESS CONVERSION....
+// WORK IN PROGRESS CONVERSION....
 //
 // Conversion from the Monkey2 version that I wrote.
 //
-// Todo : ovals!, testing. 
+// Todo : Floodfill,  ovals!, testing. 
 
 #include "raylib.h"
 #include <math.h>
@@ -390,11 +391,6 @@ int main(void)
 
 
     
-    // Tool image for filling circles inside
-    RenderTexture2D ti = LoadRenderTexture(32,32);
-    BeginTextureMode(ti);
-    ClearBackground(BLANK);
-    EndTextureMode();
     
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -458,17 +454,17 @@ int main(void)
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    for(int i=0;i<5;i++){
+    for(int i=0;i<numstartsetup;i++){
         UnloadRenderTexture(startsetupim[i]);
     }
-    for(int i=0;i<16;i++){
+    for(int i=0;i<numtools;i++){
         UnloadRenderTexture(toolim[i]);
     }
-    for(int i=0;i<80*4;i++){
+    for(int i=0;i<numspritelib;i++){
         UnloadRenderTexture(spritelibim[i]);
     }
     UnloadRenderTexture(previewim);
-    for(int i=0;i<3;i++){
+    for(int i=0;i<2;i++){
         UnloadRenderTexture(topbarim[i]);
     }
     for(int i=0;i<4;i++){
