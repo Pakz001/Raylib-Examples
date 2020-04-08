@@ -1784,7 +1784,7 @@ void spriteview(){
                             //tc.OutlineWidth = 0
                             //tc.DrawOval(bcselectionstartx,bcselectionstarty,w-1,h-1)
                             //tc.DrawOval(bcselectionstartx,bcselectionstarty,w-1,h-1)
-                            midptellipse((w/2)-1,(h/2)-1,bcselectionstartx+w/2,bcselectionstarty+h/2);
+                            midptellipse((w/2)-1,(h/2)-1,bcselectionstartx+w/2,bcselectionstarty+h/2);                            
                             //tc.Flush()
                             for(int y=0;y<spriteheight;y++){
                             for(int x=0;x<spritewidth;x++){
