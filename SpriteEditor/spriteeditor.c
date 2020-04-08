@@ -2,9 +2,7 @@
 //
 // Conversion from the Monkey2 version that I wrote.
 //
-// Press the 'c' key on the keyboard to export the current sprite data as a c array to the clipboard buffer.  
-//
-// Todo : the map editor,  ovals!, testing. 
+// Todo : Floodfill,  ovals!, testing. 
 
 #include "raylib.h"
 #include <math.h>
@@ -89,7 +87,7 @@ static	int tilemaptileshorizontal;
 static  int tilemaptilesvertical;
 static	int tilemaptilesscreenhorizontal=100;
 static	int tilemaptilesscreenvertical=100;
-static	int tilemap[100][100];
+static	int tilemap[100][100]={0};
 	//'
 	//'sprite view
 static	int map[32][32]; // 8 = edit canvas width
@@ -208,6 +206,8 @@ static void updatepreview(void);
 static void spritelibcopytocanvas(void);
 static void previewline(bool drawit);
 static void previewselection(bool drawit);
+static void tilemapview(void);
+
     
 int main(void)
 {
@@ -375,6 +375,19 @@ int main(void)
 
     //previewcan = New Canvas(previewim)
     updatepreview();
+
+    //tilemap setup
+    tilemapx = 0;
+    tilemapy = 32;
+    tilemaptileshorizontal = 100;
+    tilemaptilesvertical = 100;
+    tilemapwidth = 640;
+    tilemapheight= 256;
+    //tilemaptilesscreenhorizontal = tilemapwidth/(spritewidth*spritelibscale);
+    //tilemaptilesscreenvertical = tilemapheight/(spriteheight*spritelibscale);
+    //tilemap = New Int[tilemaptileshorizontal,tilemaptilesvertical]
+
+
     
     // Tool image for filling circles inside
     RenderTexture2D ti = LoadRenderTexture(32,32);
@@ -419,6 +432,8 @@ int main(void)
                     spritelibview();
                     toolview();
                     
+                    // The editing got a little slow with the update so here
+                    // it now updates the preview and lib every 100 frames.
                     timeupd++;
                     if(timeupd>100){
                         updatepreview();
@@ -427,11 +442,12 @@ int main(void)
                     }
 
                 }else if(topbarcurrentid == topbarmapeditid){
-                    //bottombarview();
-                    //middlebarview();
-                    //topbarview();
-                    //tilemapview();
-                    //spritelibview();
+                    tilemapview();
+                    bottombarview();
+                    middlebarview();
+                    topbarview();
+                    spritelibview();
+
                 }
             }
             DrawText(FormatText("%i",weasel),0,0,20,BLACK);
@@ -734,6 +750,7 @@ void startsetupview(){
                 //selectionbuffer = New Int[spritewidth,spriteheight];	
                 gridwidth = canvaswidth/spritewidth;		
                 gridheight = canvasheight/spriteheight;
+                //weasel = tilemaptilesscreenhorizontal;
                 //spritelibmap = New Int[numspritelib,spritewidth,spriteheight];					
                 break;
             case 1:
@@ -1672,7 +1689,7 @@ void spriteview(){
             if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,gridwidth,gridheight)){
                 
                 if(toolselected == toolfilledrectid || toolselected == tooloutlinerectid || toolselected == toolfilledcircleid || toolselected == tooloutlinecircleid){
-                    weasel=-100;
+                    
                     if(bcselectionpressed == false && bcselectionactive == false){
                         
                         bcselectionactive = true;
@@ -1710,7 +1727,7 @@ void spriteview(){
             if(toolselected == toolfilledrectid || toolselected == tooloutlinerectid || toolselected == toolfilledcircleid || toolselected == tooloutlinecircleid){
                         
                 if(bcselectionactive == true){
-                    weasel=GetRandomValue(0,100);                
+
                     //'previewselection(canvas,True)
                     bcselectionactive = false;
                     bcselectionpressed = false;	
@@ -2091,6 +2108,37 @@ void copytoclipboard(){
 
     SetClipboardText(output1);
 
+}
+
+void tilemapview(){
+//    canvas.Color = Color.Black
+//    canvas.DrawRect(tilemapx,tilemapy,tilemapwidth,tilemapheight)
+    DrawRectangle(tilemapx,tilemapy,tilemapwidth,tilemapheight,BLACK);
+//    canvas.Color = Color.White
+    
+    for(int y=0; y<tilemaptilesscreenvertical;y++){
+    for(int x=0; x<tilemaptilesscreenhorizontal;x++){
+        int pointx=(x*spritewidth*spritelibscale)+tilemapx;
+        int pointy=(y*spriteheight*spritelibscale)+tilemapy;
+        //canvas.DrawImage(spritelibim[tilemap[x,y]],pointx,pointy)			
+        //DrawTexture(spritelibim[tilemap[x][y]].texture,pointx,pointy,WHITE);
+        DrawTextureRec( spritelibim[tilemap[x][y]].texture,
+                        (Rectangle){ 0, 0, 
+                        spritelibim[tilemap[x][y]].texture.width, 
+                        -spritelibim[tilemap[x][y]].texture.height }, 
+                        (Vector2){pointx,pointy}, WHITE);
+    }}
+    
+    if(IsMouseButtonDown(0)){
+        if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,tilemapx,tilemapy,tilemapwidth,tilemapheight)){
+            int x=(GetMouseX()-tilemapx) / (spritewidth*spritelibscale);
+            int y=(GetMouseY()-tilemapy) / (spriteheight*spritelibscale);
+            if(x<0 || y<0 || x>=tilemaptileshorizontal || y>=tilemaptilesvertical){
+            }else{
+            tilemap[x][y] = spritelibselected;            
+            }
+        }
+    }
 }
 
 
