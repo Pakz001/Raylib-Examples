@@ -201,7 +201,9 @@ static void spriteview(void);
 static void updatespritelib(void);
 static void updatepreview(void);
 static void spritelibcopytocanvas(void);
-
+static void previewline(bool drawit);
+static void previewselection(bool drawit);
+    
 int main(void)
 {
     // Initialization
@@ -368,12 +370,17 @@ int main(void)
 
     //previewcan = New Canvas(previewim)
     updatepreview();
-
-
- 
+    
+    // Tool image for filling circles inside
+    RenderTexture2D ti = LoadRenderTexture(32,32);
+    BeginTextureMode(ti);
+    ClearBackground(BLANK);
+    EndTextureMode();
+    
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
+    int timeupd=0; // update what is being drawn into preview window and lib
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -399,13 +406,21 @@ int main(void)
                     middlebarview();                    
                     topbarview();
                     spriteview();
-                    //previewline();
+                    previewline(false);
                     spritegrid();
-                    //previewselection();		
+                    previewselection(false);		
                     paletteview();
                     previewview();
                     spritelibview();
                     toolview();
+                    
+                    timeupd++;
+                    if(timeupd>100){
+                        updatepreview();
+                        updatespritelib();
+                        timeupd=0;
+                    }
+
                 }else if(topbarcurrentid == topbarmapeditid){
                     //bottombarview();
                     //middlebarview();
@@ -414,7 +429,7 @@ int main(void)
                     //spritelibview();
                 }
             }
-            //DrawText(FormatText("%i",spritewidth),0,0,20,BLACK);
+            DrawText(FormatText("%i",weasel),0,0,20,BLACK);
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
@@ -1503,10 +1518,10 @@ void spritelibview(){
 
 void spriteview(){
     
-    //canvas.Color = Color.Grey
     
     for(int y=0;y<spriteheight;y++){
     for(int x=0;x<spritewidth;x++){
+
         int pointx=(x*gridwidth)+canvasx;
         int pointy=(y*gridheight)+canvasy;
         //'canvas.DrawRect()
@@ -1535,202 +1550,218 @@ void spriteview(){
 
             }
         }
-/*
-        ' Line tool
-        If Mouse.ButtonDown(MouseButton.Left)
-            If rectsoverlap(Mouse.X,Mouse.Y,1,1,pointx,pointy,gridwidth,gridheight)
-                If toolselected = toollineid
-                    If linepressed = False And lineactive = False
-                        lineactive = True
-                        linepressed = True
-                        linestartx = x
-                        linestarty = y							
-                    End If
-                    If lineactive = True
-                        lineendx = x
-                        lineendy = y
-                        
-                    End If					
-                End If
-            End If
-        End If
-        If Mouse.ButtonDown(MouseButton.Left) = False
-            If toolselected = toollineid
-                If lineactive = True						
-                    previewline(canvas,True)
-                    lineactive = False
-                    linepressed = False						
-                End If
-            End If
-        End if
+
+        // Line tool
+        if(IsMouseButtonDown(0)){
+            if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,gridwidth,gridheight)){
+                if(toolselected == toollineid){
+                    if(linepressed == false && lineactive == false){
+                        lineactive = true;
+                        linepressed = true;
+                        linestartx = x;
+                        linestarty = y;						
+                    }
+                    if(lineactive == true){
+                        lineendx = x;
+                        lineendy = y;                      
+                    }
+                }
+            }
+        }
+        if(IsMouseButtonDown(0) == false){
+            if(toolselected == toollineid){
+                if(lineactive == true){						
+                    previewline(true);
+                    lineactive = false;
+                    linepressed = false;						
+                }
+            }
+        }
         
-        ' Selection Tool
-        If Mouse.ButtonDown(MouseButton.Left)
-            If rectsoverlap(Mouse.X,Mouse.Y,1,1,pointx,pointy,gridwidth,gridheight)
-                If toolselected = toolselectionid
-                    If selectionpressed = False And selectionactive = False
-                        selectionactive = True
-                        selectionpressed = True
-                        selectionstartx = x
-                        selectionstarty = y
-                        selectionnegativeswitchx = True
-                        selectionnegativeswitchy = True
-                    End If
-                    If selectionactive = True
-                        selectionendx = x
-                        selectionendy = y
-                        If selectionendx < selectionstartx Then 
-                            selectionendx-=1
-                            If selectionnegativeswitchx Then 
-                                selectionnegativeswitchx = False
-                                selectionstartx+=1
-                            End If
-                        End If
-                        If selectionendy < selectionstarty Then 
-                            selectionendy-=1
-                            If selectionnegativeswitchy Then 
-                                selectionnegativeswitchy = False
-                                selectionstarty+=1
-                            End If
-                        End If
+        //' Selection Tool
+        if(IsMouseButtonDown(0)){
+            if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,gridwidth,gridheight)){
+                if(toolselected == toolselectionid){
+                    if(selectionpressed == false && selectionactive == false){
+                        selectionactive = true;
+                        selectionpressed = true;
+                        selectionstartx = x;
+                        selectionstarty = y;
+                        selectionnegativeswitchx = true;
+                        selectionnegativeswitchy = true;
+                    }
+                    if(selectionactive == true){
+                        selectionendx = x;
+                        selectionendy = y;
+                        if(selectionendx < selectionstartx){
+                            selectionendx-=1;
+                            if(selectionnegativeswitchx){
+                                selectionnegativeswitchx = false;
+                                selectionstartx+=1;
+                            }
+                        }
+                        if(selectionendy < selectionstarty){
+                            selectionendy-=1;
+                            if(selectionnegativeswitchy){
+                                selectionnegativeswitchy = false;
+                                selectionstarty+=1;
+                            }
+                        }
                         
-                    End If						
-                End If
-            End If
-        End If
-        If Mouse.ButtonDown(MouseButton.Left) = False
-            If toolselected = toolselectionid
-                If selectionactive = True						
-                    'previewselection(canvas,True)
-                    selectionactive = False
-                    selectionpressed = False	
+                    }						
+                }
+            }
+        }
+        if(IsMouseButtonDown(0) == false){
+            if(toolselected == toolselectionid){
+                if(selectionactive == true){
+                    //'previewselection(canvas,True)
+                    selectionactive = false;
+                    selectionpressed = false;	
 
-                    ' if the end is smaller then then start then switch them
-                    If selectionendx<selectionstartx Then 
-                        Local a:Int=selectionstartx
-                        Local b:Int=selectionendx
-                        selectionstartx = b+1 
-                        selectionendx = a -1
-                    End If
-                    If selectionendy<selectionstarty Then
-                        Local a:Int=selectionstarty
-                        Local b:Int=selectionendy
-                        selectionstarty = b +1
-                        selectionendy = a -1 
-                    End If
+                    //' if the end is smaller then then start then switch them
+                    if(selectionendx<selectionstartx){ 
+                        int a=selectionstartx;
+                        int b=selectionendx;
+                        selectionstartx = b+1;
+                        selectionendx = a -1;
+                    }
+                    if(selectionendy<selectionstarty){
+                        int a=selectionstarty;
+                        int b=selectionendy;
+                        selectionstarty = b +1;
+                        selectionendy = a -1 ;
+                    }
+                }
+            }
+        }
+        
+        //' Remove the selection with rmb
+        if(IsMouseButtonDown(1) == true){
+            selectionstartx=0;
+            selectionstarty=0;
+            selectionendx=0;
+            selectionendy=0;
+        }
+        
+        
+        //'		
+        //' Mouse down (MIDDLE) Color Picker
+        if(IsMouseButtonDown(2)){
+            if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,gridwidth,gridheight)){
+                paletteselected = map[x][y];
+            }
+        }
+        
+        if(IsMouseButtonDown(0)){
+            if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,gridwidth,gridheight)){
+                if(toolselected == toolcolorpickerid){
+                    paletteselected = map[x][y];
+                }
+            }
+        }
 
-                    '
-                End If
-            End If
-        End if
-
-        ' Remove the selection with rmb
-        If Mouse.ButtonDown(MouseButton.Right) = True
-            selectionstartx=0
-            selectionstarty=0
-            selectionendx=0
-            selectionendy=0
-        End If
+         //'
+        //' Mouse Down(LEFT) Filled rect / outlined rect / filled circle / outlined circle
+        if(IsMouseButtonDown(0)){
+            if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,gridwidth,gridheight)){
                 
-        '		
-        ' Mouse down (MIDDLE) Color Picker
-        If Mouse.ButtonDown(MouseButton.Middle)
-            If rectsoverlap(Mouse.X,Mouse.Y,1,1,pointx,pointy,gridwidth,gridheight)
-                paletteselected = map[x,y]
-            End If
-        End if
-        If Mouse.ButtonDown(MouseButton.Left)
-            If rectsoverlap(Mouse.X,Mouse.Y,1,1,pointx,pointy,gridwidth,gridheight)
-                If toolselected = toolcolorpickerid
-                    paletteselected = map[x,y]
-                End If
-            End If
-        End if
-
-        '
-        ' Mouse Down(LEFT) Filled rect / outlined rect / filled circle / outlined circle
-        If Mouse.ButtonDown(MouseButton.Left)
-            If rectsoverlap(Mouse.X,Mouse.Y,1,1,pointx,pointy,gridwidth,gridheight)
-                If toolselected = toolfilledrectid Or toolselected = tooloutlinerectid Or toolselected = toolfilledcircleid Or toolselected = tooloutlinecircleid
-                    If bcselectionpressed = False And bcselectionactive = False
-                        bcselectionactive = True
-                        bcselectionpressed = True
-                        bcselectionstartx = x
-                        bcselectionstarty = y
-                        bcselectionnegativeswitchx = True
-                        bcselectionnegativeswitchy = True
-                    End If
-                    If bcselectionactive = True
-                        bcselectionendx = x
-                        bcselectionendy = y
-                        If bcselectionendx < bcselectionstartx Then 
-                            bcselectionendx-=1
-                            If bcselectionnegativeswitchx Then 
-                                bcselectionnegativeswitchx = False
-                                bcselectionstartx+=1
-                            End If
-                        End If
-                        If bcselectionendy < bcselectionstarty Then 
-                            bcselectionendy-=1
-                            If bcselectionnegativeswitchy Then 
-                                bcselectionnegativeswitchy = False
-                                bcselectionstarty+=1
-                            End If
-                        End If
+                if(toolselected == toolfilledrectid || toolselected == tooloutlinerectid || toolselected == toolfilledcircleid || toolselected == tooloutlinecircleid){
+                    weasel=-100;
+                    if(bcselectionpressed == false && bcselectionactive == false){
                         
-                    End If						
-                End If
-            End If
-        End If
-        If Mouse.ButtonDown(MouseButton.Left) = False
-            If toolselected = toolfilledrectid Or toolselected = tooloutlinerectid Or toolselected = toolfilledcircleid Or toolselected = tooloutlinecircleid
-                If bcselectionactive = True						
-                    'previewselection(canvas,True)
-                    bcselectionactive = False
-                    bcselectionpressed = False	
-
-                    ' if the end is smaller then then start then switch them
-                    If bcselectionendx<bcselectionstartx Then 
-                        Local a:Int=bcselectionstartx
-                        Local b:Int=bcselectionendx
-                        bcselectionstartx = b+1 
-                        bcselectionendx = a -1
-                    End If
-                    If bcselectionendy<bcselectionstarty Then
-                        Local a:Int=bcselectionstarty
-                        Local b:Int=bcselectionendy
-                        bcselectionstarty = b +1
-                        bcselectionendy = a -1 
-                    End If
-                    '
-                    ' Do the filling
-                    If toolselected = toolfilledrectid Or toolselected = tooloutlinerectid
-                        For Local y:Int=bcselectionstarty To bcselectionendy
-                        For Local x:Int=bcselectionstartx To bcselectionendx
-                            If toolselected = toolfilledrectid Then map[x,y] = paletteselected
-                            If toolselected = tooloutlinerectid
-                                If x = bcselectionstartx Or x = bcselectionendx Or y = bcselectionendy Or y=bcselectionstarty
-                                    map[x,y] = paletteselected
-                                End If
-                            End If
-                        Next
-                        Next
-                    Elseif toolselected = toolfilledcircleid Or toolselected = tooloutlinecircleid
-                        ' add circle code here	
+                        bcselectionactive = true;
+                        bcselectionpressed = true;
+                        bcselectionstartx = x;
+                        bcselectionstarty = y;
+                        bcselectionnegativeswitchx = true;
+                        bcselectionnegativeswitchy = true;
+                    }
+                    if(bcselectionactive == true){
+                        bcselectionendx = x;
+                        bcselectionendy = y;
+                        if(bcselectionendx < bcselectionstartx){
+                            bcselectionendx-=1;
+                            if(bcselectionnegativeswitchx){
+                                bcselectionnegativeswitchx = false;
+                                bcselectionstartx+=1;
+                            }
+                        }
+                        if(bcselectionendy < bcselectionstarty){ 
+                            bcselectionendy-=1;
+                            if(bcselectionnegativeswitchy){
+                                bcselectionnegativeswitchy = false;
+                                bcselectionstarty+=1;
+                            }
+                        }
                         
-                        Local w:Int=Abs(bcselectionstartx-bcselectionendx)+1
-                        Local h:Int=Abs(bcselectionstarty-bcselectionendy)+1
+                    }					
+                }
+            }
+        }
+        
+        if(IsMouseButtonDown(0) == false){           
+            
+            if(toolselected == toolfilledrectid || toolselected == tooloutlinerectid || toolselected == toolfilledcircleid || toolselected == tooloutlinecircleid){
+                        
+                if(bcselectionactive == true){
+                    weasel=GetRandomValue(0,100);                
+                    //'previewselection(canvas,True)
+                    bcselectionactive = false;
+                    bcselectionpressed = false;	
 
-                        If toolselected = tooloutlinecircleid						
-                            Local ti:Image = New Image(spritewidth,spriteheight)
-                            Local tc:Canvas = New Canvas(ti)
-                            tc.Clear(Color.Black)
-                            tc.Color = Color.White
-                            tc.OutlineMode=OutlineMode.Smooth
-                            tc.OutlineColor = Color.Green
-                            tc.OutlineWidth = 0
+                    //' if the end is smaller then then start then switch them
+                    if(bcselectionendx<bcselectionstartx){
+                        int a=bcselectionstartx;
+                        int b=bcselectionendx;
+                        bcselectionstartx = b+1;
+                        bcselectionendx = a -1;
+                    }
+                    if(bcselectionendy<bcselectionstarty){
+                        int a=bcselectionstarty;
+                        int b=bcselectionendy;
+
+                        bcselectionstarty = b +1;
+                        bcselectionendy = a -1; 
+                    }
+                    //'
+                    //' Do the filling
+                    if(toolselected == toolfilledrectid || toolselected == tooloutlinerectid){
+                        
+                        for(int y=bcselectionstarty;y<=bcselectionendy;y++){
+                        for(int x=bcselectionstartx;x<=bcselectionendx;x++){
+                            if(toolselected == toolfilledrectid)map[x][y] = paletteselected;
+                            if(toolselected == tooloutlinerectid){
+                                if(x == bcselectionstartx || x == bcselectionendx || y == bcselectionendy || y==bcselectionstarty){
+                                    map[x][y] = paletteselected;
+                                }
+                            }
+                        }
+                        }
+                    }/*else if(toolselected == toolfilledcircleid || toolselected == tooloutlinecircleid){
+                    /*    //' add circle code here	
+                        
+                        int w=abs(bcselectionstartx-bcselectionendx)+1;
+                        int h=abs(bcselectionstarty-bcselectionendy)+1;
+
+                        if(toolselected == tooloutlinecircleid){
+                            //Local ti:Image = New Image(spritewidth,spriteheight)
+                            //Local tc:Canvas = New Canvas(ti)
+                            
+                            //tc.Clear(Color.Black)
+                            //tc.Color = Color.White
+                            
+                            BeginTextureMode(ti);
+                            ClearBackground(BLANK);
+                            EndTextureMode();
+
+                            //tc.OutlineMode=OutlineMode.Smooth
+                            //tc.OutlineColor = Color.Green
+                            //tc.OutlineWidth = 0
+                            //tc.DrawOval(bcselectionstartx,bcselectionstarty,w-1,h-1)
                             tc.DrawOval(bcselectionstartx,bcselectionstarty,w-1,h-1)
-                            tc.Flush()
+                            
+                            //tc.Flush()
                             For Local y:Int=0 Until spriteheight
                             For Local x:Int=0 Until spritewidth
                                 If ti.GetPixel(x,y) = Color.Green
@@ -1753,30 +1784,29 @@ void spriteview(){
                             Next
                             Next
 
-                        End If
+                        }
                     
-                    End If
-                    '
-                    bcselectionendy=0
-                    bcselectionendx=0
-                    bcselectionstarty=0
-                    bcselectionstartx=0
-                End If
-            End If
-        End if
-            
-        
-        ' Copy to clipboard
-        If Keyboard.KeyReleased(Key.C)
-            copytoclipboard()
-        End if
-    */
+                    }
+                    */
+                    bcselectionendy=0;
+                    bcselectionendx=0;
+                    bcselectionstarty=0;
+                    bcselectionstartx=0;
+                }
+            }
+        }
+       
+        //' Copy to clipboard
+        if(IsKeyReleased(KEY_C)){
+            //copytoclipboard();
+        }
+
     }
     }
-    
-    updatepreview();
-    updatespritelib();
+ //   updatepreview()
+ //   updatespritelib()
 }
+
 
 void updatepreview(){			
     if(spritewidth==8)previewcellwidth=8;
@@ -1883,6 +1913,127 @@ void spritelibcopytocanvas(){
     }
 }
 
+void previewline(bool drawit){
+    if(lineactive == false)return;
+   
+    int x1=linestartx;
+    int y1=linestarty;
+    int x2=lineendx;
+    int y2=lineendy;		
+    int dx;
+    int dy;
+    int sx;
+    int sy;
+    int e;
+
+    dx = abs(x2 - x1);
+    sx = -1;
+    if(x1 < x2)sx = 1;      
+    dy = abs(y2 - y1);
+    sy = -1;
+    if(y1 < y2)sy = 1;
+    if(dx < dy){
+        e = dx / 2;
+    }else{
+        e = dy / 2;        
+    }
+    bool exitloop=false;
+    while(exitloop == false){
+        int pointx=canvasx+(x1*gridwidth);
+        int pointy=canvasy+(y1*gridheight);
+        if(startsetuppalettemode == 0){
+            //canvas.Color = c64color[paletteselected]
+            DrawRectangle(pointx,pointy,gridwidth,gridheight,c64color[paletteselected]);  
+        }else{
+            //canvas.Color = db32color[paletteselected]
+            DrawRectangle(pointx,pointy,gridwidth,gridheight,db32color[paletteselected]);  
+        }
+        //canvas.DrawRect(pointx,pointy,gridwidth,gridheight)  
+        if(drawit==true){
+            if(x1<0 || y1<0 || x1>=spritewidth || y1>=spriteheight)break;
+            map[x1][y1] = paletteselected;
+        }
+        if(x1 == x2){
+          if(y1 == y2){
+              exitloop = true;
+          }
+        }
+        if(dx > dy){
+            x1 += sx;
+            e -= dy;
+            if(e < 0){
+              e += dx;
+              y1 += sy;
+            }
+        }else{
+          y1 += sy;
+          e -= dx; 
+          if(e < 0){
+            e += dy;
+            x1 += sx;
+          }
+        }
+      
+    }
+        
+}
+
+
+//' Selection for the selection tool or the filled outlined tools
+//'
+void previewselection(bool drawit){
+    //' the selection rectangle
+    if(selectionstartx == selectionendx && selectionstarty == selectionendy){
+    }else{
+        int x1=canvasx+(selectionstartx*gridwidth);
+        int y1=canvasy+(selectionstarty*gridheight);
+        int x2=canvasx+((selectionendx+1)*gridwidth);
+        int y2=canvasy+((selectionendy+1)*gridheight);		
+                
+        
+        //canvas.Color = Color.White
+        DrawLine(x1,y1,x2,y1,WHITE);
+        DrawLine(x1,y1,x1,y2,WHITE);
+        DrawLine(x1,y2,x2,y2,WHITE);
+        DrawLine(x2,y1,x2,y2,WHITE);
+        //Color = Color.Black
+        x1+=1;y1+=1;x2-=1;y2-=1;
+        DrawLine(x1,y1,x2,y1,BLACK);
+        DrawLine(x1,y1,x1,y2,BLACK);
+        DrawLine(x1,y2,x2,y2,BLACK);
+        DrawLine(x2,y1,x2,y2,BLACK);
+        x1+=2;y1+=2;x2-=2;y2-=2;
+        DrawLine(x1,y1,x2,y1,BLACK);
+        DrawLine(x1,y1,x1,y2,BLACK);
+        DrawLine(x1,y2,x2,y2,BLACK);
+        DrawLine(x2,y1,x2,y2,BLACK);
+    }
+    //' the filled outlined tool
+    if(bcselectionstartx == bcselectionendx && bcselectionstarty == bcselectionendy){
+    }else{
+        int x1=canvasx+(bcselectionstartx*gridwidth);
+        int y1=canvasy+(bcselectionstarty*gridheight);
+        int x2=canvasx+((bcselectionendx+1)*gridwidth);
+        int y2=canvasy+((bcselectionendy+1)*gridheight);		
+        
+        //canvas.Color = Color.White
+        DrawLine(x1,y1,x2,y1,WHITE);
+        DrawLine(x1,y1,x1,y2,WHITE);
+        DrawLine(x1,y2,x2,y2,WHITE);
+        DrawLine(x2,y1,x2,y2,WHITE);
+        //canvas.Color = Color.Black
+        x1+=1;y1+=1;x2-=1;y2-=1;
+        DrawLine(x1,y1,x2,y1,BLACK);
+        DrawLine(x1,y1,x1,y2,BLACK);
+        DrawLine(x1,y2,x2,y2,BLACK);
+        DrawLine(x2,y1,x2,y2,BLACK);
+        x1+=2;y1+=2;x2-=2;y2-=2;
+        DrawLine(x1,y1,x2,y1,BLACK);
+        DrawLine(x1,y1,x1,y2,BLACK);
+        DrawLine(x1,y2,x2,y2,BLACK);
+        DrawLine(x2,y1,x2,y2,BLACK);
+    }
+}
 
 bool rectsoverlap(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2){
     if((x1 >= (x2 + w2) || (x1 + w1) <= x2))return false;
