@@ -2,7 +2,7 @@
 //
 // Conversion from the Monkey2 version that I wrote.
 //
-// Todo : Floodfill,  ovals!, testing. 
+// Todo : ovals!, testing. 
 
 #include "raylib.h"
 #include <math.h>
@@ -90,7 +90,7 @@ static	int tilemaptilesscreenvertical=100;
 static	int tilemap[100][100]={0};
 	//'
 	//'sprite view
-static	int map[32][32]; // 8 = edit canvas width
+static int map[32][32]; // 8 = edit canvas width
 static	int canvasx;
 static  int canvasy; //'canvas x and y position on the scrern
 static	float canvaswidth=256;
@@ -139,6 +139,7 @@ static	bool bcselectionnegativeswitchy = false;
 static	Color c64color[16];  //' our colors
 static	Color db32color[32];// ' our colors	
 static	int paletteselected;// ' our selected color from palette
+static  int paletteundermouse; // for floodfill
 static	int paletteeraser;
 static	int palettex;
 static  int palettey; //'screen x and y
@@ -207,7 +208,7 @@ static void spritelibcopytocanvas(void);
 static void previewline(bool drawit);
 static void previewselection(bool drawit);
 static void tilemapview(void);
-
+static void fillatposition(int x, int y,int oldcolor,int newcolor);
     
 int main(void)
 {
@@ -1566,13 +1567,17 @@ void spriteview(){
                 if(toolselected == tooleraserid){
                     map[x][y] = paletteeraser;
                 }
-                if(toolselected == toolfillid){
-                    fillatposition(x,y);
-                }
 
             }
         }
-
+        if(IsMouseButtonPressed(0)){
+            if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,gridwidth,gridheight)){								
+                if(toolselected == toolfillid){
+                    paletteundermouse = map[x][y];
+                    fillatposition(x,y,map[x][y],paletteselected);
+                }
+            }
+        }
         // Line tool
         if(IsMouseButtonDown(0)){
             if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,gridwidth,gridheight)){
@@ -1878,8 +1883,8 @@ void updatespritelib(){
 
 }
 
-void fillatposition(int x,int y){
     /*
+void fillatposition(int x,int y){
     Local ol:List<pathnode> = New List<pathnode>
     ' Add the start position on the list
     ol.AddLast(New pathnode(x,y))
@@ -1916,8 +1921,9 @@ void fillatposition(int x,int y){
             End If
         Next
     Wend
-    */    
+    
 }
+*/    
 
 void previewview(){
     //canvas.Color = Color.White
@@ -2141,6 +2147,61 @@ void tilemapview(){
     }
 }
 
+
+void fillatposition(int x, int y,int oldcolor,int newcolor)
+{   
+    if(x<0 || x>=10 || y<0 || y>=10)return;
+    if(map[x][y] == oldcolor){
+        map[x][y] = newcolor;
+        fillatposition(x-1,y,oldcolor,newcolor);
+        fillatposition(x+1,y,oldcolor,newcolor);
+        fillatposition(x,y-1,oldcolor,newcolor);
+        fillatposition(x,y+1,oldcolor,newcolor);
+        return;
+    }
+
+}
+/*
+	Method fillatposition(x:Int,y:Int)
+		Local ol:List<pathnode> = New List<pathnode>
+	 	' Add the start position on the list
+	 	ol.AddLast(New pathnode(x,y))
+	 	' set the cloes map at the start position to distance 1
+	 	Local colorundermouse:Int=map[x,y]
+	 	map[x,y] = paletteselected
+	 	
+	 	' some helper arrays. We can determine the top,right,and bottom
+	 	' and left position cells with these numbers.
+	 	Local dx:Int[] = New Int[](0,1,0,-1)
+	 	Local dy:Int[] = New Int[](-1,0,1,0)
+	 	' While there is contents in the list
+	 	While ol.Count() <> 0
+		 	
+	 		' Get the current location
+	 		Local x1:Int=ol.First.x
+	 		Local y1:Int=ol.First.y
+	 		' Remove the current location from the list
+	 		ol.RemoveFirst()
+	 		' Get 4 new positions around the current positions
+			For Local i:=0 Until 4
+				' Set new x and y
+				Local nx:Int=x1+dx[i]
+				Local ny:Int=y1+dy[i]
+				' If the coordinates are inside the map
+				If nx>=0 And ny>=0 And nx<spritewidth And ny<spriteheight
+					' If the closedmap is not written to yet
+		 			If map[nx,ny] = colorundermouse And map[nx,ny] <> paletteselected
+		 				' Set the new distance based on the current distance
+		 				map[nx,ny] = paletteselected
+		 				' Add new position to the list
+		 				ol.AddLast(New pathnode(nx,ny))
+		 			End If
+	 			End If
+			Next
+	 	Wend
+ 	 		
+	End Method
+*/
 
 bool rectsoverlap(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2){
     if((x1 >= (x2 + w2) || (x1 + w1) <= x2))return false;
