@@ -13,9 +13,8 @@ int main(void)
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
-    
-    
-    char output1[16] = "Test1";
+
+    char output1[16] = "Test1\n"; // new line is '\n'
     int i = 247593;
     char output2[10];
     // put int into output2
