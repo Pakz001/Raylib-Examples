@@ -1,10 +1,11 @@
 
 #include "raylib.h"
-#include <math.h>
+//#include <math.h>
 
 #define MAX_AI 100
 #define MAX_BULLETS 100
 #define MAX_MONEY 100
+#define MAX_ROT 100
 
 static int map[300][300];
 
@@ -85,9 +86,24 @@ typedef struct money{
     float fallspeed;
 }monkey;
 
-static struct bullet arr_bullet[MAX_BULLETS];
-static struct ai arr_ai[MAX_AI];
-static struct money arr_money[MAX_MONEY];
+typedef struct rot{
+    bool active;
+	float ang;
+	float sine;
+	int angdir;
+    double timedelay;
+    int cnt;
+	float chainx[3];
+    float chainy[3];
+	float ballx;
+    float bally;
+}rot;
+
+
+static struct bullet arr_bullet[MAX_BULLETS]={0};
+static struct ai arr_ai[MAX_AI]={0};
+static struct money arr_money[MAX_MONEY]={0};
+static struct rot arr_rot[MAX_ROT]={0};
 static game g = {0};
 static player p = {0};
 
@@ -119,7 +135,10 @@ static void inibullet(int x,int y,int dir);
 static void drawmoney(void);
 static void drawmoneyimage(int x,int y);
 static void inimoney(int x,int y);
-static void updatemoney(void);
+static void updatemoney(void);static void drawrot(void);
+static void updaterot(void);
+static void inirot(int x,int y);
+
     
 int main(void)
 {
@@ -143,6 +162,7 @@ int main(void)
         //----------------------------------------------------------------------------------
         updateai();    
         updatebullets();
+        updaterot();
         gravity();
         updatemoney();
         playercontrols();
@@ -159,6 +179,7 @@ int main(void)
             ClearBackground(BLACK);
             drawbullets();
             drawmoney();
+            drawrot();
             drawlevel();
             drawai();
             drawplayer();
@@ -240,7 +261,7 @@ void readlevel(int level){
             iniai(x*32,y*32-32,1);
             break;
             case 4: //; rotating thing
-            //inirot(x*32,y*32-32)
+            inirot(x*32,y*32-32);
             break;
             case 5: //; spikes
             map[x][y] = 2;
@@ -271,7 +292,7 @@ void readlevel(int level){
             iniai(x1*32,y1*32-32,1);
             break;
             case 4: //; rotating thing
-            //inirot(x1*32+16,y1*32-32)
+            inirot(x1*32+16,y1*32-32);
             break;
             case 5: //; spikes
             map[x1][y1] = 2;
@@ -771,3 +792,57 @@ void updatemoney(){
         }
 	}
 }
+
+void updaterot(){
+    
+	for(int i=0;i<MAX_ROT;i++){
+        if(arr_rot[i].active){
+            int add=0;
+            arr_rot[i].sine += 0.03f;
+            float mth=1.90f*sin(arr_rot[i].sine);
+            for(int a=0;a<3;a++){
+                float angle=(mth);
+                arr_rot[i].chainx[a] = arr_rot[i].ballx+((add)*sin(angle));
+                arr_rot[i].chainy[a] = arr_rot[i].bally+((add)*cos(angle));
+                add=add+48;
+                if(a==2)add+=32;
+           }
+
+        }
+			
+	}
+}
+
+void drawrot(){
+	for(int i=0;i<MAX_ROT;i++){
+        if(arr_rot[i].active){
+            //Color 0,0,255
+            //MidHandle gfx\smallball
+            for(int ii=0;ii<2;ii++){
+                DrawCircle(arr_rot[i].chainx[ii]-maprealx(),arr_rot[i].chainy[ii]-maprealy(),16,(Color){0,0,255,255});
+            }
+            //MidHandle gfx\ball
+            DrawCircle(arr_rot[i].chainx[2]-maprealx(),arr_rot[i].chainy[2]-maprealy(),32,(Color){0,0,255,255});
+        }
+	}
+}
+
+void inirot(int x,int y){
+	for(int i;i<MAX_ROT;i++){
+        if(arr_rot[i].active==false){
+            arr_rot[i].active=true;
+            arr_rot[i].ang = 90;
+            arr_rot[i].ballx = x;
+            arr_rot[i].bally = y+48;
+            arr_rot[i].chainx[0] = 0.0f;
+            arr_rot[i].chainy[0] = 0.0f;
+            arr_rot[i].chainx[1] = 0.0f;
+            arr_rot[i].chainy[1] = 0.0f;
+            arr_rot[i].chainx[2] = 0.0f;
+            arr_rot[i].chainy[2] = 0.0f;
+
+            return;
+        }
+    }
+}
+
