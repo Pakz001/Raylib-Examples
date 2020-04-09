@@ -220,7 +220,7 @@ int main(void)
     const int screenHeight = 480;
 
     InitWindow(screenWidth, screenHeight, "raylib example.");
-
+    //ToggleFullscreen();
 
     //'start setup setup
     //' be sure to start the editor with the selection
@@ -1571,7 +1571,7 @@ void spriteview(){
             if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,gridwidth,gridheight)){								
                 if(toolselected == toolfillid){
                     paletteundermouse = map[x][y];
-                    fillatposition(x,y,map[x][y],paletteselected);
+                    if(paletteundermouse!=paletteselected)fillatposition(x,y,map[x][y],paletteselected);
                 }
             }
         }
