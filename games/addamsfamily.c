@@ -107,6 +107,8 @@ static struct rot arr_rot[MAX_ROT] = {0};
 static game g = {0};
 static player p = {0};
 
+static bool circlerectcollide(int cx,int cy,int cr, int rx, int ry,int rw,int rh);
+static float Clamp(float value, float min, float max);
 static bool RectsOverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2);
 static void readlevel(int level);
 static void drawlevel(void);
@@ -138,15 +140,20 @@ static void updatemoney(void);static void drawrot(void);
 static void updaterot(void);
 static void inirot(int x,int y);
 static void playerblinkingeffect(void);
+static void drawhud(void);
+static void drawlifeimage(int x,int y);
+static void playermoneycollision(void);    
+static void playeraikill(void);
+static void playerdecreasehit(void);
+static void rotplayerkill(void);
 
-    
 int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
 
     InitWindow(screenWidth, screenHeight, "raylib example.");
- 
+    //ToggleFullscreen();
     
     g.back = LoadRenderTexture(640,480);    
 
@@ -164,8 +171,11 @@ int main(void)
         updatebullets();
         updaterot();
         gravity();
+        playeraikill();
+        rotplayerkill();
         playerblinkingeffect();
         updatemoney();
+        playermoneycollision();
         playercontrols();
         playerslide();
         mapscroll();
@@ -187,7 +197,7 @@ int main(void)
             EndTextureMode();
             //DrawTextureEx(g.back.texture,-32,0,WHITE);
             DrawTextureRec(g.back.texture, (Rectangle){ 0, 0, g.back.texture.width, -g.back.texture.height }, (Vector2){ -32, 0 }, WHITE);
-            
+            drawhud();
             DrawText(FormatText("%i",weasel),0,0,20,RED);
             //if(rectmapcollision(GetMouseX(),GetMouseY(),32,32,0,0)){
             //DrawText(FormatText("%i",g.cx),100,0,20,RED);
@@ -361,6 +371,13 @@ void inigame(){
     for(int i=0;i<MAX_BULLETS;i++){
         arr_bullet[i].active=false;
     }
+    for(int i=0;i<MAX_MONEY;i++){
+        arr_money[i].active=false;
+    }
+   for(int i=0;i<MAX_ROT;i++){
+        arr_rot[i].active=false;
+    }
+
 
 	//freegame
 	p.x = 190;
@@ -747,12 +764,12 @@ void drawmoney(){
 void drawmoneyimage(int x,int y){
 	//Color 0,0,0
 	//Oval x-1,y-1,34,34,True
-    DrawCircle(x-1+15,y-1+15,34/2,(Color){0,0,0,255});
+    DrawCircle(x-1+10,y-1+15,34/2,(Color){0,0,0,255});
 	//Color 255,255,0
-	DrawCircle(x+15,y+15,32/2,(Color){255,255,0,255});
+	DrawCircle(x+10,y+15,32/2,(Color){255,255,0,255});
 	//Color 0,0,0
 	//SetFont font\money
-	DrawText("$",x+8,y-4,32,BLACK);
+	DrawText("$",x+6,y,32,BLACK);
 	//SetFont font\normal
 }
 
@@ -855,4 +872,105 @@ void playerblinkingeffect(){
         p.blink = true ;
 	}
 
+}
+
+void drawhud(){
+	//; hits
+	int cnt = 0;
+	for(int y=100;y>0;y-=34){
+		if(p.hits > cnt)drawlifeimage(32,y);
+		cnt += 1;
+	}
+	//;
+	//; lives
+	//SetFont font\hud
+	//Color 155,155,155
+	DrawText("Lives",10,screenHeight-128,28,(Color){155,155,155,255});
+
+	//If Len(p\lives) = 1 Then Return "0"+p\lives Else Return p\lives
+    
+    
+	DrawText(FormatText("0 %01i",p.lives),28,screenHeight-100,30,(Color){155,155,155,255});
+	//; money
+	//Color 155,155,155
+	drawmoneyimage(32,screenHeight-70);
+	//SetFont font\hud
+	DrawText(FormatText("0 %01i",p.lives),28,screenHeight-42,30,(Color){155,155,155,255});
+	//SetFont font\normal
+}
+
+
+void drawlifeimage(int x,int y){
+	//Color 255,0,0
+	DrawCircle(x,y,16,(Color){255,0,0,255});
+	//Color 5,5,5
+	//SetFont font\money
+	DrawText("H",x-6,y-10,24,(Color){5,5,5,255});
+	//SetFont font\normal
+}
+
+void playermoneycollision(){
+	for(int i=0;i<MAX_MONEY;i++){
+        if(arr_money[i].active){
+            if(RectsOverlap(p.x,p.y,p.w,p.h,arr_money[i].x,arr_money[i].y,32,32)){ 
+                p.money += 1;
+                arr_money[i].active = false;
+            }            
+        }
+	}
+}
+
+void playeraikill(){
+	if(p.fall){
+		for(int i=0;i<MAX_AI;i++){
+			if(RectsOverlap(p.x,p.y,48,80,arr_ai[i].x,arr_ai[i].y,arr_ai[i].w,arr_ai[i].h)){
+                arr_ai[i].active = false;
+			}
+		}
+	}
+}
+
+void playerdecreasehit(){
+	p.hits -= 1;
+	p.blinkingdelay = GetTime() + 3;
+	if(p.hits == 0){
+		p.hits = 3;
+		p.lives -= 1;
+		if(p.lives == 0)inigame();
+	}
+}
+
+void rotplayerkill(){
+	if(p.blinkingdelay > GetTime())return;
+	if(p.cheat)return;
+	for(int i=0;i<MAX_ROT;i++){
+        if(arr_rot[i].active){
+            if(p.state == 1){
+                if(circlerectcollide(arr_rot[i].chainx[2],arr_rot[i].chainy[2],32,p.x,p.y+(80-32),p.w,p.h)){
+                    playerdecreasehit();
+                }
+            }else{
+                if(circlerectcollide(arr_rot[i].chainx[2],arr_rot[i].chainy[2],32,p.x,p.y,p.w,p.h)){
+                    playerdecreasehit();
+                }
+            }
+        }
+	}
+}
+
+
+bool circlerectcollide(int cx,int cy,int cr, int rx, int ry,int rw,int rh){
+    float closestx = Clamp(cx, rx, rx+rw);
+    float closesty = Clamp(cy, ry, ry+rh);
+    float distancex = cx - closestx;
+    float distancey = cy - closesty;
+    float distancesquared = (distancex * distancex) + (distancey * distancey);
+    return distancesquared < (cr * cr);
+}
+
+// Clamp float value
+float Clamp(float value, float min, float max)
+{
+    const float res = value < min ? min : value;
+    return res > max ? max : res;
 }
