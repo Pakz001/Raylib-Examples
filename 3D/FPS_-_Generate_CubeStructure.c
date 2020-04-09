@@ -1,3 +1,8 @@
+//
+// This example uses the included fps free movement camera. It needs the entire map(all models) to move up or down since the camera
+// with this mode is locked to its y position.
+//
+//
 
 #include "raylib.h"
 #include <stdlib.h>
