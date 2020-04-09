@@ -1,5 +1,6 @@
 //
-// This is based on a level from a Commodore Amiga game from the 90's called Addams Family.
+// This is based on a level from a Commodore Amiga game from the 90's called Addams Family. This 
+// was a platformer game.
 //
 // This remake was originally written around the 00's in Blitz Basic. It was ported to
 // Raylib and C in April 2020.
