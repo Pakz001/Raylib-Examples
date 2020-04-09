@@ -1,6 +1,6 @@
 
 #include "raylib.h"
-//#include <math.h>
+#include <math.h>
 
 #define MAX_AI 100
 #define MAX_BULLETS 100
@@ -46,9 +46,9 @@ typedef struct player{
     int lives;
     int hits;
 	int blinking;
-    int blinkingdelay;
+    double blinkingdelay;
     int blink;
-    int blinktimer;
+    double blinktimer;
 }player;
 
 typedef struct ai{
@@ -103,7 +103,7 @@ typedef struct rot{
 static struct bullet arr_bullet[MAX_BULLETS]={0};
 static struct ai arr_ai[MAX_AI]={0};
 static struct money arr_money[MAX_MONEY]={0};
-static struct rot arr_rot[MAX_ROT]={0};
+static struct rot arr_rot[MAX_ROT] = {0};
 static game g = {0};
 static player p = {0};
 
@@ -117,7 +117,6 @@ static void inigame(void);
 static void gravity(void);   
 static bool rectmapcollision(int x, int y, int w, int h, int offx, int offy);
 static bool pmcollision(int offx,int offy);
-static bool pmcollision2(int offx,int offy);
 static void playercontrols(void);
 static bool playerright(void);
 static bool playerleft(void);
@@ -138,6 +137,7 @@ static void inimoney(int x,int y);
 static void updatemoney(void);static void drawrot(void);
 static void updaterot(void);
 static void inirot(int x,int y);
+static void playerblinkingeffect(void);
 
     
 int main(void)
@@ -164,6 +164,7 @@ int main(void)
         updatebullets();
         updaterot();
         gravity();
+        playerblinkingeffect();
         updatemoney();
         playercontrols();
         playerslide();
@@ -372,8 +373,8 @@ void inigame(){
     p.duckheight = 32;
 	p.hits = 3;
 	p.lives = 1;    
-	p.blinkingdelay = GetTime() + 3000;
-	p.blinktimer = 50;
+	p.blinkingdelay = GetTime() + 5;
+	p.blinktimer = 0.05f;
 	p.blink = true;
 
 	g.cx = 0;//;33//;;88
@@ -414,19 +415,6 @@ void gravity(){
         
 	}
 }
-
-bool pmcollision2(int offx,int offy){
-	switch (p.state){
-		case 0:
-        return rectmapcollision(GetMouseX(),GetMouseY(),48,80,offx,offy);
-		break;
-        case 1:
-        return rectmapcollision(GetMouseX(),GetMouseY(),48,80,offx,offy);
-        break;
-    }
-    return false;
-}
-
 
 bool pmcollision(int offx,int offy){
 	switch (p.state){
@@ -828,9 +816,10 @@ void drawrot(){
 }
 
 void inirot(int x,int y){
-	for(int i;i<MAX_ROT;i++){
+    
+	for(int i=0;i<MAX_ROT;i++){
         if(arr_rot[i].active==false){
-            arr_rot[i].active=true;
+            arr_rot[i].active = true;
             arr_rot[i].ang = 90;
             arr_rot[i].ballx = x;
             arr_rot[i].bally = y+48;
@@ -840,9 +829,30 @@ void inirot(int x,int y){
             arr_rot[i].chainy[1] = 0.0f;
             arr_rot[i].chainx[2] = 0.0f;
             arr_rot[i].chainy[2] = 0.0f;
-
+            
             return;
         }
     }
 }
 
+void playerblinkingeffect(){
+    
+	if(p.blinkingdelay > GetTime()){
+
+		if(p.blinktimer < GetTime()){
+            //weasel=14298;
+			if(p.blink==true){
+                p.blink = false;
+                }else{
+                p.blink = true;
+            }            
+            p.blinktimer = GetTime() + 0.2f;;            
+        }
+			
+		}else{
+            
+		                
+        p.blink = true ;
+	}
+
+}
