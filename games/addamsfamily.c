@@ -2,11 +2,15 @@
 #include "raylib.h"
 #include <math.h>
 
+#define MAX_AI 100
+#define MAX_BULLETS 100
+
 static int map[300][300];
 
 static const int screenWidth = 640;
 static const int screenHeight = 480;
 
+static int weasel;
 
 typedef struct game{
     RenderTexture2D back;
@@ -45,6 +49,37 @@ typedef struct player{
     int blinktimer;
 }player;
 
+typedef struct ai{
+	bool active;
+    float x;
+    float y;
+    float velx;
+    float vely;
+    int w;
+    int h;
+	int kind;
+	double firedelay;
+    double jumpdelay;
+	int jump;
+    float fallspeed;
+}ai;
+
+typedef struct bullet{
+    bool active;
+	float x;
+    float y;
+    int w;
+    int h;
+	int state;
+	int timer1;
+	float velx;
+    float vely;
+	int timeout;
+}bullet;
+
+
+static struct bullet arr_bullet[MAX_BULLETS];
+static struct ai arr_ai[MAX_AI];
 static game g = {0};
 static player p = {0};
 
@@ -66,7 +101,14 @@ static bool playerduck(void);
 static void playerslide(void);
 static void mapscroll(void);
 static void scrolllevel(int num);
-
+static void iniai(int x, int y, int kind);
+static void drawai(void);
+static void jumpai(int num);
+static void updateai(void);
+static void drawbullets(void);
+static void updatebullets(void);
+static void inibullet(int x,int y,int dir);
+    
 int main(void)
 {
     // Initialization
@@ -87,7 +129,8 @@ int main(void)
     {
         // Update
         //----------------------------------------------------------------------------------
-            
+        updateai();    
+        updatebullets();
         gravity();
         playercontrols();
         playerslide();
@@ -101,18 +144,21 @@ int main(void)
                 
             BeginTextureMode(g.back);
             ClearBackground(BLACK);
+            drawbullets();
             drawlevel();
+            drawai();
             drawplayer();
             EndTextureMode();
             //DrawTextureEx(g.back.texture,-32,0,WHITE);
             DrawTextureRec(g.back.texture, (Rectangle){ 0, 0, g.back.texture.width, -g.back.texture.height }, (Vector2){ -32, 0 }, WHITE);
             
+            DrawText(FormatText("%i",weasel),0,0,20,RED);
             //if(rectmapcollision(GetMouseX(),GetMouseY(),32,32,0,0)){
             //DrawText(FormatText("%i",g.cx),100,0,20,RED);
-            if(pmcollision(0,0)){
-                DrawText("ewkfh",0,0,20,RED);
-                
-            }
+            //if(pmcollision(0,0)){
+            //    DrawText("ewkfh",0,0,20,RED);
+            //    
+           // }
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
@@ -174,10 +220,10 @@ void readlevel(int level){
             map[x][y] = a;
             break;
             case 2: //; ai - shooter
-            //iniai(x*32,y*32-(48-32),0)
+            iniai(x*32,y*32-(48-32),0);
             break;
             case 3: //; ai - walker
-            //iniai(x*32,y*32-32,1)
+            iniai(x*32,y*32-32,1);
             break;
             case 4: //; rotating thing
             //inirot(x*32,y*32-32)
@@ -205,10 +251,10 @@ void readlevel(int level){
             map[x1][y1] = a;
             break;
             case 2: //; ai - shooter
-            //iniai(x1*32,y1*32-(48-32),0)
+            iniai(x1*32,y1*32-(48-32),0);
             break;
             case 3: //; ai - walker
-            //iniai(x1*32,y1*32-32,1)
+            iniai(x1*32,y1*32-32,1);
             break;
             case 4: //; rotating thing
             //inirot(x1*32+16,y1*32-32)
@@ -273,6 +319,13 @@ int maprealy(){
 
 void inigame(){
 	//;p\x = 3180
+    for(int i=0;i<MAX_AI;i++){
+        arr_ai[i].active=false;
+    }
+    for(int i=0;i<MAX_BULLETS;i++){
+        arr_bullet[i].active=false;
+    }
+
 	//freegame
 	p.x = 190;
 	p.y = 58+48;
@@ -523,5 +576,139 @@ void scrolllevel(int num){
             g.cx = g.cx - 1;
         }
         break;
+    }
+}
+
+void iniai(int x, int y, int kind){
+    for(int i=0;i<MAX_AI;i++){
+        if(arr_ai[i].active==false){
+            arr_ai[i].active = true;
+            arr_ai[i].x = x;
+            arr_ai[i].y = y;
+            switch (kind){
+                case 0:
+                    arr_ai[i].w = 48;
+                    arr_ai[i].h = 48;
+                    arr_ai[i].kind = 0;
+                    arr_ai[i].firedelay = GetTime() + (200/1000);
+                    arr_ai[i].jumpdelay = (int)GetTime() + (4800/1000);
+                break;
+                case 1:
+                arr_ai[i].w = 48;
+                arr_ai[i].h = 64;
+                arr_ai[i].kind = 1;
+                arr_ai[i].velx = 1.7;
+                break;
+            }
+            return;
+        }
+    }
+}
+
+void drawai(){
+	for(int i=0;i<MAX_AI;i++){
+        if (arr_ai[i].active){
+            switch (arr_ai[i].kind){
+                case 0:		
+                DrawRectangle(arr_ai[i].x-maprealx(),arr_ai[i].y-maprealy(),48,48,(Color){255,0,0,255});
+                break;
+                case 1:
+                DrawRectangle(arr_ai[i].x-maprealx(),arr_ai[i].y-maprealy(),48,64,(Color){255,0,0,255});	
+                break;
+            }
+        }
+	}
+}
+
+void jumpai(int num){
+	if(arr_ai[num].jump == false) return;
+	arr_ai[num].y += arr_ai[num].fallspeed;
+	arr_ai[num].fallspeed += 0.1f;
+	for(int i=0;i<arr_ai[num].fallspeed;i++){
+        if(rectmapcollision(arr_ai[num].x,arr_ai[num].y,48,48,0,i)){
+            arr_ai[num].y = arr_ai[num].y/32*32-4;
+            arr_ai[num].jump = false;
+            break;
+        }
+    }
+}
+
+void updateai(){
+	for(int i=0;i<MAX_AI;i++){ 
+        if(arr_ai[i].active){            
+		switch (arr_ai[i].kind){
+            case 0:
+            
+            if(arr_ai[i].jumpdelay < GetTime()){                
+                arr_ai[i].jump = true;
+                arr_ai[i].fallspeed = -4;
+                arr_ai[i].jumpdelay = GetTime() + 4800/1000;
+            }
+            
+            if(arr_ai[i].firedelay < GetTime()){
+                inibullet(arr_ai[i].x,arr_ai[i].y,1);                
+                arr_ai[i].firedelay = GetTime() + 4800/1000;
+            }
+            jumpai(i);
+            break;
+            case 1:
+            arr_ai[i].x += arr_ai[i].velx;
+            if(rectmapcollision(arr_ai[i].x,arr_ai[i].y,48,64,arr_ai[i].velx,0)){
+                arr_ai[i].velx = -arr_ai[i].velx;
+            }
+            break;
+        }
+		}
+	}
+}
+
+void drawbullets(){
+	for(int i=0;i<MAX_BULLETS;i++){
+        if(arr_bullet[i].active){
+            
+		//Color 255,255,0
+		//Oval this\x-maprealx(),this\y-maprealy(),48,48,True
+        DrawCircle(arr_bullet[i].x-maprealx(),arr_bullet[i].y-maprealy(),48/2,(Color){255,255,0,255});
+        }
+    }
+}
+
+void updatebullets(){
+	for(int i=0;i<MAX_BULLETS;i++){
+        if(arr_bullet[i].active){
+            switch (arr_bullet[i].state){
+                case 0:                 
+                if(arr_bullet[i].timer1 + (1500/1000) < GetTime() )arr_bullet[i].state = 1;
+                break;
+                case 1:                
+                arr_bullet[i].velx += .2;
+                if(arr_bullet[i].velx > 5)arr_bullet[i].state = 2;
+                break;
+                case 2:                
+                break;
+            }
+            arr_bullet[i].x += arr_bullet[i].velx;
+            arr_bullet[i].y += arr_bullet[i].vely;
+            if(arr_bullet[i].timeout < GetTime())arr_bullet[i].active=false;
+        }
+	}
+}
+
+void inibullet(int x,int y,int dir){
+	for(int i=0;i<MAX_BULLETS;i++){
+        if(arr_bullet[i].active==false){
+            
+            arr_bullet[i].active=true;
+            arr_bullet[i].x = x;
+            arr_bullet[i].y = y;
+            arr_bullet[i].w = 48;
+            arr_bullet[i].h = 48;
+            arr_bullet[i].state=0;
+            arr_bullet[i].timer1 = GetTime();
+            arr_bullet[i].timeout = GetTime() + 3800/1000;
+            if(dir == 0)arr_bullet[i].velx = 6;
+            if(dir == 1)arr_bullet[i].velx = -6;
+            return;
+        }
     }
 }
