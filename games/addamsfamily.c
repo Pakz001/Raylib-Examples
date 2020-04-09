@@ -6,6 +6,7 @@
 // Raylib and C in April 2020.
 //
 
+
 #include "raylib.h"
 #include <math.h>
 
@@ -19,7 +20,7 @@ static int map[300][300];
 static const int screenWidth = 640;
 static const int screenHeight = 480;
 
-static int weasel;
+//static int weasel; //debug
 
 typedef struct game{
     RenderTexture2D back;
@@ -180,12 +181,12 @@ int main(void)
         updateai();    
         updatebullets();
         updaterot();
-        gravity();
+        gravity();        
         playeraikill();
+        aiplayerkill();
         rotplayerkill();
         spikesplayerkill();
         bulletsplayerkill();
-        aiplayerkill();
         playerblinkingeffect();
         updatemoney();
         playermoneycollision();
@@ -407,7 +408,7 @@ void inigame(){
 	p.blinkingdelay = GetTime() + 5;
 	p.blinktimer = 0.05f;
 	p.blink = true;
-
+    p.fallspeed = 0;
 	g.cx = 0;//;33//;;88
 	g.offx = 0;
 	g.offy = 0;
@@ -1022,8 +1023,10 @@ void bulletsplayerkill(){
 void aiplayerkill(){
 	if(p.blinkingdelay > GetTime())return;
     for(int i=0;i<MAX_AI;i++){
-        if(RectsOverlap(p.x,p.y,p.w,p.h,arr_ai[i].x,arr_ai[i].y,arr_ai[i].w,arr_ai[i].h)){
-            playerdecreasehit();
+        if(arr_ai[i].active){
+            if(RectsOverlap(p.x,p.y,p.w,p.h,arr_ai[i].x,arr_ai[i].y,arr_ai[i].w,arr_ai[i].h)){
+                playerdecreasehit();
+            }
         }
     }
 }
