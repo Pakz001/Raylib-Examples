@@ -4,6 +4,7 @@
 
 #define MAX_AI 100
 #define MAX_BULLETS 100
+#define MAX_MONEY 100
 
 static int map[300][300];
 
@@ -77,9 +78,16 @@ typedef struct bullet{
 	int timeout;
 }bullet;
 
+typedef struct money{
+    bool active;
+	float x;
+    float y;
+    float fallspeed;
+}monkey;
 
 static struct bullet arr_bullet[MAX_BULLETS];
 static struct ai arr_ai[MAX_AI];
+static struct money arr_money[MAX_MONEY];
 static game g = {0};
 static player p = {0};
 
@@ -108,6 +116,10 @@ static void updateai(void);
 static void drawbullets(void);
 static void updatebullets(void);
 static void inibullet(int x,int y,int dir);
+static void drawmoney(void);
+static void drawmoneyimage(int x,int y);
+static void inimoney(int x,int y);
+static void updatemoney(void);
     
 int main(void)
 {
@@ -132,6 +144,7 @@ int main(void)
         updateai();    
         updatebullets();
         gravity();
+        updatemoney();
         playercontrols();
         playerslide();
         mapscroll();
@@ -145,6 +158,7 @@ int main(void)
             BeginTextureMode(g.back);
             ClearBackground(BLACK);
             drawbullets();
+            drawmoney();
             drawlevel();
             drawai();
             drawplayer();
@@ -232,7 +246,7 @@ void readlevel(int level){
             map[x][y] = 2;
             break;       
             case 6: //; money
-            //inimoney(x*32,y*32)
+            inimoney(x*32,y*32);
             break;
 		}
 	}}
@@ -263,7 +277,7 @@ void readlevel(int level){
             map[x1][y1] = 2;
             break;
             case 6: //; money
-            //inimoney(x1*32,y1*32-32)
+            inimoney(x1*32,y1*32);
             break;
         }
     }}
@@ -711,4 +725,49 @@ void inibullet(int x,int y,int dir){
             return;
         }
     }
+}
+
+void drawmoney(){
+	for(int i=0;i<MAX_MONEY;i++){
+        if(arr_money[i].active){
+            drawmoneyimage(arr_money[i].x-maprealx(),arr_money[i].y-maprealy());
+        }
+	}
+}
+
+void drawmoneyimage(int x,int y){
+	//Color 0,0,0
+	//Oval x-1,y-1,34,34,True
+    DrawCircle(x-1+15,y-1+15,34/2,(Color){0,0,0,255});
+	//Color 255,255,0
+	DrawCircle(x+15,y+15,32/2,(Color){255,255,0,255});
+	//Color 0,0,0
+	//SetFont font\money
+	DrawText("$",x+8,y-4,32,BLACK);
+	//SetFont font\normal
+}
+
+void inimoney(int x,int y){
+    for(int i=0;i<MAX_MONEY;i++){
+        if(arr_money[i].active==false){
+            arr_money[i].active=true;
+            arr_money[i].x = x;
+            arr_money[i].y = y;
+            arr_money[i].fallspeed = GetRandomValue(-1,0);
+            return;
+        }
+    }
+}
+
+void updatemoney(){
+	for(int i=0;i<MAX_MONEY;i++){
+        if(arr_money[i].active){
+            arr_money[i].y += arr_money[i].fallspeed;
+            arr_money[i].fallspeed += .09;
+            if(arr_money[i].fallspeed > 1){
+                arr_money[i].fallspeed = -1;
+                arr_money[i].y = arr_money[i].y/32*32;
+            }
+        }
+	}
 }
