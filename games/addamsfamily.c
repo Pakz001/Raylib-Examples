@@ -1,3 +1,9 @@
+//
+// This is based on a level from a Commodore Amiga game from the 90's called Addams Family.
+//
+// This remake was originally written around the 00's in Blitz Basic. It was ported to
+// Raylib and C in April 2020.
+//
 
 #include "raylib.h"
 #include <math.h>
@@ -146,6 +152,9 @@ static void playermoneycollision(void);
 static void playeraikill(void);
 static void playerdecreasehit(void);
 static void rotplayerkill(void);
+static void spikesplayerkill(void);
+static void bulletsplayerkill(void);
+static void aiplayerkill(void);
 
 int main(void)
 {
@@ -173,6 +182,9 @@ int main(void)
         gravity();
         playeraikill();
         rotplayerkill();
+        spikesplayerkill();
+        bulletsplayerkill();
+        aiplayerkill();
         playerblinkingeffect();
         updatemoney();
         playermoneycollision();
@@ -198,7 +210,8 @@ int main(void)
             //DrawTextureEx(g.back.texture,-32,0,WHITE);
             DrawTextureRec(g.back.texture, (Rectangle){ 0, 0, g.back.texture.width, -g.back.texture.height }, (Vector2){ -32, 0 }, WHITE);
             drawhud();
-            DrawText(FormatText("%i",weasel),0,0,20,RED);
+            // Some debug things...
+            //DrawText(FormatText("%i",weasel),0,0,20,RED);
             //if(rectmapcollision(GetMouseX(),GetMouseY(),32,32,0,0)){
             //DrawText(FormatText("%i",g.cx),100,0,20,RED);
             //if(pmcollision(0,0)){
@@ -973,4 +986,43 @@ float Clamp(float value, float min, float max)
 {
     const float res = value < min ? min : value;
     return res > max ? max : res;
+}
+
+void spikesplayerkill(){
+	if(p.cheat)return;
+	if(p.blinkingdelay > GetTime())return;
+	int x1 = p.x / 32;
+	int y1 = (p.y+64) / 32;
+	if(RectsOverlap(x1,y1,1,1,0,0,170,15)){
+		if(map[x1][y1] == 2)playerdecreasehit();
+	}
+}
+
+
+void bulletsplayerkill(){
+	if(p.cheat)return;
+	if(p.blinkingdelay > GetTime())return;
+	for(int i=0;i<MAX_BULLETS;i++){
+		switch (p.state){
+		case 0:
+		if(RectsOverlap(p.x,p.y,p.w,p.h,arr_bullet[i].x,arr_bullet[i].y,arr_bullet[i].w,arr_bullet[i].h)){
+			playerdecreasehit();
+		}
+        break;
+		case 1:
+		if(RectsOverlap(p.x,p.y,p.w,p.h,arr_bullet[i].x,arr_bullet[i].y+(80-32),arr_bullet[i].w,arr_bullet[i].h)){
+			playerdecreasehit();
+		}
+        break;
+		}
+	}
+}
+
+void aiplayerkill(){
+	if(p.blinkingdelay > GetTime())return;
+    for(int i=0;i<MAX_AI;i++){
+        if(RectsOverlap(p.x,p.y,p.w,p.h,arr_ai[i].x,arr_ai[i].y,arr_ai[i].w,arr_ai[i].h)){
+            playerdecreasehit();
+        }
+    }
 }
