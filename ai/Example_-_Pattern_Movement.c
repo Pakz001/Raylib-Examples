@@ -4,8 +4,10 @@ Pattern Movement Example.
 Move a computer entity around using a set of instructions.  (pattern)
 
 There are a lot of use cases for having a predefined set of commands. You might want
-to create a patrol path for a bad guy. You could also use this method for genetic 
-algorithms where you mutate the commands and see if they have any good result(scoring)
+to create a patrol path for a bad guy. "A forest troll patrolling between his lair and the bridge." 
+When he spots you he attacks or flees.
+
+You could also use this method for genetic algorithms where you mutate the commands and see if they have any good result(scoring)
 
 You might just want to let a spaceship fly down in a circle like pattern! So many possibilities.
 
