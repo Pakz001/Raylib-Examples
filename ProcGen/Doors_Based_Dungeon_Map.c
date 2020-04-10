@@ -192,6 +192,20 @@ void makeroom(int x,int y){
     }	
     int w=GetRandomValue(5,10);
     int h=GetRandomValue(5,10);
+    // Sometimes create a big room
+    if(GetRandomValue(0,20)<2){
+        w*=2;
+        h*=2;
+        // sometimes it is wider or higher
+        if(GetRandomValue(0,5)==1){
+            if(GetRandomValue(0,1)==1){
+                w/=2;
+            }else{
+                h/=2;
+            }
+        }
+    }
+    // Here we create the room based on where the door is.
     if(side==mup){
         int x1=x-w/2;
         int y1=y-h;
