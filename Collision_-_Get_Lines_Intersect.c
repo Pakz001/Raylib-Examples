@@ -1,3 +1,4 @@
+// Segmented line vs circle collision.
 
 #include "raylib.h"
 
