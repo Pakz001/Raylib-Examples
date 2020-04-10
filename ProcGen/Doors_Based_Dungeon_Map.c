@@ -1,14 +1,16 @@
 
 #include "raylib.h"
+#include <math.h>
 
 enum mapflag{mleft,mright,mup,mdown};
+
 
 static int mapWidth = 50;
 static int mapHeight = 50;
 static float tileWidth;
 static float tileHeight;
 
-static int map[100][100];
+static int map[200][200];
 
 static void generatemap(void);
 static bool roomfits(int x,int y,int w,int h);
@@ -30,8 +32,8 @@ int main(void)
 
     generatemap();
     
-    tileWidth = (float)screenWidth/(float)mapWidth;
-    tileHeight = (float)screenHeight/(float)mapHeight;
+    tileWidth = abs((float)screenWidth/(float)mapWidth);
+    tileHeight = abs((float)screenHeight/(float)mapHeight);
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
@@ -39,7 +41,15 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
         
-        if(IsKeyReleased(KEY_SPACE) || (IsMouseButtonReleased(0)))generatemap();
+        if(IsKeyReleased(KEY_SPACE) || (IsMouseButtonReleased(0))){
+            int z=GetRandomValue(30,100);            
+            mapWidth=z;
+            mapHeight=z;
+            tileWidth = abs((float)screenWidth/(float)mapWidth);
+            tileHeight = abs((float)screenHeight/(float)mapHeight);
+            
+            generatemap();
+        }
         //----------------------------------------------------------------------------------
         // Draw
         //----------------------------------------------------------------------------------
@@ -56,12 +66,13 @@ int main(void)
                     DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,DARKGRAY);
                 }
                 if(map[x][y]==3){ // Door
-                    DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,WHITE);
+                    DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,RED);
                 }
 
             }    
             }
             DrawText("Press Space or Left Mouse Button for new map.",0,0,30,RED);
+            
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
@@ -94,10 +105,11 @@ void generatemap(){
         if(map[x][y] == 3){
             makeroom(x,y);
         }
-        if(timeout>123456)return;
+        if(timeout>12345612)return;
     }
     //'here we turn doors into walls
     //'if they should be walls
+    
     for(int y1=1;y1<mapHeight-1;y1++){
     for(int x1=1;x1<mapWidth-1;x1++){
         if(map[x1][y1] == 3){
