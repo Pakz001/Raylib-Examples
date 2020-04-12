@@ -3,7 +3,7 @@
 //
 // Conversion from the Monkey2 version that I wrote.
 //
-// Todo : Floodfill,  ovals!, testing. 
+// Todo : Add isometric/hexagon map edit/view, Fix update preview and spritelib), Floodfill(more testing),  ovals!(find solution for layout), testing. 
 
 #include "raylib.h"
 #include <math.h>
