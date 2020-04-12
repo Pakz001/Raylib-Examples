@@ -165,7 +165,7 @@ void newmapandpath(){
         // Take the first value from the array.
         int x1=list[0].x;
         int y1=list[0].y;
-        // shift all down
+        // shift all up.
         for(int i=0;i<listlen;i++){
             list[i].x = list[i+1].x;
             list[i].y = list[i+1].y;
