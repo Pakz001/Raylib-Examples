@@ -44,6 +44,7 @@ int main(void)
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
+    // Create a struct called banana and pass it to the push function.
     struct stack banana;
     banana.x = 10;
     banana.y = 20;
@@ -55,9 +56,8 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
         if(IsKeyReleased(KEY_SPACE)){
-            struct stack banana;
-            banana.x = GetRandomValue(0,100);
-            banana.y = 20;
+            // Another way to create and pass a struct through a function.
+            struct stack banana={GetRandomValue(0,100),0};
             push(banana);        
         }
         if(IsKeyReleased(KEY_ENTER)){
