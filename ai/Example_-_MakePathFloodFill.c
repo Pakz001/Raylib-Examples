@@ -1,4 +1,5 @@
-// Work in progress!!
+// Generate a (simple) random map and add start and end position. Then flood the map with distances from start until reach end.
+// Then create path from start to end.
 
 #define MAPWIDTH 30
 #define MAPHEIGHT 30
@@ -15,6 +16,7 @@ typedef struct pathnode{
 
 static int map[MAPWIDTH][MAPHEIGHT];
 static pathnode arr_path[MAX_PATH];
+static int arr_path_len;
 
 
 static int mapWidth = MAPWIDTH;
@@ -53,7 +55,7 @@ int main(void)
     {
         // Update
         //----------------------------------------------------------------------------------
-        
+        if(IsKeyPressed(KEY_SPACE))newmapandpath();
         
         //----------------------------------------------------------------------------------
         // Draw
@@ -61,6 +63,10 @@ int main(void)
         BeginDrawing();
 
             ClearBackground(RAYWHITE);
+            // Draw start and end position.
+            DrawRectangle(startx*tileWidth,starty*tileHeight,tileWidth,tileHeight,GREEN);
+            DrawRectangle(endx*tileWidth,endy*tileHeight,tileWidth,tileHeight,RED);
+
             // Draw our map.
             for(int y=0;y<MAPHEIGHT;y++){
             for(int x=0;x<MAPWIDTH;x++){
@@ -71,11 +77,17 @@ int main(void)
                     DrawText(FormatText("%i",map[x][y]),x*tileWidth,y*tileHeight,10,BLACK);
                 }
             }}
-            // Draw start and end position.
-            DrawRectangle(startx*tileWidth,starty*tileHeight,tileWidth,tileHeight,RED);
-            DrawRectangle(endx*tileWidth,endy*tileHeight,tileWidth,tileHeight,RED);
             
-            //DrawText(FormatText("%f",tileWidth),0,0,20,RED);
+            //draw the path..
+            for(int i=0;i<arr_path_len;i++){
+                DrawRectangle(arr_path[i].x*tileWidth,arr_path[i].y*tileHeight,tileWidth,tileHeight,(Color){100,100,0,100});
+            }
+                
+            
+            DrawText("Press space for new map and path.",11,1,30,BLACK);
+            DrawText(FormatText("Current path len is : %i",arr_path_len),11,39,30,BLACK);            
+            DrawText("Press space for new map and path.",10,00,30,RED);
+            DrawText(FormatText("Current path len is : %i",arr_path_len),10,40,30,RED);
             //DrawText(FormatText("%i",MAPHEIGHT),0,20,20,RED);
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -90,6 +102,7 @@ int main(void)
 
 
 }
+
 
 void newmapandpath(){
     
@@ -152,12 +165,13 @@ void newmapandpath(){
     //
     // We store the distance on each map cell if there is no wall there.
     //
+    map[startx][starty]=1;
     int listlen=0;    
     list[listlen].x=startx;
     list[listlen].y=starty;
     listlen+=1;        
     failed=0;
-    // 4 way search!
+    // 4 way search! left/up/down/right
     int dx[4]={ 0,1,0,-1};
     int dy[4]={-1,0,1,0};    
     // While we have a list to work with
@@ -165,11 +179,16 @@ void newmapandpath(){
         // Take the first value from the array.
         int x1=list[0].x;
         int y1=list[0].y;
+        
         // shift all up.
         for(int i=0;i<listlen;i++){
             list[i].x = list[i+1].x;
             list[i].y = list[i+1].y;
         }
+        if(x1==endx && y1==endy){            
+            break;
+        }
+
         // Decrease list length
         listlen-=1;
         //
@@ -177,7 +196,7 @@ void newmapandpath(){
         for(int i=0;i<4;i++){
             int nx = x1+dx[i];
             int ny = y1+dy[i];
-            if(nx<0 || ny<0 || nx>= mapWidth || ny>= mapHeight)continue;
+            if(nx<0 || ny<0 || nx>= mapWidth || ny>= mapHeight)continue;            
             // If we can get there then put the new distance there and add this position
             // to the list.
             if(map[nx][ny]==0){
@@ -193,5 +212,48 @@ void newmapandpath(){
         // Error?
         failed+=1;
         if(failed>160000)return;
+        
+    }
+    
+    //
+    // Here we create the actual path.
+    //
+    arr_path_len = 0;
+    int x1=endx;
+    int y1=endy;
+    arr_path[0].x = x1;
+    arr_path[0].y = y1;
+    arr_path_len+=1;
+    failed=0;
+    // While distance is greater than 1
+    while(map[x1][y1]>1){
+        
+        int nx=0;
+        int ny=0;
+        // Get the current distance
+        int lowest = map[x1][y1];
+        for(int i=0;i<4;i++){
+            int x2=x1+dx[i];
+            int y2=y1+dy[i];
+            if(x2<0 || y2 <0 || x2>=mapWidth || y2>= mapHeight )continue; // stay in bounds of array
+            if(map[x2][y2]>0 && map[x2][y2]<lowest){ //if there is a map distance and if it is lower than the lowest variable
+                lowest = map[x2][y2];
+                nx = x2;
+                ny = y2;
+            }                
+        }
+
+        // store our new location
+        x1 = nx;
+        y1 = ny;
+        // add to the path struct
+        arr_path[arr_path_len].x = nx;
+        arr_path[arr_path_len].y = ny;
+        // add to length
+        arr_path_len+=1;
+        // error?
+        failed+=1;
+        if(failed>15000)return;
     }
 }
+
