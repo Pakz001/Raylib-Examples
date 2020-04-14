@@ -1,4 +1,4 @@
-
+// Work in PRogress - todo put image map data  into a texture and draw to screen - test conversion.
 //
 
 #define MAPWIDTH 800
@@ -46,14 +46,15 @@ int main(void)
     lightenrange(100,256);    
     smooth();
  
+    BeginTextureMode(target);    
     for(int y=0;y<MAPHEIGHT;y++){
     for(int x=0;x<MAPWIDTH;x++){
-        BeginTextureMode(target);    
+        
         DrawRectangle(x,y,1,1,(Color){mapr[x][y],mapg[x][y],mapb[x][y],255});
-        EndTextureMode();     
+        
     }
     }
- 
+    EndTextureMode();     
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
