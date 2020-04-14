@@ -1,7 +1,7 @@
 //
 // I took this from a example source and slapped it together.
 //
-// It kind of works...
+// It kind of works... I am going to need to study this more though.
 
 
 #include "raylib.h"
