@@ -1,6 +1,4 @@
-//
-// Vector Force object test.. Wo\rk in progress
-//
+
 
 #define MAX_UNITS 64
 #define MAX_VFO 64
