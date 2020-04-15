@@ -1,6 +1,21 @@
 //
 // Vector Force object test.. Wo\rk in progress
 //
+// In the book Pro Html5 Games one of the games learned to program there is a rts. To be honest I do not really understand
+// much of how to code a complete rts like shown in that book but I was looking through it again and had learned more about
+// vectors. (search: the coding train)
+// Force vector object in this book are used to be placed on a path to push away units. I tried to code this myself here but only
+// used a couple of these vfo's myself.
+// 
+// What the code does is create a set of units on the map. One routine is to move all units apart from each other. The Force
+// vector object code moves away units from that force vector object position. I find the angle from vector vs unit and move
+// the unit in the opposite direction of that point.
+//
+// These vfo's can (one) be placed under the mouse. One is positioned in the movement direction of the player controlled
+// unit.
+
+// It seems to work..
+//
 
 #define MAX_UNITS 64
 #define MAX_VFO 64
