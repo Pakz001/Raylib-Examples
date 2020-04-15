@@ -1,6 +1,4 @@
-//
-// Vector Force object test.. Wo\rk in progress
-//
+
 // In the book Pro Html5 Games one of the games learned to program there is a rts. To be honest I do not really understand
 // much of how to code a complete rts like shown in that book but I was looking through it again and had learned more about
 // vectors. (search: the coding train)
