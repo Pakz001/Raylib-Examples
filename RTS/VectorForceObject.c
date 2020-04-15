@@ -12,15 +12,15 @@ static float tileWidth,tileHeight;
 
 typedef struct vfo{ // force vector object (repulse objects from this point.
     bool active;
-    Vector2 point;
-};
+    Vector2 position;
+}vfo;
 
 typedef struct unit{
     bool active;
     bool controlled;
     float x,y;
     int targetx,targety;    
-};
+}unit;
 
 
 static struct unit arr_unit[MAX_UNITS];
@@ -36,7 +36,7 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
     const int mapWidth = 20;
-    const int mapHeight = 15;
+    const int mapHeight = 20;
 
     tileWidth = abs((float)screenHeight/(float)mapWidth);
     tileHeight = abs((float)screenHeight/(float)mapHeight);
@@ -60,6 +60,11 @@ int main(void)
         num++;        
     }}
     arr_unit[0].controlled = true;
+    // Our Force Vector Object [0] is the one in front of our player.
+    arr_vfo[0].active = true;
+    for(int i=1;i<MAX_VFO;i++){
+        arr_vfo[i].active=false;
+    }
     
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -69,14 +74,35 @@ int main(void)
     {
         // Update
         //----------------------------------------------------------------------------------
-        if(IsMouseButtonPressed(0)){
-            arr_vfo[0].active = true;
-            arr_vfo[0].point = GetMousePosition();
+        
+        // Force Vector Object [0] is in front of our player contoller unit.
+        arr_vfo[0].position.x = arr_unit[0].x+tileWidth/2;
+        arr_vfo[0].position.y = arr_unit[0].y+tileHeight/2;
+        // Move our unit and position the force vector object.
+        if(IsKeyDown(KEY_UP)){
+            arr_unit[0].y-=1;
+            arr_vfo[0].position.y -= tileHeight;
         }
-        if(IsKeyDown(KEY_UP))arr_unit[0].y-=1;
-        if(IsKeyDown(KEY_DOWN))arr_unit[0].y+=1;
-        if(IsKeyDown(KEY_LEFT))arr_unit[0].x-=1;
-        if(IsKeyDown(KEY_RIGHT))arr_unit[0].x+=1;
+        if(IsKeyDown(KEY_DOWN)){
+            arr_unit[0].y+=1;
+            arr_vfo[0].position.y += tileHeight;        
+        }
+        if(IsKeyDown(KEY_LEFT)){
+            arr_unit[0].x-=1;
+            arr_vfo[0].position.x -= tileWidth/2+tileWidth/2;
+        }
+        if(IsKeyDown(KEY_RIGHT)){
+            arr_unit[0].x+=1;
+            arr_vfo[0].position.x += tileWidth;
+        }        
+
+        // Position a Force Vector Object under the mouse!
+        if(IsMouseButtonPressed(0)){
+            arr_vfo[1].active = true;
+            arr_vfo[1].position.x = GetMouseX();
+            arr_vfo[1].position.y = GetMouseY();
+        }
+
 
         //----------------------------------------------------------------------------------
         // Draw
@@ -88,17 +114,18 @@ int main(void)
             // draw units
             for(int i=0;i<MAX_UNITS;i++){
             if(arr_unit[i].active){
+                Color MYCOL=(Color){255,255,0,255};
+                if(i==0)MYCOL=(Color){255,0,0,255};
                 DrawRectangle(arr_unit[i].x,arr_unit[i].y,tileWidth,tileHeight,BLACK);
-                DrawRectangle(arr_unit[i].x+1,arr_unit[i].y+1,tileWidth-2,tileHeight-2,YELLOW);
+                DrawRectangle(arr_unit[i].x+1,arr_unit[i].y+1,tileWidth-2,tileHeight-2,MYCOL);
             }
             }
             
+            //
             // Move units away from each other.
-            for(int i=0;i<MAX_UNITS;i++){
-            //if(arr_unit[i].controlled)continue;
+            for(int i=0;i<MAX_UNITS;i++){            
             for(int ii=0;ii<MAX_UNITS;ii++){
-                if(arr_unit[i].active==false || arr_unit[ii].active==false || i==ii)continue;
-                //if(arr_unit[ii].controlled)continue;
+                if(arr_unit[i].active==false || arr_unit[ii].active==false || i==ii)continue;                
                 float d = distance(arr_unit[i].x,arr_unit[i].y,arr_unit[ii].x,arr_unit[ii].y);
                 if(d>64)continue;
                 float an=getangle(arr_unit[i].x,arr_unit[i].y,arr_unit[ii].x,arr_unit[ii].y);
@@ -109,7 +136,27 @@ int main(void)
             }
             }
             
-
+            // Move units away from force vector object
+            for(int i=1;i<MAX_VFO;i++){ //force vector object 0 is for user controlled
+            for(int ii=0;ii<MAX_UNITS;ii++){
+                if(arr_unit[ii].active==false || arr_unit[ii].controlled==true)continue;
+                if(distance(arr_vfo[i].position.x,arr_vfo[i].position.y,arr_unit[ii].x+tileWidth/2,arr_unit[ii].y+tileHeight/2)>64)continue;
+                float an=getangle(arr_vfo[i].position.x,arr_vfo[i].position.y,arr_unit[ii].x+tileWidth/2,arr_unit[ii].y+tileHeight/2);
+                arr_unit[ii].x += cos(an)*2;
+                arr_unit[ii].y += sin(an)*2;                
+            }
+            }
+            
+            
+           // Draw vfo points.
+           for(int i=0;i<MAX_VFO;i++){
+               if(arr_vfo[i].active==false)continue;
+               DrawCircle(arr_vfo[i].position.x,arr_vfo[i].position.y,1,RED);
+           }
+           
+           //
+           DrawText("Use Cursor keys to control unit. Press Mouse to Scatter units.",0,0,20,DARKGRAY);
+            
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
