@@ -51,8 +51,8 @@ int main(void)
     for(int y=8;y<12;y++){ // create a number of units.
     for(int x=8;x<12;x++){
         arr_unit[num].active = true;
-        arr_unit[num].x = x*tileWidth;
-        arr_unit[num].y = y*tileHeight;
+        arr_unit[num].x = 8*tileWidth;
+        arr_unit[num].y = 8*tileHeight+GetRandomValue(-5,5);
         arr_unit[num].targetx = -1;
         arr_unit[num].targety = -1;
         num++;        
@@ -70,7 +70,11 @@ int main(void)
             arr_vfo[0].active = true;
             arr_vfo[0].point = GetMousePosition();
         }
-        
+        if(IsKeyDown(KEY_UP))arr_unit[0].y-=1;
+        if(IsKeyDown(KEY_DOWN))arr_unit[0].y+=1;
+        if(IsKeyDown(KEY_LEFT))arr_unit[0].x-=1;
+        if(IsKeyDown(KEY_RIGHT))arr_unit[0].x+=1;
+
         //----------------------------------------------------------------------------------
         // Draw
         //----------------------------------------------------------------------------------
@@ -90,10 +94,13 @@ int main(void)
             for(int i=0;i<MAX_UNITS;i++){
             for(int ii=0;ii<MAX_UNITS;ii++){
                 if(arr_unit[i].active==false || arr_unit[ii].active==false || i==ii)continue;
-                if(distance(arr_unit[i].x,arr_unit[i].y,arr_unit[ii].x,arr_unit[ii].y)>34)continue;
+                float d = distance(arr_unit[i].x,arr_unit[i].y,arr_unit[ii].x,arr_unit[ii].y);
+                if(d>64)continue;
                 float an=getangle(arr_unit[i].x,arr_unit[i].y,arr_unit[ii].x,arr_unit[ii].y);
-                arr_unit[ii].x += cos(an);
-                arr_unit[ii].y += sin(an);
+                arr_unit[i].x -= cos(an);
+                arr_unit[i].y -= sin(an);
+                arr_unit[ii].x += abs(cos(an));
+                arr_unit[ii].y += abs(sin(an));
             }
             }
             
