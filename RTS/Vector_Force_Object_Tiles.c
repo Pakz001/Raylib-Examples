@@ -76,8 +76,8 @@ int main(void)
     for(int x=8;x<12;x++){
         arr_unit[num].active = true;
         arr_unit[num].controlled = false;
-        arr_unit[num].x = 8*tileWidth;
-        arr_unit[num].y = 8*tileHeight+GetRandomValue(-5,5);
+        arr_unit[num].x = x*tileWidth;
+        arr_unit[num].y = y*tileHeight;
         arr_unit[num].targetx = -1;
         arr_unit[num].targety = -1;
         num++;        
@@ -148,19 +148,19 @@ int main(void)
                 int oldx2 = arr_unit[ii].x;
                 int oldy2 = arr_unit[ii].y;
                 // Move the units here.
-                if(arr_unit[i].controlled==false)arr_unit[i].x -= cos(an)*2;
-                if(arr_unit[i].controlled==false)arr_unit[i].y -= sin(an)*2;
-                if(arr_unit[ii].controlled==false)arr_unit[ii].x += cos(an)*2;
-                if(arr_unit[ii].controlled==false)arr_unit[ii].y += sin(an)*2;
+                if(arr_unit[i].controlled==false)arr_unit[i].x -= cos(an)*1;
+                if(arr_unit[i].controlled==false)arr_unit[i].y -= sin(an)*1;
+                if(arr_unit[ii].controlled==false)arr_unit[ii].x += cos(an)*1;
+                if(arr_unit[ii].controlled==false)arr_unit[ii].y += sin(an)*1;
                 
                 // if collide with map then restore old position.
-                if(utc(i,0,0)){
+                if(utc(i,0,0) || uuc(i,0,0)){
                     
                 arr_unit[i].x = oldx1;
                 arr_unit[i].y = oldy1;
                 }
 
-                if(utc(ii,0,0)){
+                if(utc(ii,0,0) || uuc(ii,0,0)){
                     
                 arr_unit[ii].x = oldx2;
                 arr_unit[ii].y = oldy2;
@@ -179,10 +179,10 @@ int main(void)
                 int oldx=arr_unit[ii].x;
                 int oldy=arr_unit[ii].y;
                 // Move unit
-                arr_unit[ii].x += cos(an)*2;
-                arr_unit[ii].y += sin(an)*2;                
+                arr_unit[ii].x += cos(an)*1;
+                arr_unit[ii].y += sin(an)*1;                
                 // if collide with map then restore old position.
-                if(utc(ii,0,0)){ // unit tile collision
+                if(utc(ii,0,0) || uuc(ii,0,0)){ // unit tile collision
                     
                 arr_unit[ii].x = oldx;
                 arr_unit[ii].y = oldy;
