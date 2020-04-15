@@ -1,4 +1,6 @@
-
+//
+// Vector Force object test.. Wo\rk in progress
+//
 
 #define MAX_UNITS 64
 #define MAX_VFO 64
@@ -48,7 +50,8 @@ static struct vfo arr_vfo[MAX_VFO];
 
 static float getangle(float x1,float y1,float x2, float y2);
 static float distance(float x1,float y1,float x2, float y2);
-static bool utc(int unit,int offsetx,int offsety);
+static bool utc(int unit,int offsetx,int offsety); //unit tile collision
+static bool uuc(int unit1,int offx,int offy); //unit  vs all units collision
 static bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2);
 
 int main(void)
@@ -101,21 +104,29 @@ int main(void)
         arr_vfo[0].position.x = arr_unit[0].x+tileWidth/2;
         arr_vfo[0].position.y = arr_unit[0].y+tileHeight/2;
         // Move our unit and position the force vector object.
-        if(IsKeyDown(KEY_UP)){
-            arr_unit[0].y-=1;
-            arr_vfo[0].position.y -= tileHeight;
+        if(IsKeyDown(KEY_UP)){                       
+            if(uuc(0,0,-1)==false && utc(0,0,-1)==false){
+                arr_unit[0].y-=1;
+                arr_vfo[0].position.y -= tileHeight;
+            }
         }
         if(IsKeyDown(KEY_DOWN)){
-            arr_unit[0].y+=1;
-            arr_vfo[0].position.y += tileHeight;        
+            if(uuc(0,0,1)==false && utc(0,0,1)==false){
+                arr_unit[0].y+=1;
+                arr_vfo[0].position.y += tileHeight;        
+            }
         }
         if(IsKeyDown(KEY_LEFT)){
-            arr_unit[0].x-=1;
-            arr_vfo[0].position.x -= tileWidth/2+tileWidth/2;
+            if(uuc(0,-1,0)==false && utc(0,-1,0)==false){
+                arr_unit[0].x-=1;
+                arr_vfo[0].position.x -= tileWidth/2+tileWidth/2;
+            }
         }
         if(IsKeyDown(KEY_RIGHT)){
-            arr_unit[0].x+=1;
-            arr_vfo[0].position.x += tileWidth;
+            if(uuc(0,1,0)==false && utc(0,1,0)==false){
+                arr_unit[0].x+=1;
+                arr_vfo[0].position.x += tileWidth;
+            }
         }        
 
         // Position a Force Vector Object under the mouse!
@@ -260,6 +271,24 @@ bool utc(int unit,int offsetx,int offsety){
             }
         }
     }}
+    return false;
+}
+
+// Unit collides with Other units. offset x and y.
+bool uuc(int unit,int offx,int offy){
+    for(int i=1;i<MAX_UNITS;i++){
+        if(i==unit)continue;
+        if(rectsoverlap(    arr_unit[unit].x+offx,
+                            arr_unit[unit].y+offy,
+                            tileWidth,
+                            tileHeight,
+                            arr_unit[i].x,
+                            arr_unit[i].y,
+                            tileWidth,
+                            tileHeight)){
+        return true;
+        }
+    }
     return false;
 }
 
