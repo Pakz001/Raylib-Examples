@@ -47,14 +47,11 @@ int main(void)
     arr_unit[0].width = 16;
     arr_unit[0].height = 16;
     arr_unit[0].target = (Vector2){10*16,12*16};
-    int num=0;
-    for(int y=10;y<14;y++){
-    for(int x=15;x<19;x++){
-        arr_vfo[num].active = true;
-        arr_vfo[num].position.x = x*16;
-        arr_vfo[num].position.y = y*16;
-        num++;
-    }}
+    
+    for(int i=0;i<15;i++){
+        arr_vfo[i].active = true;
+        arr_vfo[i].position = (Vector2){GetRandomValue(50,screenWidth-50),GetRandomValue(50,screenHeight-50)};
+     }
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -119,6 +116,16 @@ int main(void)
             drawvfo();
             drawunits();
             
+            DrawRectangle(10,screenHeight-40,screenWidth-20,30,(Color){100,100,100,100});
+            DrawCircle(64,screenHeight-34+8,8,RED);
+            DrawCircleLines(64,screenHeight-34+8,8,BLACK);
+            DrawText("- Vector Force Object.",80,screenHeight-34,20,BLACK);
+
+            DrawRectangle(400,screenHeight-34,arr_unit[0].width,arr_unit[0].height,YELLOW);
+            DrawRectangleLines(400,screenHeight-34,arr_unit[0].width,arr_unit[0].height,BLACK);
+            DrawText("- CPU Player.",440,screenHeight-34,20,BLACK);
+            
+            DrawText("Press Escape to End.",0,0,15,DARKGRAY);
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
