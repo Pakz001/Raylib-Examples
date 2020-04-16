@@ -9,6 +9,8 @@
 
 enum flag{UP,DOWN,LEFT,RIGHT};
 
+static int screenWidth = 800;
+static int screenHeight = 450;
 static int mapWidth=80;
 static int mapHeight=80;
 static float tileWidth;
@@ -29,8 +31,6 @@ int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
     tileWidth = abs((float)screenWidth/(float)mapWidth);
     tileHeight = abs((float)screenHeight/(float)mapHeight);
 
@@ -83,7 +83,8 @@ int main(void)
 
             }}
             
-            DrawText("Press Space..",0,0,20,DARKGRAY);
+            DrawRectangle(0,0,screenWidth,20,(Color){50,50,50,150});
+            DrawText("Press Space to generate new map..(Or wait)",0,0,20,RAYWHITE);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -100,6 +101,8 @@ int main(void)
 }
 
 void generate(){
+    mapWidth=80;
+    mapHeight=80;
     static int script[100];//= {RIGHT,RIGHT,DOWN,RIGHT,DOWN,DOWN,LEFT,LEFT,LEFT,UP,UP,UP};
     for(int i=0;i<100;i++){
         script[i]=GetRandomValue(0,3);
@@ -108,8 +111,8 @@ void generate(){
     for(int i=0;i<MAX_POINT;i++){
         arr_point[i].active=false;
     }
-    for(int y=0;y<mapHeight;y++){
-    for(int x=0;x<mapWidth;x++){
+    for(int y=0;y<512;y++){
+    for(int x=0;x<512;x++){
         map[x][y]=0;
     }}
     
@@ -163,10 +166,6 @@ void generate(){
         int y1 = arr_point[i].position.y;
         int x2 = arr_point[i+1].position.x;
         int y2 = arr_point[i+1].position.y;
-        //if(i==11){
-        //    x2 = arr_point[0].position.x;
-        //    y2 = arr_point[0].position.y;
-        //}
         if(x2>x1){
             while(x1<x2){
                 x1++;
@@ -272,13 +271,46 @@ void generate(){
     for(int x=0;x<mapWidth;x++){
         m2[x][y]=map[x+left][y+top];
     }}
-    for(int y=0;y<mapHeight;y++){//erase map
-    for(int x=0;x<mapWidth;x++){
+    for(int y=0;y<512;y++){//erase map
+    for(int x=0;x<512;x++){
         map[x][y]=0;
     }}
     for(int y=0;y<mapHeight;y++){//copy temp back into main map at left top
     for(int x=0;x<mapWidth;x++){
-        map[x+10][y+10] = m2[x][y];
+        map[x][y] = m2[x][y];
     }}
+ 
+    // find right part
+    int right=0;
+    for(int x=mapWidth-1;x>0;x--){
+    bool ex=false;
+    for(int y=0;y<mapHeight;y++){
+        if(map[x][y]>0){
+            right = x;
+            ex=true;
+            break;
+        }
+    }
+    if(ex)break;
+    }
+    // find most bottom part
+    int bottom=0;
+    for(int y=mapHeight-1;y>0;y--){
+    bool ex=false;
+    for(int x=0;x<mapWidth;x++){        
+        if(map[x][y]>0){
+            bottom = y;
+            ex=true;
+            break;
+        }
+    }
+    if(ex)break;
+    }
+ 
+    mapWidth = right+1;
+    mapHeight = bottom+1;
+    tileWidth = abs((float)screenWidth/(float)mapWidth);
+    tileHeight = abs((float)screenHeight/(float)mapHeight);
+  
  
  }
