@@ -11,8 +11,8 @@ enum flag{UP,DOWN,LEFT,RIGHT};
 
 static int screenWidth = 800;
 static int screenHeight = 450;
-static int mapWidth=80;
-static int mapHeight=80;
+static int mapWidth=100;
+static int mapHeight=100;
 static float tileWidth;
 static float tileHeight;
 static int map[512][512];
@@ -101,13 +101,13 @@ int main(void)
 }
 
 void generate(){
-    mapWidth=80;
-    mapHeight=80;
+    mapWidth=100;
+    mapHeight=100;
     static int script[100];//= {RIGHT,RIGHT,DOWN,RIGHT,DOWN,DOWN,LEFT,LEFT,LEFT,UP,UP,UP};
     for(int i=0;i<100;i++){
         script[i]=GetRandomValue(0,3);
     }
-    int dunlen=GetRandomValue(11,30);
+    int dunlen=GetRandomValue(11,40);
     for(int i=0;i<MAX_POINT;i++){
         arr_point[i].active=false;
     }
