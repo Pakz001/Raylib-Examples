@@ -44,8 +44,8 @@ int main(void)
  
     arr_unit[0].active = true;
     arr_unit[0].position = (Vector2){500,200};
-    arr_unit[0].width = 32;
-    arr_unit[0].height = 32;
+    arr_unit[0].width = 16;
+    arr_unit[0].height = 16;
     arr_unit[0].target = (Vector2){10*16,12*16};
     int num=0;
     for(int y=10;y<14;y++){
@@ -56,7 +56,7 @@ int main(void)
         num++;
     }}
  
-    SetTargetFPS(40);               // Set our game to run at 60 frames-per-second
+    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
@@ -86,6 +86,13 @@ int main(void)
         if(distance(arr_unit[0].position.x,arr_unit[0].position.y,arr_unit[0].target.x,arr_unit[0].target.y)>16){
             arr_unit[0].position.x += arr_unit[0].mx;
             arr_unit[0].position.y += arr_unit[0].my;
+        }else{
+            arr_unit[0].target = (Vector2){GetRandomValue(50,screenWidth-50),GetRandomValue(50,screenHeight-50)};
+            for(int i=0;i<MAX_VFO;i++){
+                if(arr_vfo[i].active){
+                    arr_vfo[i].position = (Vector2){GetRandomValue(50,screenWidth-50),GetRandomValue(50,screenHeight-50)};
+                }
+            }
         }
         //----------------------------------------------------------------------------------
         // Draw
