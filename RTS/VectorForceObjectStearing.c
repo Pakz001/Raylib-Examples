@@ -67,21 +67,21 @@ int main(void)
         arr_unit[0].mx = 0;
         arr_unit[0].my = 0;        
         float an = getangle(arr_unit[0].position.x,arr_unit[0].position.y,arr_unit[0].target.x,arr_unit[0].target.y);
-        arr_unit[0].mx += cos(an)*2;
-        arr_unit[0].my += sin(an)*2;
+        arr_unit[0].mx += cos(an)*1.2;
+        arr_unit[0].my += sin(an)*1.2;
         int numvfo = 0;
         float mx=0;
         float my=0;
         for(int i=0;i<MAX_VFO;i++){
-            if(distance(arr_unit[0].position.x,arr_unit[0].position.y,arr_vfo[i].position.x,arr_vfo[i].position.y)>200)continue;
+            if(distance(arr_unit[0].position.x,arr_unit[0].position.y,arr_vfo[i].position.x,arr_vfo[i].position.y)>120)continue;
             numvfo++;
             float an = getangle(arr_unit[0].position.x,arr_unit[0].position.y,arr_vfo[i].position.x,arr_vfo[i].position.y);           
             mx -= (float)cos(an);
             my -= (float)sin(an);
         }
         if(numvfo>0){
-            arr_unit[0].mx += mx/(numvfo/1.2);
-            arr_unit[0].my += my/(numvfo/1.2);
+            arr_unit[0].mx += mx/(numvfo);
+            arr_unit[0].my += my/(numvfo);
         }
         if(distance(arr_unit[0].position.x,arr_unit[0].position.y,arr_unit[0].target.x,arr_unit[0].target.y)>16){
             //
@@ -130,8 +130,10 @@ int main(void)
 void drawunits(){
     for(int i=0;i<MAX_UNIT;i++){
         if(arr_unit[i].active==false)continue;        
-        DrawRectangle(arr_unit[i].position.x,arr_unit[i].position.y,arr_unit[i].width,arr_unit[i].height,YELLOW);
-        DrawRectangleLines(arr_unit[i].position.x,arr_unit[i].position.y,arr_unit[i].width,arr_unit[i].height,BLACK);
+        int w = arr_unit[i].width;
+        int h = arr_unit[i].height;
+        DrawRectangle(arr_unit[i].position.x-w/2,arr_unit[i].position.y-h/2,arr_unit[i].width,arr_unit[i].height,YELLOW);
+        DrawRectangleLines(arr_unit[i].position.x-w/2,arr_unit[i].position.y-h/2,arr_unit[i].width,arr_unit[i].height,BLACK);
         // target
         DrawCircle(arr_unit[i].target.x,arr_unit[i].target.y,8,DARKGRAY);
         DrawText("Target",arr_unit[i].target.x,arr_unit[i].target.y,10,BLACK);
