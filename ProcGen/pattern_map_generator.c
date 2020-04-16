@@ -13,7 +13,7 @@ static int mapWidth=80;
 static int mapHeight=80;
 static float tileWidth;
 static float tileHeight;
-static int map[200][200];
+static int map[512][512];
 
 typedef struct point{
     bool active;
@@ -22,7 +22,8 @@ typedef struct point{
 
 static point arr_point[MAX_POINT];
 
-static void generate(void);
+static void generate(void); // generate the map.
+static void makenice(); // add walls.
 
 int main(void)
 {
@@ -36,18 +37,27 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "raylib example.");
 
     generate();
+    makenice();
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------+------------------------------------------------------
-
+    static int time=0;
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
         
-        if(IsKeyReleased(KEY_SPACE))generate();
-        
+        if(IsKeyReleased(KEY_SPACE)){
+            generate();
+            makenice();
+        }
+        time++;
+        if(time>100){
+            time=0;
+            generate();
+            makenice();
+        }
         //----------------------------------------------------------------------------------
         // Draw
         //----------------------------------------------------------------------------------
@@ -63,6 +73,13 @@ int main(void)
                 if(map[x][y]==2){
                     DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,RED);
                 }
+                if(map[x][y]==3){
+                    DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,BLUE);
+                }
+                if(map[x][y]==4){
+                    DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,YELLOW);
+                }
+
 
             }}
             
@@ -102,23 +119,23 @@ void generate(){
     arr_point[num].active = true;
     arr_point[num].position = (Vector2){x,y};
     map[x][y]=1;
-    for(int i=0;i<dunlen;i++){
+    for(int i=0;i<dunlen-1;i++){
         switch (script[i]){
             case RIGHT:
                 x+=7;
-                if(x>mapWidth-5)x-=7;
+                if(x>mapWidth-6)x-=7;
             break;
             case LEFT:
                 x-=7;
-                if(x<5)x+=7;
+                if(x<6)x+=7;
             break;
             case UP:
                 y-=7;
-                if(y<5)y+=7;
+                if(y<6)y+=7;
             break;
             case DOWN:
                 y+=7;
-                if(y<mapHeight-5)y-=7;
+                if(y<mapHeight-6)y-=7;
             break;
         }
         num++;
@@ -180,4 +197,88 @@ void generate(){
             }
         }
     }
+ }
+ 
+ void makenice(){
+     // add walls to rooms
+     for(int y=1;y<mapHeight-1;y++){
+     for(int x=1;x<mapWidth-1;x++){
+        int cnt=0;
+        if(map[x][y]==1 || map[x][y]==2)continue;
+        
+        for(int y2=y-1;y2<y+2;y2++){
+        for(int x2=x-1;x2<x+2;x2++){
+            if(map[x2][y2]==1)cnt++;
+        }
+        }
+        if(cnt>0)map[x][y]=3;
+     }
+     }
+     // add walls to halls.
+     for(int y=1;y<mapHeight-1;y++){
+     for(int x=1;x<mapWidth-1;x++){
+        int cnt=0;
+        if(map[x][y]==0){
+        
+        for(int y2=y-1;y2<y+2;y2++){
+        for(int x2=x-1;x2<x+2;x2++){
+            if(map[x2][y2]==2)cnt++;
+        }
+        }
+        if(cnt>0)map[x][y]=3;
+        }
+     }
+     }
+     // turn door lines into floor
+     for(int y=1;y<mapHeight-1;y++){
+     for(int x=1;x<mapWidth-1;x++){
+         if(map[x][y]==2)map[x][y]=1;
+     }}
+     
+     //find top most
+     int top=0;
+     for(int y=0;y<mapHeight;y++){
+     bool ex=false;
+     for(int x=0;x<mapWidth;x++){
+         if(map[x][y]>0){
+            top=y;
+            ex=true;
+            break;
+         }
+     }
+     if(ex)break;
+     }
+     
+     
+     //find left most
+     int left=0;
+     for(int x=0;x<mapWidth;x++){
+     bool ex=false;
+     for(int y=0;y<mapHeight;y++){          
+         if(map[x][y]>0){
+            left=x;
+            ex=true;
+            break;
+         }
+     }
+     if(ex)break;
+     }
+
+
+    // Copy map into buffer map from where it begins on the map top and left
+    // and then copy this all back to the main map.
+    int m2[200][200];
+    for(int y=0;y<mapHeight;y++){
+    for(int x=0;x<mapWidth;x++){
+        m2[x][y]=map[x+left][y+top];
+    }}
+    for(int y=0;y<mapHeight;y++){//erase map
+    for(int x=0;x<mapWidth;x++){
+        map[x][y]=0;
+    }}
+    for(int y=0;y<mapHeight;y++){//copy temp back into main map at left top
+    for(int x=0;x<mapWidth;x++){
+        map[x+10][y+10] = m2[x][y];
+    }}
+ 
  }
