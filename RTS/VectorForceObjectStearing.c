@@ -73,11 +73,17 @@ int main(void)
         float mx=0;
         float my=0;
         for(int i=0;i<MAX_VFO;i++){
-            if(distance(arr_unit[0].position.x,arr_unit[0].position.y,arr_vfo[i].position.x,arr_vfo[i].position.y)>120)continue;
+            float d = distance(arr_unit[0].position.x,arr_unit[0].position.y,arr_vfo[i].position.x,arr_vfo[i].position.y);
+            if(d>64)continue; //preferable distance to keep from the vfo's
             numvfo++;
             float an = getangle(arr_unit[0].position.x,arr_unit[0].position.y,arr_vfo[i].position.x,arr_vfo[i].position.y);           
             mx -= (float)cos(an);
             my -= (float)sin(an);
+            if(d<32){//if closer than this stear away extra
+                mx -= (float)cos(an);
+                my -= (float)sin(an);
+                numvfo+=1;
+            }
         }
         if(numvfo>0){
             arr_unit[0].mx += mx/(numvfo);
