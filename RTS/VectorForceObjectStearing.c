@@ -86,31 +86,11 @@ int main(void)
         if(distance(arr_unit[0].position.x,arr_unit[0].position.y,arr_unit[0].target.x,arr_unit[0].target.y)>16){
             //
             // Keep the movement speed between -1.0f and 1.0f
-            // We divide the larger value by the maximum value
-            if(arr_unit[0].mx>1.0f){
-                float perc;
-                perc = arr_unit[0].mx / 1.0f;
-                arr_unit[0].mx /= perc;
-                arr_unit[0].my /= perc;
-            }
-            if(arr_unit[0].my>1.0f){
-                float perc;
-                perc = arr_unit[0].my / 1.0f;
-                arr_unit[0].mx /= perc;
-                arr_unit[0].my /= perc;
-            }
-            if(arr_unit[0].mx<-1.0f){
-                float perc;
-                perc = arr_unit[0].mx / -1.0f;
-                arr_unit[0].mx /= perc;
-                arr_unit[0].my /= perc;
-            }
-            if(arr_unit[0].my<-1.0f){
-                float perc;
-                perc = arr_unit[0].my / -1.0f;
-                arr_unit[0].mx /= perc;
-                arr_unit[0].my /= perc;
-            }
+            // We get the angle using atan2 and then recreate the mx and my using cos and sin
+            // this puts the speed back between -1 and 1.
+            float an=atan2(arr_unit[0].my,arr_unit[0].mx);
+            arr_unit[0].mx = cos(an);
+            arr_unit[0].my = sin(an);
             // move our unit
             arr_unit[0].position.x += arr_unit[0].mx;
             arr_unit[0].position.y += arr_unit[0].my;
@@ -133,8 +113,6 @@ int main(void)
             drawvfo();
             drawunits();
             
-            //DrawText(FormatText("mx : %f",arr_unit[0].mx),0,0,20,DARKGRAY);
-            //DrawText(FormatText("my : %f",arr_unit[0].my),200,0,20,DARKGRAY);
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
