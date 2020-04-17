@@ -99,6 +99,9 @@ static bool aitilecollide(int num,int tile,int offsetx,int offsety);
 static void bubbleaicollision(void);
 static void playeraicollision(void);   
 static void playerbubblecollision(void);
+static void inigfx(void);
+   
+static RenderTexture2D tilepurple; 
    
 int main(void)
 {
@@ -116,6 +119,10 @@ int main(void)
     p[PLAYER2].active=false;
     
     InitWindow(screenWidth, screenHeight, "raylib example.");
+
+     // Create a Image in memory
+    tilepurple = LoadRenderTexture(32, 32);
+    inigfx();
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
 
@@ -188,6 +195,7 @@ int main(void)
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
+    UnloadRenderTexture(tilepurple);
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
@@ -199,13 +207,12 @@ int main(void)
 void drawmap(int offsetx,int offsety){
     for(int y=0;y<mapHeight;y++){
     for(int x=0;x<mapWidth;x++){
-        if(map[y][x]==1){
-            DrawRectangle(x*tileWidth+offsetx,y*tileHeight+offsety,tileWidth,tileHeight,PURPLE);
+        if(map[y][x]==1 || map[y][x]==2){
+            DrawTexturePro(tilepurple.texture,      (Rectangle){0,0,tilepurple.texture.width,tilepurple.texture.height},
+                                                    (Rectangle){x*tileWidth+offsetx,y*tileHeight+offsety,
+                                                    tileWidth,tileHeight},
+                                                    (Vector2){0,0},0,WHITE);            
         }
-        if(map[y][x]==2){
-            DrawRectangle(x*tileWidth+offsetx,y*tileHeight+offsety,tileWidth,tileHeight,PURPLE);
-        }
-
     }}
 }
 
@@ -846,4 +853,40 @@ void playerbubblecollision(){
 
 
 
-
+static void inigfx(){
+    int tile1[8][8] = {
+    {4,4,10,10,4,4,10,10},
+    {10,4,4,10,10,4,4,10},
+    {10,10,4,4,10,10,4,4},
+    {4,10,10,4,4,10,10,4},
+    {4,4,10,10,4,4,10,10},
+    {10,4,4,10,10,4,4,10},
+    {10,10,4,4,10,10,4,4},
+    {4,10,10,4,4,10,10,4}};
+    // Clear our texture(image) before entering the game loop
+    BeginTextureMode(tilepurple);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode(); 
+    // Draw something on it.
+    for (int y=0;y<8;y++)
+    {
+        for (int x=0;x<8; x++)
+        {            
+            // Our sprite color 1
+            if (tile1[y][x]==4)
+            {
+                BeginTextureMode(tilepurple);    
+                DrawRectangle(x*4,y*4,4,4,(Color){200,100,0,255});
+                EndTextureMode(); 
+            }
+            // Our sprite color 2
+            if (tile1[y][x]==10)
+            {
+                BeginTextureMode(tilepurple);    
+                DrawRectangle(x*4,y*4,4,8,(Color){100,50,0,255});
+                EndTextureMode(); 
+            }            
+        }
+    }
+    
+}
