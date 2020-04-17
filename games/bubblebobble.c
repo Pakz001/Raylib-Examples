@@ -4,7 +4,7 @@
 //
 
 enum flag2{PLAYER1,PLAYER2,LEFT,RIGHT};
-enum bubblestates{SHOT,FLOATUP,FLOAT};
+enum bubblestates{SHOT,FLOATUP,FLOAT,CONTAINS};
 enum aistates{ROAMING,TRAPPED,DAMAGED};
 enum flag{SCROLLLEVELDOWN,INGAME};
 
@@ -15,10 +15,12 @@ enum flag{SCROLLLEVELDOWN,INGAME};
 
 #define MAX_BUBBLES 128
 #define BUBBLE_SHOOTFORCE 10.0f
-#define BUBBLE_LIFE 60*20;
+#define BUBBLE_LIFE 60*20
+#define CAPTURED_TIMEOUT 200
+#define RESTOREFROMDAMAGED 200
 
 #define MAX_AI 32
-#define AI_SPEED 4
+#define AI_SPEED 3
 
 #include "raylib.h"
 #include "math.h"
@@ -47,6 +49,7 @@ static struct player p[MAX_PLAYERS];
 typedef struct bubble{
     bool active;
     int timeout;
+    int timeoutcaptured;
     float x;
     float y;
     int state;
@@ -63,6 +66,7 @@ typedef struct ai{
     bool active;
     int state;
     int facing;
+    int timedamaged;
     float x;
     float y;
     int w;
@@ -91,7 +95,8 @@ static void drawai(void);
 static void addai(int x,int y);
 static void updateai(void);
 static bool aitilecollide(int num,int tile,int offsetx,int offsety);    
-    
+static void bubbleaicollision(void);
+   
 int main(void)
 {
     // Initialization
@@ -147,6 +152,7 @@ int main(void)
                 updateplayers();
                 updateplayergravity();
                 updatebubbles();
+                bubbleaicollision();
                 updateai();
             break;
         }
@@ -410,7 +416,7 @@ void shootbubble(int player, int direction){
         }
         
         arr_bubble[i].y = p[player].y+5;
-        arr_bubble[i].state = 0;
+        arr_bubble[i].state = SHOT;
         return;
     }    
 }
@@ -421,6 +427,9 @@ void drawbubbles(){
         int radius = arr_bubble[i].r;
         int x = arr_bubble[i].x+arr_bubble[i].shakex;
         int y = arr_bubble[i].y+arr_bubble[i].shakey;
+        if(arr_bubble[i].state==CONTAINS){//contains a ai
+            DrawRectangle(x-radius+6,y-radius+6,radius*2-12,radius*2-8,(Color){200,0,0,200});
+        }
         DrawCircle(x,y,radius,(Color){0,50,0,40});
         DrawCircleLines(x,y,radius,(Color){0,200,0,100});
         DrawCircle(x-radius+(radius/1.5),y-radius+(radius/1.5),6,(Color){200,255,200,200});
@@ -459,7 +468,30 @@ void updatebubbles(){
             }
         }
         
-        if(arr_bubble[i].state==FLOATUP){
+        if(arr_bubble[i].state==FLOATUP || arr_bubble[i].state==CONTAINS){
+            // if containing a ai then count down and release.
+            if(arr_bubble[i].state==CONTAINS){
+                if(arr_bubble[i].timeoutcaptured>-2)arr_bubble[i].timeoutcaptured-=1;
+                // release the ai again but faster and killable.
+                if(arr_bubble[i].timeoutcaptured<0){
+                    arr_bubble[i].active=false;
+                    int newai;
+                    for(newai=0;newai<MAX_AI;newai++){
+                        if(arr_ai[newai].active==true)continue;
+                        arr_ai[newai].active=true;
+                        arr_ai[newai].x=arr_bubble[i].x;
+                        arr_ai[newai].y=arr_bubble[i].y-4;
+                        arr_ai[newai].w=tileWidth;
+                        arr_ai[newai].h=tileHeight;
+                        arr_ai[newai].canjump = false;
+                        arr_ai[newai].state = DAMAGED;
+                        arr_ai[newai].facing = LEFT;
+                        arr_ai[newai].timedamaged=RESTOREFROMDAMAGED;
+                        break;
+                    }
+                }
+            }
+            // float it up to center top screen and then shake it.
             if(arr_bubble[i].y>2.5*tileHeight){
                 arr_bubble[i].y-=1;
             }
@@ -547,7 +579,11 @@ void drawai(){
         int y = arr_ai[i].y;
         int w = arr_ai[i].w;
         int h = arr_ai[i].h;
-        DrawRectangle(x,y,w,h,RED);
+        if(arr_ai[i].state==DAMAGED){
+            DrawRectangle(x,y,w,h,BLUE);
+        }else{
+            DrawRectangle(x,y,w,h,RED);
+        }
     }
 }
 
@@ -570,10 +606,17 @@ void updateai(){
     for(int num=0;num<MAX_AI;num++){
         if(arr_ai[num].active==false)continue;
  
-        if(arr_ai[num].state==ROAMING){
-            
-            if(arr_ai[num].canjump==true){
-                for(int z=0;z<AI_SPEED;z++){
+        if(arr_ai[num].state==ROAMING || arr_ai[num].state==DAMAGED){
+            // restore from damages if time up.
+            if(arr_ai[num].timedamaged>-2)arr_ai[num].timedamaged-=1;
+            if(arr_ai[num].timedamaged<0 && bubbletilecollide(num,0,0)==false){
+                arr_ai[num].state = ROAMING;
+            }
+            if(arr_ai[num].canjump==true){                
+                int speed=AI_SPEED;
+                //If the ai is damaged than speed it it.
+                if(arr_ai[num].state==DAMAGED)speed+=1; 
+                for(int z=0;z<speed;z++){
                     if(arr_ai[num].facing==LEFT){
                         arr_ai[num].x-=1;
                         if(aitilecollide(num,99,-1,0)){
@@ -690,4 +733,26 @@ bool aitilecollide(int num,int tile,int offsetx,int offsety){
         }
     }}
     return false;
+}
+
+void bubbleaicollision(){
+    for(int i=0;i<MAX_BUBBLES;i++){
+        if(arr_bubble[i].active==false || arr_bubble[i].state!=SHOT)continue;
+        for(int ii=0;ii<MAX_AI;ii++){
+            if(arr_ai[ii].active==false || arr_ai[ii].state!=ROAMING)continue;
+            int x1=arr_bubble[i].x;
+            int y1=arr_bubble[i].y;
+            int r=arr_bubble[i].r;
+            int x2=arr_ai[ii].x;
+            int y2=arr_ai[ii].y;
+            int w=arr_ai[ii].w;
+            int h=arr_ai[ii].h;
+            if(circlerectcollide(x1,y1,r,x2,y2,w,h)){//if bubble colides with ai than float it.
+                arr_ai[ii].active=false;
+                arr_bubble[i].state=CONTAINS;
+                arr_bubble[i].x = x2+tileWidth/2;
+                arr_bubble[i].timeoutcaptured=CAPTURED_TIMEOUT;                
+            }
+        }
+    }
 }
