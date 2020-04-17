@@ -8,7 +8,9 @@ enum bubblestates{SHOT,FLOATUP,FLOAT};
 enum aistates{ROAMING,TRAPPED,DAMAGED};
 enum flag{SCROLLLEVELDOWN,INGAME};
 
-#define MAX_PLAYERS 1
+#define MAX_JUMP 4.0f
+
+#define MAX_PLAYERS 2
 #define MAX_FALL_SPEED 2.0f
 
 #define MAX_BUBBLES 128
@@ -16,6 +18,7 @@ enum flag{SCROLLLEVELDOWN,INGAME};
 #define BUBBLE_LIFE 60*20;
 
 #define MAX_AI 32
+#define AI_SPEED 4
 
 #include "raylib.h"
 #include "math.h"
@@ -64,6 +67,7 @@ typedef struct ai{
     float y;
     int w;
     int h;
+    int lastjump;
     bool canjump;
     float jumpforce;
 }ai;
@@ -86,23 +90,33 @@ static float Clamp(float value, float min, float max);
 static void drawai(void);
 static void addai(int x,int y);
 static void updateai(void);
+static bool aitilecollide(int num,int tile,int offsetx,int offsety);    
     
 int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
 
+    for(int i=0;i<MAX_AI;i++){
+        arr_ai[i].active=false;
+    }
+    for(int i=0;i<MAX_BUBBLES;i++){
+        arr_bubble[i].active=false;
+    }
+    p[PLAYER1].active=false;
+    p[PLAYER2].active=false;
+    
     InitWindow(screenWidth, screenHeight, "raylib example.");
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
 
     inilevel();
-    p[0].active = true;
-    p[0].x = 2*tileWidth;
-    p[0].y = 12*tileHeight;
-    p[0].w = tileWidth;
-    p[0].h = tileHeight;
-    p[0].canjump = true;
+    p[PLAYER1].active = true;
+    p[PLAYER1].x = 2*tileWidth;
+    p[PLAYER1].y = 12*tileHeight;
+    p[PLAYER1].w = tileWidth;
+    p[PLAYER1].h = tileHeight;
+    p[PLAYER1].canjump = true;
     //--------------------------------------------------------------------------------------
     static int offsety;
     offsety = -(mapHeight*tileHeight);
@@ -112,6 +126,8 @@ int main(void)
     arr_bubble[0].active=true;
     arr_bubble[0].r = tileWidth/2;
     
+    static int aiaddtime=10;
+    static int aimax = 3;
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -120,6 +136,12 @@ int main(void)
         
         switch (gamestate){
             case INGAME:
+                if(aimax>0)aiaddtime-=1;
+                if(aiaddtime==0 && aimax>0){
+                    addai(10*tileWidth,tileHeight);
+                    aiaddtime=20;
+                    aimax-=1;
+                }
                 updateplayers();
                 updateplayers();
                 updateplayers();
@@ -327,7 +349,7 @@ void updateplayers(void){
 
             if(IsKeyDown(KEY_SPACE) && p[num].canjump){
                 p[num].canjump = false; // We are now jumping.
-                p[num].jumpforce = -4.0f; // How high we jump.
+                p[num].jumpforce = -MAX_JUMP; // How high we jump.
             }
 
         }
@@ -534,16 +556,138 @@ void addai(int x,int y){
         if(arr_ai[i].active==true)continue;
         arr_ai[i].active = true;
         arr_ai[i].x = x;
-        arr_ai[i].y = x;
+        arr_ai[i].y = y;
         arr_ai[i].w = tileWidth;
         arr_ai[i].h = tileHeight;
         arr_ai[i].canjump = false;
+        arr_ai[i].state = ROAMING;
+        arr_ai[i].facing = LEFT;
+        return;
     }
 }
 
 void updateai(){
-    for(int i=0;i<MAX_AI;i++){
-        if(arr_ai[i].active==false)continue;
-        
+    for(int num=0;num<MAX_AI;num++){
+        if(arr_ai[num].active==false)continue;
+ 
+        if(arr_ai[num].state==ROAMING){
+            
+            if(arr_ai[num].canjump==true){
+                for(int z=0;z<AI_SPEED;z++){
+                    if(arr_ai[num].facing==LEFT){
+                        arr_ai[num].x-=1;
+                        if(aitilecollide(num,99,-1,0)){
+                            arr_ai[num].facing=RIGHT;
+                        }                        
+                    }
+                    if(arr_ai[num].facing==RIGHT){
+                        arr_ai[num].x+=1;
+                        if(aitilecollide(num,99,1,0)){
+                            arr_ai[num].facing=LEFT;
+                        }                        
+                    }
+                    
+                }
+                // Jump the ai
+                // jump up randomly if player is above us.
+                if(GetRandomValue(0,400)<2){
+                    if(aitilecollide(num,99,0,-(tileHeight*1.1)) && arr_ai[num].y > p[PLAYER1].y){
+                        arr_ai[num].jumpforce = -MAX_JUMP;
+                        arr_ai[num].canjump = false;
+                        arr_ai[num].lastjump=0;
+                    }
+                }
+
+                // Jump randomly if a platform is reachable.
+                if(GetRandomValue(0,400)<2){
+                    if(aitilecollide(num,99,0,-(tileHeight*1.1))){
+                        arr_ai[num].jumpforce = -MAX_JUMP;
+                        arr_ai[num].canjump = false;
+                        arr_ai[num].lastjump=0;
+                    }
+                }
+                // This is a jump fast after the first jump
+                if(arr_ai[num].lastjump<100)arr_ai[num].lastjump+=1;
+                if(arr_ai[num].lastjump<100 && GetRandomValue(0,100)<2){
+                    if(aitilecollide(num,99,0,-(tileHeight*1.1))){
+                        arr_ai[num].jumpforce = -MAX_JUMP;
+                        arr_ai[num].canjump = false;
+                        arr_ai[num].lastjump=101;
+                    }                    
+                }
+            }
+            
+            // if hanging in the air then fall down
+            if(aitilecollide(num,99,0,1)==false)arr_ai[num].canjump=false;
+
+
+            // If we are currently not jumping and if the player presses space.
+            // If we are currently in a jump.
+            if(arr_ai[num].canjump==false){
+                // Here we update the player y position.
+                // We want to move 1 pixel at a time. This for collision detection(Not going through tiles.)
+                for(int i=0;i<abs((int)arr_ai[num].jumpforce);i++){
+                    bool exit=false;
+                    // If we are still jumping then update the position.
+                    if(arr_ai[num].canjump==false){
+                        
+                        arr_ai[num].y += arr_ai[num].jumpforce;
+                    }
+                    if(arr_ai[num].jumpforce<0 && aitilecollide(num,2,0,-1)==true){    
+                        arr_ai[num].jumpforce = 0.1;                    
+                        break;
+                    }                
+                    // if we touch the ground then reset out position and set canjump to true.
+                    if(arr_ai[num].jumpforce>0 && aitilecollide(num,99,0,1)==true){    
+                        arr_ai[num].y = arr_ai[num].y-1;
+                        arr_ai[num].canjump = true;
+                        // look if the player is left or right and adjust direction.
+                        if(arr_ai[num].x>p[PLAYER1].x){
+                            arr_ai[num].facing=LEFT;
+                        }else{
+                            arr_ai[num].facing=RIGHT;
+                        }
+                        exit=true;
+                        break;
+                    }                
+                    if(exit)break;
+                }
+                // Here we add to the jumpforce. It will go from - to +.
+                arr_ai[num].jumpforce += 0.2f;            
+                if(arr_ai[num].jumpforce>MAX_FALL_SPEED)arr_ai[num].jumpforce=MAX_FALL_SPEED;             
+            }
+        }
+ 
     }
+}
+
+//Unit collide with solid blocks true/false
+// num = player
+bool aitilecollide(int num,int tile,int offsetx,int offsety){
+    if(arr_ai[num].active==false)return false;
+    int cx = (arr_ai[num].x+offsetx)/tileWidth;
+    int cy = (arr_ai[num].y+offsety)/tileHeight;
+    for(int y2=cy-1; y2<cy+2;y2++){//Note that the - and + are to be set differently with differently sized players
+    for(int x2=cx-1; x2<cx+2;x2++){
+        if(x2>=0 && x2<mapWidth && y2>=0 && y2<mapHeight){
+            if(map[y2][x2] == tile){
+                int x3 = (x2)*tileWidth;
+                int y3 = (y2)*tileHeight;
+                if(rectsoverlap(arr_ai[num].x+offsetx,arr_ai[num].y+offsety,arr_ai[num].w,arr_ai[num].h,x3,y3,tileWidth,tileHeight)){
+                    return true;
+                }
+            }
+            if(tile==99){//collide with any tile mode
+            if(map[y2][x2] > 0){
+                int x3 = (x2)*tileWidth;
+                int y3 = (y2)*tileHeight;
+                if(rectsoverlap(arr_ai[num].x+offsetx,arr_ai[num].y+offsety,arr_ai[num].w,arr_ai[num].h,x3,y3,tileWidth,tileHeight)){
+                    return true;
+                }
+            }
+            }
+
+        }
+    }}
+    return false;
 }
