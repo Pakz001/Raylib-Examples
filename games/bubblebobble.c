@@ -4,7 +4,7 @@
 //
 
 enum flag2{PLAYER1,PLAYER2,LEFT,RIGHT};
-enum bubblestates{SHOT,FLOATUP,FLOAT,CONTAINS};
+enum bubblestates{SHOT,FLOATUP,FLOAT};
 enum aistates{ROAMING,TRAPPED,DAMAGED};
 enum flag{SCROLLLEVELDOWN,INGAME};
 
@@ -16,7 +16,7 @@ enum flag{SCROLLLEVELDOWN,INGAME};
 #define MAX_BUBBLES 128
 #define BUBBLE_SHOOTFORCE 10.0f
 #define BUBBLE_LIFE 60*20
-#define CAPTURED_TIMEOUT 200
+#define CAPTURED_TIMEOUT 60*7
 #define RESTOREFROMDAMAGED 200
 
 #define MAX_AI 32
@@ -48,6 +48,7 @@ static struct player p[MAX_PLAYERS];
 
 typedef struct bubble{
     bool active;
+    bool contains;
     int timeout;
     int timeoutcaptured;
     float x;
@@ -96,6 +97,8 @@ static void addai(int x,int y);
 static void updateai(void);
 static bool aitilecollide(int num,int tile,int offsetx,int offsety);    
 static void bubbleaicollision(void);
+static void playeraicollision(void);   
+static void playerbubblecollision(void);
    
 int main(void)
 {
@@ -107,6 +110,7 @@ int main(void)
     }
     for(int i=0;i<MAX_BUBBLES;i++){
         arr_bubble[i].active=false;
+        arr_bubble[i].contains=false;
     }
     p[PLAYER1].active=false;
     p[PLAYER2].active=false;
@@ -154,6 +158,8 @@ int main(void)
                 updatebubbles();
                 bubbleaicollision();
                 updateai();
+                playeraicollision();
+                playerbubblecollision();
             break;
         }
         
@@ -274,7 +280,7 @@ bool playertilecollide(int num,int tile,int offsetx,int offsety){
 //Unit collide with solid blocks true/false
 // num = player
 bool bubbletilecollide(int num,int offsetx,int offsety){
-    if(p[num].active==false)return false;
+    if(arr_bubble[num].active==false)return false;
     int cx = (arr_bubble[num].x+offsetx)/tileWidth;
     int cy = (arr_bubble[num].y+offsety)/tileHeight;
     for(int y2=cy-1; y2<cy+2;y2++){//Note that the - and + are to be set differently with differently sized players
@@ -404,6 +410,7 @@ void shootbubble(int player, int direction){
     for(int i=0;i<MAX_BUBBLES;i++){
         if(arr_bubble[i].active==true)continue;
         arr_bubble[i].active = true;
+        arr_bubble[i].contains = false;
         arr_bubble[i].timeout = BUBBLE_LIFE; //how long does the bubble stay alive
         arr_bubble[i].r = tileWidth/2;//radius of our bullet.
         if(direction==LEFT){
@@ -427,7 +434,7 @@ void drawbubbles(){
         int radius = arr_bubble[i].r;
         int x = arr_bubble[i].x+arr_bubble[i].shakex;
         int y = arr_bubble[i].y+arr_bubble[i].shakey;
-        if(arr_bubble[i].state==CONTAINS){//contains a ai
+        if(arr_bubble[i].contains){//contains a ai
             DrawRectangle(x-radius+6,y-radius+6,radius*2-12,radius*2-8,(Color){200,0,0,200});
         }
         DrawCircle(x,y,radius,(Color){0,50,0,40});
@@ -458,9 +465,28 @@ void updatebubbles(){
         
         //timeout
         arr_bubble[i].timeout-=1;
-        if(arr_bubble[i].timeout<0)arr_bubble[i].active=false;
+        if(arr_bubble[i].timeout<0){
+            arr_bubble[i].active=false;
+            if(arr_bubble[i].contains==true){
+                int newai;
+                for(newai=0;newai<MAX_AI;newai++){
+                    if(arr_ai[newai].active==true)continue;
+                    arr_bubble[i].contains=false;
+                    arr_ai[newai].active=true;
+                    arr_ai[newai].x=arr_bubble[i].x;
+                    arr_ai[newai].y=arr_bubble[i].y-4;
+                    arr_ai[newai].w=tileWidth;
+                    arr_ai[newai].h=tileHeight;
+                    arr_ai[newai].canjump = false;
+                    arr_ai[newai].state = DAMAGED;
+                    arr_ai[newai].facing = LEFT;
+                    arr_ai[newai].timedamaged=RESTOREFROMDAMAGED;
+                    break;
+                }
+            }
+        }
         
-        
+        //shake bubble
         if(arr_bubble[i].state==FLOAT){
             if(GetRandomValue(0,30)<2){
                 arr_bubble[i].shakex = GetRandomValue(-3,3);
@@ -468,12 +494,13 @@ void updatebubbles(){
             }
         }
         
-        if(arr_bubble[i].state==FLOATUP || arr_bubble[i].state==CONTAINS){
+        //
+        if(arr_bubble[i].state==FLOATUP){
             // if containing a ai then count down and release.
-            if(arr_bubble[i].state==CONTAINS){
-                if(arr_bubble[i].timeoutcaptured>-2)arr_bubble[i].timeoutcaptured-=1;
+            if(arr_bubble[i].contains==true){
+                if(arr_bubble[i].timeout>-2)arr_bubble[i].timeout-=1;
                 // release the ai again but faster and killable.
-                if(arr_bubble[i].timeoutcaptured<0){
+                if(arr_bubble[i].timeout<0){
                     arr_bubble[i].active=false;
                     int newai;
                     for(newai=0;newai<MAX_AI;newai++){
@@ -523,13 +550,14 @@ void updatebubbles(){
         }
         // If the bubble was just shot!
         if(arr_bubble[i].state==SHOT){
-            for(int step=0;step<abs(arr_bubble[i].mx);step+=1){
-                      
+            for(int step=0;step<abs((int)arr_bubble[i].mx);step+=1){
+                bool ex=false;      
                 if(arr_bubble[i].mx<0.0f ){
                     arr_bubble[i].x -= 1;
                     if(bubbletilecollide(i,-1,0)){//if bubble collides then change state;
                         arr_bubble[i].mx=0;                
                         arr_bubble[i].state = FLOATUP;
+                        ex=true;
                     }
                 }
                 if(arr_bubble[i].mx>0.0f){
@@ -537,8 +565,10 @@ void updatebubbles(){
                     if(bubbletilecollide(i,1,0)){
                         arr_bubble[i].mx=0;                    
                         arr_bubble[i].state = FLOATUP;
+                        ex=true;
                     }
                 }
+                if(ex)break;
             }
             
             if(arr_bubble[i].mx<0){
@@ -685,10 +715,18 @@ void updateai(){
                         arr_ai[num].y = arr_ai[num].y-1;
                         arr_ai[num].canjump = true;
                         // look if the player is left or right and adjust direction.
-                        if(arr_ai[num].x>p[PLAYER1].x){
-                            arr_ai[num].facing=LEFT;
+                        if(arr_ai[num].state==DAMAGED){
+                            if(arr_ai[num].x<p[PLAYER1].x){
+                                arr_ai[num].facing=LEFT;
+                            }else{
+                                arr_ai[num].facing=RIGHT;
+                            }                            
                         }else{
-                            arr_ai[num].facing=RIGHT;
+                            if(arr_ai[num].x>p[PLAYER1].x){
+                                arr_ai[num].facing=LEFT;
+                            }else{
+                                arr_ai[num].facing=RIGHT;
+                            }
                         }
                         exit=true;
                         break;
@@ -737,7 +775,7 @@ bool aitilecollide(int num,int tile,int offsetx,int offsety){
 
 void bubbleaicollision(){
     for(int i=0;i<MAX_BUBBLES;i++){
-        if(arr_bubble[i].active==false || arr_bubble[i].state!=SHOT)continue;
+        if(arr_bubble[i].active==false || arr_bubble[i].state!=SHOT || arr_bubble[i].contains)continue;
         for(int ii=0;ii<MAX_AI;ii++){
             if(arr_ai[ii].active==false || arr_ai[ii].state!=ROAMING)continue;
             int x1=arr_bubble[i].x;
@@ -749,10 +787,63 @@ void bubbleaicollision(){
             int h=arr_ai[ii].h;
             if(circlerectcollide(x1,y1,r,x2,y2,w,h)){//if bubble colides with ai than float it.
                 arr_ai[ii].active=false;
-                arr_bubble[i].state=CONTAINS;
+                arr_bubble[i].contains=true;
+                arr_bubble[i].state=FLOATUP;
                 arr_bubble[i].x = x2+tileWidth/2;
-                arr_bubble[i].timeoutcaptured=CAPTURED_TIMEOUT;                
+                arr_bubble[i].timeout=CAPTURED_TIMEOUT;
+                
+                break;
             }
         }
     }
 }
+
+void playeraicollision(){
+    
+    for(int i=0;i<MAX_PLAYERS;i++){
+        if(p[i].active==false)continue;
+        //Collide with player and DAMAGED ai
+        for(int ii=0;ii<MAX_AI;ii++){
+            if(arr_ai[ii].active==false || arr_ai[ii].state!=DAMAGED)continue;
+            if(rectsoverlap(    p[i].x,
+                                p[i].y,
+                                p[i].w,
+                                p[i].h,
+                                arr_ai[ii].x,
+                                arr_ai[ii].y,
+                                arr_ai[ii].w,
+                                arr_ai[ii].h)){
+            arr_ai[ii].active=false;
+            }
+        }
+    }
+}
+
+
+void playerbubblecollision(){
+    for(int i=0;i<MAX_PLAYERS;i++){
+        if(p[i].active==false)continue;
+        for(int ii=0;ii<MAX_BUBBLES;ii++){
+            if(arr_bubble[ii].active==false || arr_bubble[ii].contains==false)continue;
+            int r=arr_bubble[ii].r;
+            if(circlerectcollide(   arr_bubble[ii].x,
+                                    arr_bubble[ii].y,
+                                    r,
+                                    p[i].x,
+                                    p[i].y,
+                                    p[i].w,
+                                    p[i].h)){
+                arr_bubble[ii].active=false;
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
