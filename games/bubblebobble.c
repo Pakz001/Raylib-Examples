@@ -1,5 +1,11 @@
+//
+// ONE LEVEL.. Controls : Cursors Left,Right,Up,Down and Left Alt = shoot bubble.
+//
+//
+
 enum flag2{PLAYER1,PLAYER2,LEFT,RIGHT};
 enum bubblestates{SHOT,FLOATUP,FLOAT};
+enum aistates{ROAMING,TRAPPED,DAMAGED};
 enum flag{SCROLLLEVELDOWN,INGAME};
 
 #define MAX_PLAYERS 1
@@ -8,6 +14,8 @@ enum flag{SCROLLLEVELDOWN,INGAME};
 #define MAX_BUBBLES 128
 #define BUBBLE_SHOOTFORCE 10.0f
 #define BUBBLE_LIFE 60*20;
+
+#define MAX_AI 32
 
 #include "raylib.h"
 #include "math.h"
@@ -48,6 +56,20 @@ typedef struct bubble{
 
 static struct bubble arr_bubble[MAX_BUBBLES];
 
+typedef struct ai{
+    bool active;
+    int state;
+    int facing;
+    float x;
+    float y;
+    int w;
+    int h;
+    bool canjump;
+    float jumpforce;
+}ai;
+
+static struct ai arr_ai[MAX_AI];
+
 static void inilevel(void);
 static void drawmap(int offsetx,int offsety);
 static void drawplayers(void);
@@ -61,6 +83,9 @@ static void updatebubbles(void);
 static bool circlerectcollide(int cx,int cy,int cr, int rx, int ry,int rw,int rh);
 static bool bubbletilecollide(int num,int offsetx,int offsety);
 static float Clamp(float value, float min, float max);
+static void drawai(void);
+static void addai(int x,int y);
+static void updateai(void);
     
 int main(void)
 {
@@ -100,6 +125,7 @@ int main(void)
                 updateplayers();
                 updateplayergravity();
                 updatebubbles();
+                updateai();
             break;
         }
         
@@ -118,6 +144,7 @@ int main(void)
                     case INGAME:
                     drawmap(0,0);
                     drawplayers();
+                    drawai();
                     drawbubbles();
                 break;
             }
@@ -489,4 +516,34 @@ float Clamp(float value, float min, float max)
 {
     const float res = value < min ? min : value;
     return res > max ? max : res;
+}
+
+void drawai(){
+    for(int i=0;i<MAX_AI;i++){
+        if(arr_ai[i].active==false)continue;
+        int x = arr_ai[i].x;
+        int y = arr_ai[i].y;
+        int w = arr_ai[i].w;
+        int h = arr_ai[i].h;
+        DrawRectangle(x,y,w,h,RED);
+    }
+}
+
+void addai(int x,int y){
+    for(int i=0;i<MAX_AI;i++){
+        if(arr_ai[i].active==true)continue;
+        arr_ai[i].active = true;
+        arr_ai[i].x = x;
+        arr_ai[i].y = x;
+        arr_ai[i].w = tileWidth;
+        arr_ai[i].h = tileHeight;
+        arr_ai[i].canjump = false;
+    }
+}
+
+void updateai(){
+    for(int i=0;i<MAX_AI;i++){
+        if(arr_ai[i].active==false)continue;
+        
+    }
 }
