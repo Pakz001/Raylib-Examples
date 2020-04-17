@@ -734,6 +734,13 @@ void updateai(){
                             }else{
                                 arr_ai[num].facing=RIGHT;
                             }
+                            if(GetRandomValue(0,10)<5){
+                                if(GetRandomValue(0,10)<5){
+                                    arr_ai[num].facing=LEFT;
+                                }else{
+                                    arr_ai[num].facing=RIGHT;
+                                }
+                            }
                         }
                         exit=true;
                         break;
