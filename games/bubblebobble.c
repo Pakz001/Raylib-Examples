@@ -5,7 +5,7 @@
 
 enum flag2{PLAYER1,PLAYER2,LEFT,RIGHT};
 enum bubblestates{SHOT,FLOATUP,FLOAT};
-enum aistates{ROAMING,TRAPPED,DAMAGED};
+enum aistates{ROAMING,TRAPPED,DAMAGED,TRAJECTORY};
 enum flag{SCROLLLEVELDOWN,INGAME};
 
 #define MAX_JUMP 4.0f
@@ -21,6 +21,8 @@ enum flag{SCROLLLEVELDOWN,INGAME};
 
 #define MAX_AI 32
 #define AI_SPEED 3
+#define AI_LAUNCHFORCE 6
+#define AI_TRAJTIME 60*3
 
 #include "raylib.h"
 #include "math.h"
@@ -70,6 +72,9 @@ typedef struct ai{
     int timedamaged;
     float x;
     float y;
+    int trajtime;
+    float mx;
+    float my;
     int w;
     int h;
     int lastjump;
@@ -100,6 +105,7 @@ static void bubbleaicollision(void);
 static void playeraicollision(void);   
 static void playerbubblecollision(void);
 static void inigfx(void);
+static void createaitrajectory(int x,int y,int facing);
    
 static RenderTexture2D tilepurple; 
    
@@ -616,7 +622,7 @@ void drawai(){
         int y = arr_ai[i].y;
         int w = arr_ai[i].w;
         int h = arr_ai[i].h;
-        if(arr_ai[i].state==DAMAGED){
+        if(arr_ai[i].state==DAMAGED || arr_ai[i].state==TRAJECTORY){
             DrawRectangle(x,y,w,h,BLUE);
         }else{
             DrawRectangle(x,y,w,h,RED);
@@ -642,7 +648,52 @@ void addai(int x,int y){
 void updateai(){
     for(int num=0;num<MAX_AI;num++){
         if(arr_ai[num].active==false)continue;
- 
+        
+        // handle the trajectory of the ai. (if they got busted)
+        if(arr_ai[num].state==TRAJECTORY){
+            int speed=AI_SPEED;
+            //If the ai is damaged than speed it it.            
+            for(int z=0;z<speed;z++){
+                if(arr_ai[num].facing==LEFT){
+                    arr_ai[num].x-=1;
+                    if(arr_ai[num].x<tileWidth){
+                        arr_ai[num].facing=RIGHT;
+                    }                        
+                }
+                if(arr_ai[num].facing==RIGHT){
+                    arr_ai[num].x+=1;
+                    if(arr_ai[num].x>screenWidth-(tileWidth*2)){
+                        arr_ai[num].facing=LEFT;
+                    }                        
+                }                
+            }
+            // gravity on the trajectory 
+            if(arr_ai[num].trajtime>-2)arr_ai[num].trajtime-=1;
+            for(int z=0;z<abs((int)arr_ai[num].my);z++){
+                if(arr_ai[num].my<0){
+                    arr_ai[num].y+=1;//arr_ai[num].my;    
+                }else{
+                    arr_ai[num].y-=1;//arr_ai[num].my;    
+                }
+                                
+                // If falling down long enough then end and drop loot
+                if(arr_ai[num].my<0 && arr_ai[num].y>screenHeight-(tileHeight*3))arr_ai[num].trajtime=-1;
+                if(arr_ai[num].trajtime<0){
+                    if( aitilecollide(num,99,0,1)==true &&
+                        aitilecollide(num,99,0,0)==false &&
+                        aitilecollide(num,99,-1,0)==false &&
+                        aitilecollide(num,99,1,0)==false){
+                        arr_ai[num].active=false;
+                        break;
+                    }
+                }                
+            }
+            arr_ai[num].my-=0.07f;
+            //
+            
+        }
+        
+        // If ai is roaming or damaged (Moving around)
         if(arr_ai[num].state==ROAMING || arr_ai[num].state==DAMAGED){
             // restore from damages if time up.
             if(arr_ai[num].timedamaged>-2)arr_ai[num].timedamaged-=1;
@@ -848,12 +899,32 @@ void playerbubblecollision(){
                                     p[i].w,
                                     p[i].h)){
                 arr_bubble[ii].active=false;
+                createaitrajectory(arr_bubble[ii].x,arr_bubble[ii].y,p[i].facing);
             }
         }
     }
 }
 
-
+void createaitrajectory(int x,int y,int facing){
+    for(int i=0;i<MAX_AI;i++){
+        if(arr_ai[i].active)continue;
+        arr_ai[i].active=true;
+        arr_ai[i].x = x;
+        arr_ai[i].y = y;
+        arr_ai[i].state = TRAJECTORY;
+        arr_ai[i].facing = facing;        
+        arr_ai[i].w = tileWidth;
+        arr_ai[i].h = tileHeight;
+        if(arr_ai[i].facing==LEFT){
+            arr_ai[i].mx=-3;            
+        }else{
+            arr_ai[i].mx=3;
+        }
+        arr_ai[i].my=AI_LAUNCHFORCE;
+        arr_ai[i].trajtime = AI_TRAJTIME;
+        return;
+    }
+}
 
 
 
