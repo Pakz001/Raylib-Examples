@@ -1,4 +1,5 @@
 enum flag2{PLAYER1,PLAYER2,LEFT,RIGHT};
+enum bubblestates{SHOT,FLOATUP,FLOAT};
 enum flag{SCROLLLEVELDOWN,INGAME};
 
 #define MAX_PLAYERS 1
@@ -6,6 +7,7 @@ enum flag{SCROLLLEVELDOWN,INGAME};
 
 #define MAX_BUBBLES 128
 #define BUBBLE_SHOOTFORCE 10.0f
+#define BUBBLE_LIFE 60*20;
 
 #include "raylib.h"
 #include "math.h"
@@ -33,12 +35,15 @@ static struct player p[MAX_PLAYERS];
 
 typedef struct bubble{
     bool active;
+    int timeout;
     float x;
     float y;
     int state;
     int r;
     float mx;
     float my;    
+    int shakex;
+    int shakey;
 }bubble;
 
 static struct bubble arr_bubble[MAX_BUBBLES];
@@ -98,8 +103,6 @@ int main(void)
             break;
         }
         
-        arr_bubble[0].x = GetMouseX();
-        arr_bubble[0].y = GetMouseY();
         //----------------------------------------------------------------------------------
         // Draw
         //----------------------------------------------------------------------------------
@@ -117,9 +120,6 @@ int main(void)
                     drawplayers();
                     drawbubbles();
                 break;
-            }
-            if(bubbletilecollide(0,0,0)){
-                DrawText(FormatText("%f",arr_bubble[0].mx),0,0,20,WHITE);
             }
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -349,7 +349,8 @@ void shootbubble(int player, int direction){
     for(int i=0;i<MAX_BUBBLES;i++){
         if(arr_bubble[i].active==true)continue;
         arr_bubble[i].active = true;
-        arr_bubble[i].r = tileWidth/2;
+        arr_bubble[i].timeout = BUBBLE_LIFE; //how long does the bubble stay alive
+        arr_bubble[i].r = tileWidth/2;//radius of our bullet.
         if(direction==LEFT){
             arr_bubble[i].mx=-BUBBLE_SHOOTFORCE;
             arr_bubble[i].x = p[player].x;
@@ -369,10 +370,10 @@ void drawbubbles(){
     for(int i=0;i<MAX_BUBBLES;i++){
         if(arr_bubble[i].active==false)continue;
         int radius = arr_bubble[i].r;
-        int x = arr_bubble[i].x;
-        int y = arr_bubble[i].y;
-        DrawCircle(x,y,radius,(Color){0,50,0,20});
-        DrawCircleLines(x,y,radius,(Color){0,100,0,100});
+        int x = arr_bubble[i].x+arr_bubble[i].shakex;
+        int y = arr_bubble[i].y+arr_bubble[i].shakey;
+        DrawCircle(x,y,radius,(Color){0,50,0,40});
+        DrawCircleLines(x,y,radius,(Color){0,200,0,100});
         DrawCircle(x-radius+(radius/1.5),y-radius+(radius/1.5),6,(Color){200,255,200,200});
         DrawCircle(x+(radius/2.1),y+(radius/2.1),2,(Color){200,255,200,200});
         
@@ -397,29 +398,78 @@ void updatebubbles(){
     for(int i=0;i<MAX_BUBBLES;i++){
         if(arr_bubble[i].active==false)continue;        
         
-        for(int step=0;step<abs(arr_bubble[i].mx);step+=1){
-                  
-            if(arr_bubble[i].mx<0.0f ){
-                arr_bubble[i].x -= 1;
-                if(bubbletilecollide(i,-1,0)){
-                    arr_bubble[i].mx=0;                    
-                }
-            }
-            if(arr_bubble[i].mx>0.0f){
-                arr_bubble[i].x += 1;
-                if(bubbletilecollide(i,1,0)){
-                    arr_bubble[i].mx=0;                    
-                }
+        //timeout
+        arr_bubble[i].timeout-=1;
+        if(arr_bubble[i].timeout<0)arr_bubble[i].active=false;
+        
+        
+        if(arr_bubble[i].state==FLOAT){
+            if(GetRandomValue(0,30)<2){
+                arr_bubble[i].shakex = GetRandomValue(-3,3);
+                arr_bubble[i].shakey = GetRandomValue(-3,3);
             }
         }
         
-        if(arr_bubble[i].mx<0){
-            arr_bubble[i].mx+=0.2f;
-        }else{
-            arr_bubble[i].mx-=0.2f;
+        if(arr_bubble[i].state==FLOATUP){
+            if(arr_bubble[i].y>2.5*tileHeight){
+                arr_bubble[i].y-=1;
+            }
+            if(arr_bubble[i].y<3*tileHeight){
+                if(arr_bubble[i].x<screenWidth/2){
+                    arr_bubble[i].x+=1;
+                }
+                if(arr_bubble[i].x>screenWidth/2){
+                    arr_bubble[i].x-=1;
+                }                
+                if(rectsoverlap(    arr_bubble[i].x,arr_bubble[i].y,arr_bubble[i].r,arr_bubble[i].r,
+                                    screenWidth/2-5,0,10,100)){
+                    for(int z=0;z<MAX_BUBBLES;z++){
+                        if(z!=i && arr_bubble[z].active==false)continue;
+                        if(rectsoverlap(arr_bubble[z].x,
+                                        arr_bubble[z].y,
+                                        arr_bubble[z].r,
+                                        arr_bubble[z].r,
+                                        arr_bubble[i].x,
+                                        arr_bubble[z].y,
+                                        arr_bubble[z].r,
+                                        arr_bubble[z].r)){
+                        arr_bubble[i].state = FLOAT;
+                        }
+                    }
+                    
+                }
+            }
         }
-        if(arr_bubble[i].mx>-0.3f && arr_bubble[i].mx < 0.3f){
-            arr_bubble[i].mx = 0;
+        // If the bubble was just shot!
+        if(arr_bubble[i].state==SHOT){
+            for(int step=0;step<abs(arr_bubble[i].mx);step+=1){
+                      
+                if(arr_bubble[i].mx<0.0f ){
+                    arr_bubble[i].x -= 1;
+                    if(bubbletilecollide(i,-1,0)){//if bubble collides then change state;
+                        arr_bubble[i].mx=0;                
+                        arr_bubble[i].state = FLOATUP;
+                    }
+                }
+                if(arr_bubble[i].mx>0.0f){
+                    arr_bubble[i].x += 1;
+                    if(bubbletilecollide(i,1,0)){
+                        arr_bubble[i].mx=0;                    
+                        arr_bubble[i].state = FLOATUP;
+                    }
+                }
+            }
+            
+            if(arr_bubble[i].mx<0){
+                arr_bubble[i].mx+=0.2f;
+            }else{
+                arr_bubble[i].mx-=0.2f;
+            }
+            // If the bubble slows down enough then change state to FLOAT;
+            if(arr_bubble[i].mx>-0.3f && arr_bubble[i].mx < 0.3f){
+                arr_bubble[i].mx = 0;
+                arr_bubble[i].state = FLOATUP;
+            }
         }
     }
     
