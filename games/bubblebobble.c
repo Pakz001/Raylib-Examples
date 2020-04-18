@@ -1166,7 +1166,7 @@ void playeraicollision(){
                 arr_ai[ii].active=false;
                 createaitrajectory(arr_ai[ii].x,arr_ai[ii].y,p[i].facing);
             }}
-            if(arr_ai[ii].state==ROAMING){
+            if(arr_ai[ii].state==ROAMING && CHEATMODE==false){
                 if(rectsoverlap(    p[i].x,
                                     p[i].y,
                                     p[i].w,
