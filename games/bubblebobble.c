@@ -18,7 +18,7 @@ enum flag{SCROLLLEVELDOWN,INGAME};
 #define BUBBLE_LIFE 60*20 //how long does a empty bubble stay alive
 #define CAPTURED_TIMEOUT 60*7 //how long does a ai stay inside the bubble
 #define RESTOREFROMDAMAGED 200 //time a ai stays damaged
-#define BUBBLE_PUSHTIME 5 //how long do we push the ai holding bubble before it pops
+#define BUBBLE_PUSHTIME 4 //how long do we push the ai holding bubble before it pops
 
 #define MAX_AI 32
 #define AI_SPEED 3
@@ -55,6 +55,7 @@ typedef struct player{
     float y;
     int w;
     int h;
+    int score;
     bool canjump;    
     float jumpforce;
 }player;
@@ -154,6 +155,9 @@ static void playerpickupcollision();
 static void updatepickupeffects();
 static void drawpickupeffects();
 static void addpickupeffect(int type,int x, int y);
+static int getscore(int type);
+static void drawplayerbar(void);
+static void inigame(void);
 
 // Here the gfx are defined.   
 static RenderTexture2D tilepurple; 
@@ -162,47 +166,28 @@ int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-
-    for(int i=0;i<MAX_PICKUP;i++){
-        arr_pickup[i].active=false;
-    }
-    
-    for(int i=0;i<MAX_AI;i++){
-        arr_ai[i].active=false;
-    }
-    for(int i=0;i<MAX_BUBBLES;i++){
-        arr_bubble[i].active=false;
-        arr_bubble[i].contains=false;
-    }
-    p[PLAYER1].active=false;
-    p[PLAYER2].active=false;
-    
     InitWindow(screenWidth, screenHeight, "raylib example.");
 
      // Create a Image in memory
     tilepurple = LoadRenderTexture(32, 32);
+
     inigfx();
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
 
     inilevel();
-    p[PLAYER1].active = true;
-    p[PLAYER1].x = 2*tileWidth;
-    p[PLAYER1].y = 12*tileHeight;
-    p[PLAYER1].w = tileWidth;
-    p[PLAYER1].h = tileHeight;
-    p[PLAYER1].canjump = true;
+    inigame();
+
     //--------------------------------------------------------------------------------------
     static int offsety;
     offsety = -(mapHeight*tileHeight);
-    //static int gamestate=SCROLLLEVELDOWN;
-    static int gamestate=INGAME;
+    static int gamestate=SCROLLLEVELDOWN;
+    //static int gamestate=INGAME;
 
-    arr_bubble[0].active=true;
-    arr_bubble[0].r = tileWidth/2;
     
     static int aiaddtime=10;
     static int aimax = 3;
+    static int restarttime;
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -216,7 +201,7 @@ int main(void)
                     addai(10*tileWidth,tileHeight);
                     aiaddtime=20;
                     aimax-=1;
-                }
+                }                
                 updateplayers();
                 updateplayers();
                 updateplayers();
@@ -229,6 +214,21 @@ int main(void)
                 updatepickups();
                 updatepickupeffects();
                 playerpickupcollision();
+                //see if there are no more ai then countdown and reset.
+                restarttime+=1;
+                for(int i=0;i<MAX_AI;i++){
+                    if(arr_ai[i].active)restarttime=0;
+                }
+                if(restarttime>60*10){
+                    inilevel();
+                    inigame();
+                    aiaddtime=10;
+                    aimax = 3;
+                    restarttime=0;
+                    offsety = -(mapHeight*tileHeight);
+                    gamestate = SCROLLLEVELDOWN;
+                    
+                }
             break;
         }
         
@@ -246,6 +246,7 @@ int main(void)
                 break;
                     case INGAME:
                     drawmap(0,0);
+                    drawplayerbar();
                     drawpickups();
                     drawpickupeffects();
                     drawplayers();
@@ -1141,6 +1142,7 @@ void playerpickupcollision(){
                                 arr_pickup[ii].w,
                                 arr_pickup[ii].h)){
             arr_pickup[ii].active=false;
+            p[i].score+=getscore(arr_pickup[ii].type);
             addpickupeffect(arr_pickup[ii].type,arr_pickup[ii].x,arr_pickup[ii].y);
             // ADD effect here.
             }
@@ -1199,3 +1201,69 @@ void addpickupeffect(int type,int x, int y){
         return;
     }
 }
+
+int getscore(int type){
+    switch (type){
+        case 0:
+            return POINT1;
+        break;
+        case 1:
+            return POINT2;
+        break;
+        case 2:
+            return POINT3;
+        break;
+        case 3:
+            return POINT4;
+        break;
+        case 4:
+            return POINT5;
+        break;
+    }
+    return 0;
+}
+
+void drawplayerbar(){
+    DrawRectangle(0,0,150,20,BLACK);
+    DrawText(FormatText("%i",p[0].score),20,1,20,WHITE);
+    if(p[1].active==false)return;
+    DrawRectangle(screenWidth/2,0,150,20,BLACK);
+    DrawText(FormatText("%i",p[1].score),screenWidth/2+20,1,20,WHITE);
+}
+
+void inigame(){
+    for(int i=0;i<MAX_PICKUP;i++){
+        arr_pickup[i].active=false;
+    }
+    
+    for(int i=0;i<MAX_AI;i++){
+        arr_ai[i].active=false;
+    }
+    for(int i=0;i<MAX_BUBBLES;i++){
+        arr_bubble[i].active=false;
+        arr_bubble[i].contains=false;
+    }
+    for(int i=0;i<MAX_PICKUP;i++){
+        arr_pickup[i].active=false;
+    }
+    for(int i=0;i<MAX_PICKUPEFFECT;i++){    
+        arr_pueffect[i].active=false;
+    }
+    p[PLAYER1].active = true;
+    p[PLAYER1].x = 2*tileWidth;
+    p[PLAYER1].y = 12*tileHeight;
+    p[PLAYER1].w = tileWidth;
+    p[PLAYER1].h = tileHeight;
+    p[PLAYER1].canjump = true;    
+    
+
+    p[PLAYER2].active=false;
+    p[PLAYER2].score=0;
+    p[PLAYER2].x = 5*tileWidth;
+    p[PLAYER2].y = 12*tileHeight;
+    p[PLAYER2].w = tileWidth;
+    p[PLAYER2].h = tileHeight;
+    p[PLAYER2].canjump = true;
+
+
+}    
