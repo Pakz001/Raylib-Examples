@@ -164,6 +164,7 @@ static int getscore(int type);
 static void drawplayerbar(void);
 static void inigame(void);
 static void inic64colors(void);
+static void drawplayerscolling(void);
 
 // Here the gfx are defined.   
 static RenderTexture2D tilepurple; 
@@ -175,7 +176,11 @@ static RenderTexture2D spritefruit1;
 static RenderTexture2D spritefruit2; 
 static RenderTexture2D spritefruit3; 
 static RenderTexture2D spritefruit4; 
-static RenderTexture2D spritefruit5;    
+static RenderTexture2D spritefruit5;  
+
+static int fx=0;
+static int fy=0;
+  
 int main(void)
 {
     // Initialization
@@ -212,6 +217,9 @@ int main(void)
     static int aiaddtime=10;
     static int aimax = 3;
     static int restarttime;
+    
+    fx = screenWidth/2;
+    fy = -200;
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -244,6 +252,9 @@ int main(void)
                     if(arr_ai[i].active)restarttime=0;
                 }
                 if(restarttime>60*10){
+                    fx = p[PLAYER1].x;
+                    fy = p[PLAYER1].y;
+
                     inilevel();
                     inigame();
                     aiaddtime=10;
@@ -264,8 +275,18 @@ int main(void)
             ClearBackground(BLACK);
             switch (gamestate){
                 case SCROLLLEVELDOWN:
+
                     offsety+=4;
                     drawmap(0,offsety);
+                    
+                    drawplayerscolling();
+                    for(int i=0;i<5;i++){
+                        if(fx>p[PLAYER1].x)fx-=1;  
+                        if(fy<p[PLAYER1].y)fy+=1;  
+                        if(fx<p[PLAYER1].x)fx+=1;  
+                        if(fy>p[PLAYER1].y)fy-=1;  
+                    }
+                    
                     if(offsety>=0)gamestate=INGAME;
                 break;
                     case INGAME:
@@ -1661,4 +1682,22 @@ void inic64colors(void){
     c64color[13] = (Color){170,255,102, 255 };//Light green
     c64color[14] = (Color){0  ,136,255, 255 };//Light blue
     c64color[15] = (Color){187,187,187, 255 };//Light grey / grey 3    
+}
+
+void drawplayerscolling(){
+
+    int x=fx+p[PLAYER1].w/2;
+    int y=fy+p[PLAYER1].h/2;
+    int radius=tileWidth/1.8;
+    DrawTexturePro(spritebobble1.texture,       (Rectangle){0,0,spritebobble1.texture.width,
+                                                                spritebobble1.texture.height},
+                                                (Rectangle){x-p[PLAYER1].w/2,
+                                                            y-p[PLAYER1].h/2,
+                                                            p[PLAYER1].w,p[PLAYER1].h},
+                                                (Vector2){0,0},0,WHITE);            
+
+    DrawCircle(x,y,radius,(Color){0,50,0,40});
+    DrawCircleLines(x,y,radius,(Color){255,255,255,255});
+    DrawCircle(x-radius+(radius/1.5),y-radius+(radius/1.5),6,(Color){200,255,200,200});
+    DrawCircle(x+(radius/2.1),y+(radius/2.1),2,(Color){200,255,200,200});
 }
