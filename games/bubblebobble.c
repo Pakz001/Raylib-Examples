@@ -10,19 +10,32 @@ enum flag{SCROLLLEVELDOWN,INGAME};
 
 #define MAX_JUMP 4.0f
 
-#define MAX_PLAYERS 2
+#define MAX_PLAYERS 2 // second player not fully implemented yet.
 #define MAX_FALL_SPEED 2.0f
 
-#define MAX_BUBBLES 128
-#define BUBBLE_SHOOTFORCE 10.0f
-#define BUBBLE_LIFE 60*20
-#define CAPTURED_TIMEOUT 60*7
-#define RESTOREFROMDAMAGED 200
+#define MAX_BUBBLES 256
+#define BUBBLE_SHOOTFORCE 10.0f //how fast does the bubble shoot away from the player
+#define BUBBLE_LIFE 60*20 //how long does a empty bubble stay alive
+#define CAPTURED_TIMEOUT 60*7 //how long does a ai stay inside the bubble
+#define RESTOREFROMDAMAGED 200 //time a ai stays damaged
+#define BUBBLE_PUSHTIME 5 //how long do we push the ai holding bubble before it pops
 
 #define MAX_AI 32
 #define AI_SPEED 3
 #define AI_LAUNCHFORCE 6
-#define AI_TRAJTIME 60*3
+#define AI_TRAJTIME 60*2
+
+#define MAX_PICKUP 128
+#define PICKUP_TIMEDISAPPEAR 60*6
+
+#define MAX_PICKUPEFFECT 128
+#define PICKUPEFFECT_MY 2
+#define PICKUPEFFECT_DISAPPEAR 60*1.5
+#define POINT1 200
+#define POINT2 500
+#define POINT3 1000
+#define POINT4 10000
+#define POINT5 20000
 
 #include "raylib.h"
 #include "math.h"
@@ -61,6 +74,7 @@ typedef struct bubble{
     float my;    
     int shakex;
     int shakey;
+    int pushtime;    
 }bubble;
 
 static struct bubble arr_bubble[MAX_BUBBLES];
@@ -84,6 +98,32 @@ typedef struct ai{
 
 static struct ai arr_ai[MAX_AI];
 
+typedef struct pickup{
+    bool active;
+    int x;
+    int y;
+    int w;
+    int h;
+    int type;
+    Color col;
+    int timedisappear;
+}pickup;
+
+static struct pickup arr_pickup[MAX_PICKUP];
+
+typedef struct pickupeffect{
+    bool active;
+    float x;
+    float y;
+    float my;
+    int type;
+    float alpha;
+    float timedisappear;    
+    int points;
+}pickupeffect;
+
+static struct pickupeffect arr_pueffect[MAX_PICKUPEFFECT];
+
 static void inilevel(void);
 static void drawmap(int offsetx,int offsety);
 static void drawplayers(void);
@@ -106,7 +146,16 @@ static void playeraicollision(void);
 static void playerbubblecollision(void);
 static void inigfx(void);
 static void createaitrajectory(int x,int y,int facing);
-   
+static float getangle(float x1,float y1,float x2,float y2);
+static void drawpickups(void);
+static void updatepickups(void);
+static void addpickup(int x,int y);
+static void playerpickupcollision();
+static void updatepickupeffects();
+static void drawpickupeffects();
+static void addpickupeffect(int type,int x, int y);
+
+// Here the gfx are defined.   
 static RenderTexture2D tilepurple; 
    
 int main(void)
@@ -114,6 +163,10 @@ int main(void)
     // Initialization
     //--------------------------------------------------------------------------------------
 
+    for(int i=0;i<MAX_PICKUP;i++){
+        arr_pickup[i].active=false;
+    }
+    
     for(int i=0;i<MAX_AI;i++){
         arr_ai[i].active=false;
     }
@@ -173,6 +226,9 @@ int main(void)
                 updateai();
                 playeraicollision();
                 playerbubblecollision();
+                updatepickups();
+                updatepickupeffects();
+                playerpickupcollision();
             break;
         }
         
@@ -190,6 +246,8 @@ int main(void)
                 break;
                     case INGAME:
                     drawmap(0,0);
+                    drawpickups();
+                    drawpickupeffects();
                     drawplayers();
                     drawai();
                     drawbubbles();
@@ -432,7 +490,7 @@ void shootbubble(int player, int direction){
         }
         if(direction==RIGHT){
             arr_bubble[i].mx=BUBBLE_SHOOTFORCE;        
-            arr_bubble[i].x = p[player].x+p[player].w*2;            
+            arr_bubble[i].x = p[player].x+p[player].w;            
         }
         
         arr_bubble[i].y = p[player].y+5;
@@ -475,7 +533,10 @@ void updatebubbles(){
     // Bubbles movement and interaction
     for(int i=0;i<MAX_BUBBLES;i++){
         if(arr_bubble[i].active==false)continue;        
-        
+     
+        // decrease the player push bubble effect/
+        if(arr_bubble[i].pushtime>-1)arr_bubble[i].pushtime--;
+     
         //timeout
         arr_bubble[i].timeout-=1;
         if(arr_bubble[i].timeout<0){
@@ -676,7 +737,8 @@ void updateai(){
                     arr_ai[num].y-=1;//arr_ai[num].my;    
                 }
                                 
-                // If falling down long enough then end and drop loot
+                // If falling down long enough then end and drop loot                
+                if(arr_ai[num].y>tileHeight){
                 if(arr_ai[num].my<0 && arr_ai[num].y>screenHeight-(tileHeight*3))arr_ai[num].trajtime=-1;
                 if(arr_ai[num].trajtime<0){
                     if( aitilecollide(num,99,0,1)==true &&
@@ -684,9 +746,11 @@ void updateai(){
                         aitilecollide(num,99,-1,0)==false &&
                         aitilecollide(num,99,1,0)==false){
                         arr_ai[num].active=false;
+                        addpickup(arr_ai[num].x,arr_ai[num].y);
                         break;
                     }
                 }                
+                }
             }
             arr_ai[num].my-=0.07f;
             //
@@ -839,8 +903,10 @@ bool aitilecollide(int num,int tile,int offsetx,int offsety){
 }
 
 void bubbleaicollision(){
+    // If bubble touches ai
     for(int i=0;i<MAX_BUBBLES;i++){
         if(arr_bubble[i].active==false || arr_bubble[i].state!=SHOT || arr_bubble[i].contains)continue;
+        // ai In a bubble than pop it
         for(int ii=0;ii<MAX_AI;ii++){
             if(arr_ai[ii].active==false || arr_ai[ii].state!=ROAMING)continue;
             int x1=arr_bubble[i].x;
@@ -860,6 +926,23 @@ void bubbleaicollision(){
                 break;
             }
         }
+        // AI damaged than it im
+        for(int ii=0;ii<MAX_AI;ii++){
+            if(arr_ai[ii].active==false || arr_ai[ii].state!=DAMAGED)continue;
+            int x1=arr_bubble[i].x;
+            int y1=arr_bubble[i].y;
+            int r=arr_bubble[i].r;
+            int x2=arr_ai[ii].x;
+            int y2=arr_ai[ii].y;
+            int w=arr_ai[ii].w;
+            int h=arr_ai[ii].h;
+            if(circlerectcollide(x1,y1,r,x2,y2,w,h)){//if bubble colides with ai than float it.
+                arr_ai[ii].active=false;
+                arr_bubble[i].active=false;
+                createaitrajectory(arr_ai[ii].x,arr_ai[ii].y,p[i].facing);
+                break;
+            }
+        }        
     }
 }
 
@@ -879,6 +962,7 @@ void playeraicollision(){
                                 arr_ai[ii].w,
                                 arr_ai[ii].h)){
             arr_ai[ii].active=false;
+            createaitrajectory(arr_ai[ii].x,arr_ai[ii].y,p[i].facing);
             }
         }
     }
@@ -898,8 +982,24 @@ void playerbubblecollision(){
                                     p[i].y,
                                     p[i].w,
                                     p[i].h)){
-                arr_bubble[ii].active=false;
-                createaitrajectory(arr_bubble[ii].x,arr_bubble[ii].y,p[i].facing);
+                arr_bubble[ii].pushtime+=2;
+                if(arr_bubble[ii].pushtime>BUBBLE_PUSHTIME){//frametime used
+                    arr_bubble[ii].active=false;                    
+                    createaitrajectory(arr_bubble[ii].x,arr_bubble[ii].y,p[i].facing);
+                }else{//push bubble away from player
+                    float an=getangle(  arr_bubble[ii].x,
+                                        arr_bubble[ii].y,
+                                        p[i].x,
+                                        p[i].y);
+                    int oldx = arr_bubble[ii].x;
+                    int oldy = arr_bubble[ii].y;
+                    arr_bubble[ii].x -= cos(an)*3;
+                    arr_bubble[ii].y -= sin(an)*3;
+                    if(bubbletilecollide(ii,0,0)){
+                        arr_bubble[ii].x = oldx;
+                        arr_bubble[ii].y = oldy;
+                    }
+                }           
             }
         }
     }
@@ -967,4 +1067,135 @@ static void inigfx(){
         }
     }
     
+}
+
+
+// Return the angle from - to in float
+float getangle(float x1,float y1,float x2,float y2){
+    return (float)atan2(y2-y1, x2-x1);
+}
+
+void drawpickups(){
+    for(int i=0;i<MAX_PICKUP;i++){
+        if(arr_pickup[i].active==false)continue;
+        Color col = arr_pickup[i].col;
+        DrawRectangle(arr_pickup[i].x,arr_pickup[i].y,arr_pickup[i].w,arr_pickup[i].h,col);
+    }
+}
+void updatepickups(){
+    for(int i=0;i<MAX_PICKUP;i++){
+        if(arr_pickup[i].active==false)continue;
+        arr_pickup[i].timedisappear+=1;
+        // If the pickup its time has come.
+        if(arr_pickup[i].timedisappear>PICKUP_TIMEDISAPPEAR){
+            arr_pickup[i].active=false;
+        }
+    }
+}
+
+void addpickup(int x, int y){
+    for(int i=0;i<MAX_PICKUP;i++){
+        if(arr_pickup[i].active)continue;        
+        arr_pickup[i].active=true;
+        arr_pickup[i].x = x;
+        arr_pickup[i].y = y;
+        arr_pickup[i].w = tileWidth;
+        arr_pickup[i].h = tileHeight;  
+        arr_pickup[i].timedisappear = 0;
+        arr_pickup[i].type = GetRandomValue(0,4);
+        switch (arr_pickup[i].type){
+            case 0:
+                arr_pickup[i].col = (Color){200,0,0,255};
+            break;
+            case 1:
+                arr_pickup[i].col = (Color){0,200,0,255};
+            break;
+            case 2:
+                arr_pickup[i].col = (Color){0,0,200,255};
+            break;
+            case 3:
+                arr_pickup[i].col = (Color){200,200,0,255};
+            break;
+            case 4:
+                arr_pickup[i].col = (Color){200,0,200,255};
+            break;
+            case 5:
+                arr_pickup[i].col = (Color){200,200,200,255};
+            break;
+        }        
+        return;
+    }
+}
+
+void playerpickupcollision(){
+    for(int i=0;i<MAX_PLAYERS;i++){
+        if(p[i].active==false)continue;
+        for(int ii=0;ii<MAX_PICKUP;ii++){   
+            if(arr_pickup[ii].active==false)continue;
+            if(rectsoverlap(    p[i].x,
+                                p[i].y,
+                                p[i].w,
+                                p[i].h,
+                                arr_pickup[ii].x,
+                                arr_pickup[ii].y,
+                                arr_pickup[ii].w,
+                                arr_pickup[ii].h)){
+            arr_pickup[ii].active=false;
+            addpickupeffect(arr_pickup[ii].type,arr_pickup[ii].x,arr_pickup[ii].y);
+            // ADD effect here.
+            }
+        }
+    }
+}
+
+void updatepickupeffects(){
+    for(int i=0;i<MAX_PICKUPEFFECT;i++){
+        if(arr_pueffect[i].active==false)continue;
+        // If on screen to long than disappear.
+        arr_pueffect[i].timedisappear-=1;
+        if(arr_pueffect[i].timedisappear<0){
+            arr_pueffect[i].active=false;
+        }
+        arr_pueffect[i].y-=arr_pueffect[i].my;
+        if(arr_pueffect[i].alpha>-1)arr_pueffect[i].alpha -= 1;
+    }
+}
+void drawpickupeffects(){
+    for(int i=0;i<MAX_PICKUPEFFECT;i++){
+        if(arr_pueffect[i].active==false)continue;
+        int score=0;
+        switch (arr_pueffect[i].type){
+        case 0:
+            score = POINT1;
+        break;
+        case 1:
+            score = POINT2;
+        break;
+        case 2:
+            score = POINT3;
+        break;            
+        case 3:
+            score = POINT4;
+        break;
+        case 4:
+            score = POINT5;
+        break;
+        }
+        DrawText(   FormatText("%i",score),   
+                    arr_pueffect[i].x,arr_pueffect[i].y,
+                    tileWidth/2.5,(Color){255,255,255,arr_pueffect[i].alpha});
+    }
+}
+void addpickupeffect(int type,int x, int y){
+    for(int i=0;i<MAX_PICKUPEFFECT;i++){
+        if(arr_pueffect[i].active)continue;    
+        arr_pueffect[i].active = true;
+        arr_pueffect[i].x = x;
+        arr_pueffect[i].y = y;        
+        arr_pueffect[i].alpha = 255;
+        arr_pueffect[i].type = type;
+        arr_pueffect[i].my = PICKUPEFFECT_MY;
+        arr_pueffect[i].timedisappear = PICKUPEFFECT_DISAPPEAR;
+        return;
+    }
 }
