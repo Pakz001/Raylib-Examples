@@ -582,7 +582,15 @@ void drawbubbles(){
         int x = arr_bubble[i].x+arr_bubble[i].shakex;
         int y = arr_bubble[i].y+arr_bubble[i].shakey;
         if(arr_bubble[i].contains){//contains a ai
-            DrawRectangle(x-radius+6,y-radius+6,radius*2-12,radius*2-8,(Color){200,0,0,200});
+            //DrawRectangle(x-radius+6,y-radius+6,radius*2-12,radius*2-8,(Color){200,0,0,200});
+            DrawTexturePro(spriteai1.texture,           (Rectangle){0,0,spriteai1.texture.width,
+                                                                        spriteai1.texture.height},
+                                                        (Rectangle){x-radius+6,
+                                                                    y-radius+6,
+                                                                    spriteai1.texture.width,
+                                                                    spriteai1.texture.height},
+                                                        (Vector2){0,0},0,BLUE);            
+            
         }
         DrawCircle(x,y,radius,(Color){0,50,0,40});
         DrawCircleLines(x,y,radius,(Color){0,200,0,100});
@@ -766,10 +774,12 @@ void drawai(){
         if(arr_ai[i].animframetime<0)arr_ai[i].animframetime=30;
         //
         // if the ai is currently spinning then rotate him.
+        float rotation=0;
         if(arr_ai[i].state==TRAJECTORY){
             arr_ai[i].rotation+=20;
+            rotation = arr_ai[i].rotation;
         }
-        float rotation=arr_ai[i].rotation;
+        
         // When the ai goes into a spin make sure the rotation is around the center.
         float centerx=tileWidth/2;
         float centery=tileHeight/2;
@@ -861,6 +871,7 @@ void addai(int x,int y){
         arr_ai[i].active = true;
         arr_ai[i].x = x;
         arr_ai[i].y = y;
+        arr_ai[i].rotation = 0;
         arr_ai[i].w = tileWidth;
         arr_ai[i].h = tileHeight;
         arr_ai[i].canjump = false;
