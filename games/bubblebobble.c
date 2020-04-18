@@ -8,6 +8,8 @@ enum bubblestates{SHOT,FLOATUP,FLOAT};
 enum aistates{ROAMING,TRAPPED,DAMAGED,TRAJECTORY};
 enum flag{SCROLLLEVELDOWN,INGAME};
 
+#define CHEATMODE false
+
 #define MAX_JUMP 4.0f
 
 #define MAX_PLAYERS 2 // second player not fully implemented yet.
@@ -178,7 +180,8 @@ static RenderTexture2D spritefruit3;
 static RenderTexture2D spritefruit4; 
 static RenderTexture2D spritefruit5;  
 
-static int fx=0;
+static bool gameover = false;
+static int fx=0; // for moving the playr in a bubble to the level.
 static int fy=0;
   
 int main(void)
@@ -230,7 +233,7 @@ int main(void)
             case INGAME:
                 if(aimax>0)aiaddtime-=1;
                 if(aiaddtime==0 && aimax>0){
-                    addai(10*tileWidth,tileHeight);
+                    addai(10*tileWidth,tileHeight+5);
                     aiaddtime=20;
                     aimax-=1;
                 }                
@@ -246,15 +249,17 @@ int main(void)
                 updatepickups();
                 updatepickupeffects();
                 playerpickupcollision();
+                
+                                
                 //see if there are no more ai then countdown and reset.
                 restarttime+=1;
                 for(int i=0;i<MAX_AI;i++){
                     if(arr_ai[i].active)restarttime=0;
                 }
-                if(restarttime>60*10){
+                if(gameover==true || restarttime>60*10){
+                    
                     fx = p[PLAYER1].x;
-                    fy = p[PLAYER1].y;
-
+                    fy = p[PLAYER1].y;                    
                     inilevel();
                     inigame();
                     aiaddtime=10;
@@ -262,7 +267,7 @@ int main(void)
                     restarttime=0;
                     offsety = -(mapHeight*tileHeight);
                     gamestate = SCROLLLEVELDOWN;
-                    
+                    gameover = false;
                 }
             break;
         }
@@ -1146,20 +1151,33 @@ void playeraicollision(){
     
     for(int i=0;i<MAX_PLAYERS;i++){
         if(p[i].active==false)continue;
-        //Collide with player and DAMAGED ai
+        //Collide with player and DAMAGED ai..// ai gets launched
         for(int ii=0;ii<MAX_AI;ii++){
-            if(arr_ai[ii].active==false || arr_ai[ii].state!=DAMAGED)continue;
-            if(rectsoverlap(    p[i].x,
-                                p[i].y,
-                                p[i].w,
-                                p[i].h,
-                                arr_ai[ii].x,
-                                arr_ai[ii].y,
-                                arr_ai[ii].w,
-                                arr_ai[ii].h)){
-            arr_ai[ii].active=false;
-            createaitrajectory(arr_ai[ii].x,arr_ai[ii].y,p[i].facing);
-            }
+            if(arr_ai[ii].active==false)continue;
+            if(arr_ai[ii].state==DAMAGED || arr_ai[ii].state==TRAPPED){
+                if(rectsoverlap(    p[i].x,
+                                    p[i].y,
+                                    p[i].w,
+                                    p[i].h,
+                                    arr_ai[ii].x,
+                                    arr_ai[ii].y,
+                                    arr_ai[ii].w,
+                                    arr_ai[ii].h)){
+                arr_ai[ii].active=false;
+                createaitrajectory(arr_ai[ii].x,arr_ai[ii].y,p[i].facing);
+            }}
+            if(arr_ai[ii].state==ROAMING){
+                if(rectsoverlap(    p[i].x,
+                                    p[i].y,
+                                    p[i].w,
+                                    p[i].h,
+                                    arr_ai[ii].x,
+                                    arr_ai[ii].y,
+                                    arr_ai[ii].w,
+                                    arr_ai[ii].h)){
+                gameover=true;            
+            }}
+
         }
     }
 }
@@ -1701,3 +1719,4 @@ void drawplayerscolling(){
     DrawCircle(x-radius+(radius/1.5),y-radius+(radius/1.5),6,(Color){200,255,200,200});
     DrawCircle(x+(radius/2.1),y+(radius/2.1),2,(Color){200,255,200,200});
 }
+
