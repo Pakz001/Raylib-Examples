@@ -85,7 +85,9 @@ static struct bubble arr_bubble[MAX_BUBBLES];
 
 typedef struct ai{
     bool active;
+    float rotation;
     int state;
+    int animframetime;
     int facing;
     int timedamaged;
     float x;
@@ -338,8 +340,8 @@ void drawplayers(void){
         
         if(p[i].facing==RIGHT){
             if(p[i].shotfiredtime>0){
-                DrawTexturePro(spritebobble2.texture,       (Rectangle){0,0,spritebobble1.texture.width,
-                                                                            spritebobble1.texture.height},
+                DrawTexturePro(spritebobble2.texture,       (Rectangle){0,0,spritebobble2.texture.width,
+                                                                            spritebobble2.texture.height},
                                                             (Rectangle){p[i].x,
                                                                         p[i].y,
                                                                         p[i].w,p[i].h},
@@ -354,8 +356,8 @@ void drawplayers(void){
             }
         }else{
             if(p[i].shotfiredtime>0){
-                DrawTexturePro(spritebobble2.texture,       (Rectangle){0,0,-spritebobble1.texture.width,
-                                                                            spritebobble1.texture.height},
+                DrawTexturePro(spritebobble2.texture,       (Rectangle){0,0,-spritebobble2.texture.width,
+                                                                            spritebobble2.texture.height},
                                                             (Rectangle){p[i].x,
                                                                         p[i].y,
                                                                         p[i].w,p[i].h},
@@ -740,10 +742,96 @@ void drawai(){
         int y = arr_ai[i].y;
         int w = arr_ai[i].w;
         int h = arr_ai[i].h;
+        // animation
+        arr_ai[i].animframetime-=1;
+        if(arr_ai[i].animframetime<0)arr_ai[i].animframetime=30;
+        //
+        // if the ai is currently spinning then rotate him.
+        if(arr_ai[i].state==TRAJECTORY){
+            arr_ai[i].rotation+=20;
+        }
+        float rotation=arr_ai[i].rotation;
+        // When the ai goes into a spin make sure the rotation is around the center.
+        float centerx=tileWidth/2;
+        float centery=tileHeight/2;
+        // if the ai is currently not spinning then draw the sprites from left top offset.
+        if(arr_ai[i].state!=TRAJECTORY){
+            centerx = 0;
+            centery = 0;
+        }
+        //
         if(arr_ai[i].state==DAMAGED || arr_ai[i].state==TRAJECTORY){
-            DrawRectangle(x,y,w,h,BLUE);
+            //DrawRectangle(x,y,w,h,BLUE);
+            if(arr_ai[i].animframetime<15){
+                if(arr_ai[i].facing==RIGHT){
+                    DrawTexturePro(spriteai1.texture,           (Rectangle){0,0,spriteai1.texture.width,
+                                                                                spriteai1.texture.height},
+                                                                (Rectangle){x,
+                                                                            y,
+                                                                            w,h},
+                                                                (Vector2){centerx,centery},rotation,BLUE);            
+                }else{
+                    DrawTexturePro(spriteai1.texture,           (Rectangle){0,0,-spriteai1.texture.width,
+                                                                                spriteai1.texture.height},
+                                                                (Rectangle){x,
+                                                                            y,
+                                                                            w,h},
+                                                                (Vector2){centerx,centery},rotation,BLUE);            
+                    
+                }    
+            }else{
+                if(arr_ai[i].facing==RIGHT){
+                    DrawTexturePro(spriteai2.texture,           (Rectangle){0,0,spriteai2.texture.width,
+                                                                                spriteai2.texture.height},
+                                                                (Rectangle){x,
+                                                                            y,
+                                                                            w,h},
+                                                                (Vector2){centerx,centery},rotation,BLUE);            
+                }else{
+                    DrawTexturePro(spriteai2.texture,           (Rectangle){0,0,-spriteai2.texture.width,
+                                                                                spriteai2.texture.height},
+                                                                (Rectangle){x,
+                                                                            y,
+                                                                            w,h},
+                                                                (Vector2){centerx,centery},rotation,BLUE);            
+                }
+            }
         }else{
-            DrawRectangle(x,y,w,h,RED);
+            //DrawRectangle(x,y,w,h,RED);
+            if(arr_ai[i].animframetime<15){
+                if(arr_ai[i].facing==RIGHT){
+                    DrawTexturePro(spriteai1.texture,           (Rectangle){0,0,spriteai1.texture.width,
+                                                                                spriteai1.texture.height},
+                                                                (Rectangle){x,
+                                                                            y,
+                                                                            w,h},
+                                                                (Vector2){centerx,centery},rotation,WHITE);            
+                }else{
+                    DrawTexturePro(spriteai1.texture,           (Rectangle){0,0,-spriteai1.texture.width,
+                                                                                spriteai1.texture.height},
+                                                                (Rectangle){x,
+                                                                            y,
+                                                                            w,h},
+                                                                (Vector2){centerx,centery},rotation,WHITE);                                            
+                }
+            }else{
+                if(arr_ai[i].facing==RIGHT){
+                    DrawTexturePro(spriteai2.texture,           (Rectangle){0,0,spriteai2.texture.width,
+                                                                                spriteai2.texture.height},
+                                                                (Rectangle){x,
+                                                                            y,
+                                                                            w,h},
+                                                                (Vector2){centerx,centery},rotation,WHITE);            
+                }else{
+                    DrawTexturePro(spriteai2.texture,           (Rectangle){0,0,-spriteai2.texture.width,
+                                                                                spriteai2.texture.height},
+                                                                (Rectangle){x,
+                                                                            y,
+                                                                            w,h},
+                                                                (Vector2){centerx,centery},rotation,WHITE);                                            
+                }
+                
+            }
         }
     }
 }
