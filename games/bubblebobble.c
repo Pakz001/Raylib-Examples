@@ -1,7 +1,10 @@
 //
 // ONE LEVEL.. Controls : Cursors Left,Right,Up,Down and Left Alt = shoot bubble.
 //
-//
+// Based on the video game Bubble Bobble.
+
+// todo : pickups spawn randomly.
+// todo : player collision
 
 enum flag2{PLAYER1,PLAYER2,LEFT,RIGHT};
 enum bubblestates{SHOT,FLOATUP,FLOAT};
