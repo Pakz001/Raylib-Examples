@@ -1,10 +1,7 @@
 //
 // ONE LEVEL.. Controls : Cursors Left,Right,Up,Down and Left Alt = shoot bubble.
 //
-// Based on the video game Bubble Bobble.
-
-// todo : pickups spawn randomly.
-// todo : player collision
+//
 
 enum flag2{PLAYER1,PLAYER2,LEFT,RIGHT};
 enum bubblestates{SHOT,FLOATUP,FLOAT};
@@ -51,11 +48,14 @@ static float tileWidth;
 static float tileHeight;
 static int map[512][512];
 
+static	Color c64color[16];  //' our colors
+
 typedef struct player{
     bool active;
     float facing;
     float x;
     float y;
+    int shotfiredtime;
     int w;
     int h;
     int score;
@@ -161,9 +161,14 @@ static void addpickupeffect(int type,int x, int y);
 static int getscore(int type);
 static void drawplayerbar(void);
 static void inigame(void);
+static void inic64colors(void);
 
 // Here the gfx are defined.   
 static RenderTexture2D tilepurple; 
+static RenderTexture2D spritebobble1; 
+static RenderTexture2D spritebobble2; 
+static RenderTexture2D spriteai1; 
+static RenderTexture2D spriteai2; 
    
 int main(void)
 {
@@ -173,7 +178,12 @@ int main(void)
 
      // Create a Image in memory
     tilepurple = LoadRenderTexture(32, 32);
+    spritebobble1 = LoadRenderTexture(32, 32);
+    spritebobble2 = LoadRenderTexture(32, 32);
+    spriteai1 = LoadRenderTexture(32, 32);
+    spriteai2 = LoadRenderTexture(32, 32);    
 
+    inic64colors();
     inigfx();
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
@@ -257,6 +267,12 @@ int main(void)
                     drawbubbles();
                 break;
             }
+//            DrawTexturePro(spritebobble1.texture,       (Rectangle){0,0,spritebobble1.texture.width,
+//                                                                        spritebobble1.texture.height},
+//                                                        (Rectangle){50,
+ //                                                                   50,
+//                                                                    tileWidth,tileHeight},
+//                                                        (Vector2){0,0},0,WHITE);            
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
@@ -317,7 +333,42 @@ void inilevel(void){
 void drawplayers(void){
     for(int i=0;i<MAX_PLAYERS;i++){
         if(p[i].active==false)continue;
-        DrawRectangle(p[i].x,p[i].y,p[i].w,p[i].h,GREEN);
+        //DrawRectangle(p[i].x,p[i].y,p[i].w,p[i].h,GREEN);
+        if(p[i].shotfiredtime>-2)p[i].shotfiredtime-=1;
+        
+        if(p[i].facing==RIGHT){
+            if(p[i].shotfiredtime>0){
+                DrawTexturePro(spritebobble2.texture,       (Rectangle){0,0,spritebobble1.texture.width,
+                                                                            spritebobble1.texture.height},
+                                                            (Rectangle){p[i].x,
+                                                                        p[i].y,
+                                                                        p[i].w,p[i].h},
+                                                            (Vector2){0,0},0,WHITE);            
+            }else{
+                DrawTexturePro(spritebobble1.texture,       (Rectangle){0,0,spritebobble1.texture.width,
+                                                                            spritebobble1.texture.height},
+                                                            (Rectangle){p[i].x,
+                                                                        p[i].y,
+                                                                        p[i].w,p[i].h},
+                                                            (Vector2){0,0},0,WHITE);                            
+            }
+        }else{
+            if(p[i].shotfiredtime>0){
+                DrawTexturePro(spritebobble2.texture,       (Rectangle){0,0,-spritebobble1.texture.width,
+                                                                            spritebobble1.texture.height},
+                                                            (Rectangle){p[i].x,
+                                                                        p[i].y,
+                                                                        p[i].w,p[i].h},
+                                                            (Vector2){0,0},0,WHITE);            
+            }else{
+                DrawTexturePro(spritebobble1.texture,       (Rectangle){0,0,-spritebobble1.texture.width,
+                                                                            spritebobble1.texture.height},
+                                                            (Rectangle){p[i].x,
+                                                                        p[i].y,
+                                                                        p[i].w,p[i].h},
+                                                            (Vector2){0,0},0,WHITE);                        
+            }
+        }
     }
 }
 
@@ -528,8 +579,10 @@ void updatebubbles(){
             if(IsKeyPressed(KEY_LEFT_ALT)){
                 if(p[i].facing==LEFT){
                     shootbubble(i,LEFT);
+                    p[i].shotfiredtime=10;
                 }else{
                     shootbubble(i,RIGHT);
+                    p[i].shotfiredtime=10;
                 }
             }
         }
@@ -1031,10 +1084,6 @@ void createaitrajectory(int x,int y,int facing){
 }
 
 
-
-
-
-
 static void inigfx(){
     int tile1[8][8] = {
     {4,4,10,10,4,4,10,10},
@@ -1071,6 +1120,79 @@ static void inigfx(){
         }
     }
     
+    //
+    // bobble frame 1
+int bframe1[8][8] = {
+{5,5,5,2,2,9,2,2},
+{0,5,5,5,2,1,2,0},
+{0,2,2,5,5,5,5,13},
+{0,1,5,5,0,1,0,0},
+{1,1,5,5,1,5,1,13},
+{0,5,5,1,6,5,6,1},
+{1,1,5,5,1,5,1,0},
+{0,0,0,5,5,13,0,0}};   
+int bframe2[8][8] = {
+{5,5,5,2,2,5,2,2},
+{0,5,5,5,2,1,2,0},
+{0,2,2,5,5,5,5,13},
+{0,1,5,5,0,0,0,0},
+{1,1,5,5,1,0,0,0},
+{0,5,5,1,6,5,0,0},
+{1,1,5,5,1,5,1,0},
+{0,0,0,5,5,13,0,0}};
+int aiframe1[8][8] = {
+{0,0,0,2,2,0,0,0},
+{12,12,2,2,2,2,12,0},
+{2,12,12,12,12,12,12,12},
+{2,11,2,11,11,0,0,0},
+{1,2,2,1,15,1,15,1},
+{0,1,1,15,6,15,6,1},
+{0,1,1,1,1,1,1,1},
+{0,0,0,1,1,1,1,0}};
+int aiframe2[8][8] = {
+{0,0,0,2,2,2,0,0},
+{0,12,2,2,2,12,12,0},
+{12,12,12,12,12,12,12,12},
+{2,2,2,11,0,0,0,0},
+{2,2,2,1,15,1,15,1},
+{0,1,1,15,6,15,6,1},
+{0,1,1,1,1,1,1,1},
+{0,0,1,1,1,1,1,0}};
+   // Clear our texture(image) before entering the game loop
+    BeginTextureMode(spritebobble1);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode(); 
+    BeginTextureMode(spritebobble2);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode(); 
+    BeginTextureMode(spriteai1);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode(); 
+    BeginTextureMode(spriteai2);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode(); 
+    c64color[0] = (Color){0,0,0,0};
+    // Draw something on it.
+    for (int y=0;y<8;y++)
+    {
+        for (int x=0;x<8; x++)
+        {            
+                BeginTextureMode(spriteai1);    
+                DrawRectangle(x*4,y*4,4,4,c64color[aiframe1[y][x]]);
+                EndTextureMode(); 
+                BeginTextureMode(spriteai2);    
+                DrawRectangle(x*4,y*4,4,4,c64color[aiframe2[y][x]]);
+                EndTextureMode(); 
+                BeginTextureMode(spritebobble1);    
+                DrawRectangle(x*4,y*4,4,4,c64color[bframe1[y][x]]);
+                EndTextureMode(); 
+                BeginTextureMode(spritebobble2);    
+                DrawRectangle(x*4,y*4,4,4,c64color[bframe2[y][x]]);
+                EndTextureMode(); 
+
+        }
+    }
+ 
 }
 
 
@@ -1270,3 +1392,22 @@ void inigame(){
 
 
 }    
+
+void inic64colors(void){
+    c64color[0 ] = (Color){0  , 0 , 0 , 255 };//Black
+    c64color[1 ] = (Color){255,255,255, 255 };//White
+    c64color[2 ] = (Color){136,0  ,0  , 255 };//Red
+    c64color[3 ] = (Color){170,255,238, 255 };//Cyan
+    c64color[4 ] = (Color){204,68 ,204, 255 };//Violet / Purple
+    c64color[5 ] = (Color){0  ,204,85 , 255 };//Green
+    c64color[6 ] = (Color){0  ,0  ,170, 255 };//Blue
+    c64color[7 ] = (Color){238,238,119, 255 };//Yellow
+    c64color[8 ] = (Color){221,136,85 , 255 };//Orange
+    c64color[9 ] = (Color){102,68 ,0  , 255 };//Brown
+    c64color[10] = (Color){255,119,119, 255 };//Light red
+    c64color[11] = (Color){51 ,51 ,51 , 255 };//Dark grey / Grey 1
+    c64color[12] = (Color){119,119,119, 255 };//Grey 2
+    c64color[13] = (Color){170,255,102, 255 };//Light green
+    c64color[14] = (Color){0  ,136,255, 255 };//Light blue
+    c64color[15] = (Color){187,187,187, 255 };//Light grey / grey 3    
+}
