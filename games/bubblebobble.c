@@ -22,7 +22,7 @@ enum flag{SCROLLLEVELDOWN,INGAME};
 
 #define MAX_AI 32
 #define AI_SPEED 3
-#define AI_LAUNCHFORCE 6
+#define AI_LAUNCHFORCE 4.5
 #define AI_TRAJTIME 60*2
 
 #define MAX_PICKUP 128
