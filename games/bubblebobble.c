@@ -171,7 +171,11 @@ static RenderTexture2D spritebobble1;
 static RenderTexture2D spritebobble2; 
 static RenderTexture2D spriteai1; 
 static RenderTexture2D spriteai2; 
-   
+static RenderTexture2D spritefruit1; 
+static RenderTexture2D spritefruit2; 
+static RenderTexture2D spritefruit3; 
+static RenderTexture2D spritefruit4; 
+static RenderTexture2D spritefruit5;    
 int main(void)
 {
     // Initialization
@@ -184,6 +188,11 @@ int main(void)
     spritebobble2 = LoadRenderTexture(32, 32);
     spriteai1 = LoadRenderTexture(32, 32);
     spriteai2 = LoadRenderTexture(32, 32);    
+    spritefruit1 = LoadRenderTexture(32, 32);    
+    spritefruit2 = LoadRenderTexture(32, 32);    
+    spritefruit3 = LoadRenderTexture(32, 32);    
+    spritefruit4 = LoadRenderTexture(32, 32);    
+    spritefruit5 = LoadRenderTexture(32, 32);    
 
     inic64colors();
     inigfx();
@@ -282,6 +291,16 @@ int main(void)
     // De-Initialization
     //--------------------------------------------------------------------------------------
     UnloadRenderTexture(tilepurple);
+    UnloadRenderTexture(spritebobble1);
+    UnloadRenderTexture(spritebobble2);
+    UnloadRenderTexture(spriteai1);
+    UnloadRenderTexture(spriteai2);
+    UnloadRenderTexture(spritefruit1);
+    UnloadRenderTexture(spritefruit2);
+    UnloadRenderTexture(spritefruit3);
+    UnloadRenderTexture(spritefruit4);
+    UnloadRenderTexture(spritefruit5);
+
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
@@ -1280,6 +1299,95 @@ int aiframe2[8][8] = {
 
         }
     }
+
+
+int fruit1[8][8] = {
+{0,4,2,4,0,0,0,0},
+{4,2,4,2,4,2,0,0},
+{4,4,4,4,2,4,2,0},
+{4,8,10,4,4,2,4,0},
+{0,4,4,1,4,4,5,13},
+{0,0,0,4,8,4,13,0},
+{0,0,0,0,5,13,13,5},
+{0,0,0,0,13,0,0,13}};
+int fruit2[8][8] = {
+{10,10,0,0,0,0,0,0},
+{0,10,10,4,0,0,0,0},
+{0,10,15,10,4,0,0,0},
+{0,0,10,1,10,4,0,13},
+{0,0,0,10,10,10,13,13},
+{0,0,0,0,10,13,5,0},
+{0,0,0,0,13,5,13,13},
+{0,0,0,13,13,0,13,13}}; 
+int fruit3[8][8] = {
+{0,0,10,10,12,0,0,0},
+{0,0,10,15,10,0,0,0},
+{0,0,0,10,15,10,0,0},
+{0,0,0,9,9,9,0,0},
+{10,10,10,10,10,10,10,10},
+{10,8,10,10,10,10,10,10},
+{0,10,15,8,10,10,10,0},
+{0,0,10,10,10,10,0,0}};
+int fruit4[8][8] = {
+{11,2,2,2,11,0,0,0},
+{2,8,2,2,2,2,2,0},
+{2,2,2,2,2,2,2,2},
+{2,2,2,8,2,2,2,2},
+{11,8,2,2,13,13,2,13},
+{0,1,2,2,13,13,5,13},
+{0,2,1,2,2,5,13,0},
+{0,0,2,2,13,13,0,13}};
+int fruit5[8][8] = {
+{0,9,11,9,11,0,0,0},
+{9,8,9,8,9,11,0,0},
+{8,9,8,9,8,9,0,0},
+{8,8,8,8,9,9,0,0},
+{8,15,8,8,8,1,0,0},
+{0,8,8,8,1,1,1,1},
+{0,0,0,0,0,1,1,1},
+{0,0,0,0,0,1,1,0}};
+
+   // Clear our texture(image) before entering the game loop
+    BeginTextureMode(spritefruit1);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode(); 
+    BeginTextureMode(spritefruit2);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode(); 
+    BeginTextureMode(spritefruit3);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode(); 
+    BeginTextureMode(spritefruit4);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode(); 
+    BeginTextureMode(spritefruit5);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode(); 
+    c64color[0] = (Color){0,0,0,0};
+    // Draw something on it.
+    for (int y=0;y<8;y++)
+    {
+        for (int x=0;x<8; x++)
+        {            
+                BeginTextureMode(spritefruit1);    
+                DrawRectangle(x*4,y*4,4,4,c64color[fruit1[y][x]]);
+                EndTextureMode(); 
+                BeginTextureMode(spritefruit2);    
+                DrawRectangle(x*4,y*4,4,4,c64color[fruit2[y][x]]);
+                EndTextureMode(); 
+                BeginTextureMode(spritefruit3);    
+                DrawRectangle(x*4,y*4,4,4,c64color[fruit3[y][x]]);
+                EndTextureMode(); 
+                BeginTextureMode(spritefruit4);    
+                DrawRectangle(x*4,y*4,4,4,c64color[fruit4[y][x]]);
+                EndTextureMode(); 
+                BeginTextureMode(spritefruit5);    
+                DrawRectangle(x*4,y*4,4,4,c64color[fruit5[y][x]]);
+                EndTextureMode(); 
+
+        }
+    }
+
  
 }
 
@@ -1292,8 +1400,52 @@ float getangle(float x1,float y1,float x2,float y2){
 void drawpickups(){
     for(int i=0;i<MAX_PICKUP;i++){
         if(arr_pickup[i].active==false)continue;
-        Color col = arr_pickup[i].col;
-        DrawRectangle(arr_pickup[i].x,arr_pickup[i].y,arr_pickup[i].w,arr_pickup[i].h,col);
+        //Color col = arr_pickup[i].col;
+        //DrawRectangle(arr_pickup[i].x,arr_pickup[i].y,arr_pickup[i].w,arr_pickup[i].h,col);
+        int x = arr_pickup[i].x;
+        int y = arr_pickup[i].y;
+        int w = arr_pickup[i].w;
+        int h = arr_pickup[i].h;
+        if(arr_pickup[i].type==0){
+            DrawTexturePro(spritefruit1.texture,            (Rectangle){0,0,spritefruit1.texture.width,
+                                                                            spritefruit1.texture.height},
+                                                            (Rectangle){x,
+                                                                        y,
+                                                                        w,h},
+                                                            (Vector2){0,0},0,WHITE);            
+        }
+        if(arr_pickup[i].type==1){
+            DrawTexturePro(spritefruit2.texture,            (Rectangle){0,0,spritefruit2.texture.width,
+                                                                            spritefruit2.texture.height},
+                                                            (Rectangle){x,
+                                                                        y,
+                                                                        w,h},
+                                                            (Vector2){0,0},0,WHITE);            
+        }        
+        if(arr_pickup[i].type==2){
+            DrawTexturePro(spritefruit3.texture,            (Rectangle){0,0,spritefruit3.texture.width,
+                                                                            spritefruit3.texture.height},
+                                                            (Rectangle){x,
+                                                                        y,
+                                                                        w,h},
+                                                            (Vector2){0,0},0,WHITE);            
+        }
+        if(arr_pickup[i].type==3){
+            DrawTexturePro(spritefruit4.texture,            (Rectangle){0,0,spritefruit4.texture.width,
+                                                                            spritefruit4.texture.height},
+                                                            (Rectangle){x,
+                                                                        y,
+                                                                        w,h},
+                                                            (Vector2){0,0},0,WHITE);            
+        }
+        if(arr_pickup[i].type==4){
+            DrawTexturePro(spritefruit5.texture,            (Rectangle){0,0,spritefruit5.texture.width,
+                                                                            spritefruit5.texture.height},
+                                                            (Rectangle){x,
+                                                                        y,
+                                                                        w,h},
+                                                            (Vector2){0,0},0,WHITE);            
+        }        
     }
 }
 void updatepickups(){
