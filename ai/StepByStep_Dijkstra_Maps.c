@@ -84,8 +84,8 @@ int main(void)
             ClearBackground(RAYWHITE);
             for(int y=0;y<mapHeight;y++){
             for(int x=0;x<mapWidth;x++){
-                if(map[x][y]<0){
-                    DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,DARKGRAY);
+                if(map[x][y]<0){                    
+                    DrawRectangleGradientEx((Rectangle){x*tileWidth,y*tileHeight,tileWidth,tileHeight},BLACK,GRAY,WHITE,WHITE);
                 }else if(map[x][y]>0){
                     DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,BLUE);
                     DrawText(FormatText("%i",map[x][y]),x*tileWidth,y*tileHeight,30,YELLOW);
@@ -100,10 +100,10 @@ int main(void)
             
             if(startfound){
                 DrawRectangle(0,0,screenWidth,60,(Color){10,10,10,200});
-                DrawText("Start Position Found!.",0,0,50,(Color){255,0,0,200});
+                DrawText("Start Position Found!.",0,0,50,(Color){255,255,255,200});
             }else{
                 DrawRectangle(0,0,screenWidth,20,(Color){100,100,100,200});
-                DrawText("Press space to search.",0,0,20,(Color){200,200,0,255});
+                DrawText("Press space to search.",0,0,20,(Color){255,255,255,255});
             }
 
         EndDrawing();
