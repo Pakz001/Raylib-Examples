@@ -1,3 +1,7 @@
+//
+// I used the message window from Earthbound as a example.
+//
+
 enum messages{MESSAGE1};
 
 #define GUI_MESSAGE_WIDTH 320
