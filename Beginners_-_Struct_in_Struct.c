@@ -5,14 +5,14 @@ struct inventory{
     bool pepper;
     bool salt;
     bool potion;
-}inventory;
+};
 
 struct aiMushroom{
     int x;
     int y;
     int energy;
     struct inventory leftPocket;
-}aiMushroom;
+};
 
 static struct aiMushroom myaiMushroom = {10,20,99,{true,false,true}};
 
