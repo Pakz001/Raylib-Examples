@@ -1,12 +1,22 @@
+
+
 // WORK IN PROGRESS CONVERSION....
 // WORK IN PROGRESS CONVERSION....
 //
+// Added - Press p to paste 8x8 sprite back into the editor.
+
 // Conversion from the Monkey2 version that I wrote.
 //
 // Todo : Add isometric/hexagon map edit/view, Fix update preview and spritelib), Floodfill(more testing),  ovals!(find solution for layout), testing. 
 
 #include "raylib.h"
 #include <math.h>
+#include <string.h>
+#include <stdlib.h>
+
+// This one is for getting the sprite from the clipboard
+static int tempsprite[32][32] = {0};    
+
 
 static int tempmap[32][32] = {0};
 
@@ -211,6 +221,16 @@ static void previewselection(bool drawit);
 static void tilemapview(void);
 static void fillatposition(int x, int y,int oldcolor,int newcolor);
 static void midptellipse(int rx, int ry, int xc, int yc);
+// for the copy from clipboard
+static int countcommas(char *in);
+static int countnumbers(char *in);
+static void copyfromclipboard();
+static bool importspriteis8x8(int in);
+static bool importspriteis16x16(int in);
+static bool importspriteis32x32(int in);
+static void readtempsprite(int w,int h,char *in);
+
+
     
 int main(void)
 {
@@ -1825,6 +1845,13 @@ void spriteview(){
         if(IsKeyReleased(KEY_C)){
             copytoclipboard();
         }
+        // Copy FROM clipboard.
+        if(IsKeyReleased(KEY_P)){
+            copyfromclipboard();
+            updatepreview();
+            updatespritelib();
+
+        }
 
     }
     }
@@ -2305,4 +2332,111 @@ float Clamp(float value, float min, float max)
 {
     const float res = value < min ? min : value;
     return res > max ? max : res;
+}
+
+void copyfromclipboard(){
+    for(int y=0;y<32;y++){
+    for(int x=0;x<32;x++){
+        tempmap[x][y]=0;
+    }
+    }
+
+    // Create a char to read the clipboard with.
+    char clipBoardTxt[10024];
+    // Create a pointer to the clipboardtxt char
+    const char *clipPointer = clipBoardTxt;
+    // Read the contents of the clipboard into the clipboardtxt pointer
+    clipPointer = GetClipboardText();
+    // create a char 
+    char work[1024];
+    
+    if(strlen(clipPointer)<1000){
+    // copy the contents of the char that has a pointer containing the clipboard txt into this work char
+    strcpy(work,clipPointer);
+    }
+    // count the comma's and the numbers.
+    int numCommas = countcommas(work);
+    int numNumbers = countnumbers(work);
+
+    static bool banana=false;
+    if(importspriteis8x8(numNumbers)){
+        readtempsprite(8,8,work);
+        
+        //create8x8sprite();
+        banana=true;
+    }
+
+}
+
+void readtempsprite(int w,int h,char *in){
+    int cnt=0;
+    int x=0;
+    int y=0;
+    bool insidearray=false;
+    int cnt2=0;
+    for(int i=0;in[i];i++){
+        
+        if(cnt2<2 && in[i]=='{')cnt2++;
+        if(cnt2>=1)insidearray=true;
+            
+        if(insidearray && in[i] >= '0' && in[i] <='9'){
+        
+            int z=0;
+            int num=0;
+            char charnum[14];
+            while(in[i+z]!=','){                
+                charnum[z]=in[i+z];
+                z++;
+                if(z>=3)break;//no longer numbers than 3
+            }
+            i+=z;
+            num = atoi(charnum);
+            
+            cnt++;
+            if(cnt>1){
+                y++;
+                if(y>=h){
+                    y=0;
+                    x++;
+                }                
+            }
+            
+            //tempsprite[x][y] = num;//in[i]-'0';
+            map[x][y] = num;//in[i]-'0';
+        }
+    }
+}
+
+int countcommas(char *in){
+    int out=0;
+    for(int i=0;in[i];i++){
+        if(in[i] == ',')out++;
+    }
+    return out;
+}
+
+int countnumbers(char *in){
+    int out=0;
+    for(int i=0;in[i];i++){
+        if(in[i] >= '0' && in[i] <= '9'){
+            while(in[i] >= '0' && in[i] <= '9' && i<strlen(in)){
+                i++;
+            }
+            out++;        
+        }
+    }
+    return out;
+}
+
+bool importspriteis8x8(int in){
+    if(in-2 == 8*8)return true;
+    return false;
+}
+bool importspriteis16x16(int in){
+    if(in-2 == 16*16)return true;
+    return false;
+}
+bool importspriteis32x32(int in){
+    if(in-2 == 32*32)return true;
+    return false;
 }
