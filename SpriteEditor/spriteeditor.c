@@ -158,7 +158,7 @@ static	float palettewidth;
 static  float paletteheight;// ' our palette screen w and h
 static	float palettecellwidth;
 static  float palettecellheight; //'cell width and height of color
-static	int numpalette;// 'number of colors
+static	int numpalette;// 'number of colors (holds the amount of the selected palette.)
 	
 	//'
 	//' Top Bar
@@ -2383,15 +2383,18 @@ void readtempsprite(int w,int h,char *in){
         
             int z=0;
             int num=0;
-            char charnum[14];
-            while(in[i+z]!=','){                
-                charnum[z]=in[i+z];
-                z++;
-                if(z>=3)break;//no longer numbers than 3
-            }
-            i+=z;
-            num = atoi(charnum);
+            char charnum[14]="";
             
+            //while(in[i]!=','){                
+            do{    
+                charnum[z]=in[i];
+                i++;
+                z++;
+                if(i+1>=strlen(in))break;//no longer numbers than 3
+            }while(in[i]!=',');
+            
+            num = atoi(charnum);
+             
             cnt++;
             if(cnt>1){
                 y++;
@@ -2401,8 +2404,10 @@ void readtempsprite(int w,int h,char *in){
                 }                
             }
             
+            if(num>=numpalette)num=0;
             //tempsprite[x][y] = num;//in[i]-'0';
             map[x][y] = num;//in[i]-'0';
+            //if(num>15)map[x][y]=0;
         }
     }
 }
