@@ -13,9 +13,9 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 // This one is for getting the sprite from the clipboard
-static int tempsprite[32][32] = {0};    
 
 
 static int tempmap[32][32] = {0};
@@ -208,6 +208,8 @@ static void bottombarview(void);
 static void middlebarview();
 static void setupmiddlebar(void);
 static void setuptopbar(void);
+static void topbarview(void);
+static void setuptoolview(void);
 static void paletteview(void);
 static void spritegrid(void);
 static void toolview(void);
@@ -215,6 +217,7 @@ static void spritelibview(void);
 static void spriteview(void);
 static void updatespritelib(void);
 static void updatepreview(void);
+static void previewview(void);
 static void spritelibcopytocanvas(void);
 static void previewline(bool drawit);
 static void previewselection(bool drawit);
@@ -224,7 +227,8 @@ static void midptellipse(int rx, int ry, int xc, int yc);
 // for the copy from clipboard
 static int countcommas(char *in);
 static int countnumbers(char *in);
-static void copyfromclipboard();
+static void copyfromclipboard(void);
+static void copytoclipboard(void);
 static bool importspriteis8x8(int in);
 static bool importspriteis16x16(int in);
 static bool importspriteis32x32(int in);
@@ -2355,15 +2359,13 @@ void copyfromclipboard(){
     strcpy(work,clipPointer);
     }
     // count the comma's and the numbers.
-    int numCommas = countcommas(work);
+//    int numCommas = countcommas(work);
     int numNumbers = countnumbers(work);
 
-    static bool banana=false;
     if(importspriteis8x8(numNumbers)){
         readtempsprite(8,8,work);
         
         //create8x8sprite();
-        banana=true;
     }
 
 }
