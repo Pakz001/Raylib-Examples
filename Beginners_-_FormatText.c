@@ -1,4 +1,3 @@
-
 #include "raylib.h"
 
 int main(void)
@@ -35,8 +34,8 @@ int main(void)
             int val2 = 12345;
             // 10 x 0 before the int is drawn.
             DrawText(FormatText("val2: %010i",val2),100,120,20,BLACK);
-            
-            
+            // We can put multiple things inside the formattext function.
+            DrawText(FormatText("val1 : %f val2 : %i",val1,val2),100,140,20,BLACK);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
