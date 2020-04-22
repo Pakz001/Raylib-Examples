@@ -24,7 +24,9 @@ static int tempsprite[8][8] = {0};
     
 int main(void)
 {
-    // Initialization
+  
+
+  // Initialization
     //--------------------------------------------------------------------------------------
     const int screenWidth = 800;
     const int screenHeight = 450;
@@ -47,9 +49,11 @@ int main(void)
     clipPointer = GetClipboardText();
     // create a char 
     char work[1024];
+    
+    if(strlen(clipPointer)<1000){
     // copy the contents of the char that has a pointer containing the clipboard txt into this work char
     strcpy(work,clipPointer);
-    
+    }
     // count the comma's and the numbers.
     int numCommas = countcommas(work);
     int numNumbers = countnumbers(work);
@@ -94,14 +98,6 @@ int main(void)
                 }
             }
 
-            char banana[20]="{1,20,3,4}";
-            char zet[10]="";
-            zet[0]=banana[3];
-            zet[1]=banana[4];
-            int zet2=0;
-            zet2 = atoi(zet);
-            zet2++;
-            DrawText(FormatText("%i",zet2),400,0,20,BLACK);
 
           
             DrawTexture(target.texture,100,100, WHITE);
@@ -121,6 +117,10 @@ int main(void)
 }
 
 void create8x8sprite(){
+    
+    
+    
+    
     
     BeginTextureMode(target);    
     ClearBackground(BLUE); // Make the entire Sprite Transparent.
@@ -187,7 +187,12 @@ int countcommas(char *in){
 int countnumbers(char *in){
     int out=0;
     for(int i=0;in[i];i++){
-        if(in[i] >= '0' && in[i] <= '9')out++;        
+        if(in[i] >= '0' && in[i] <= '9'){
+            while(in[i] >= '0' && in[i] <= '9' && i<strlen(in)){
+                i++;
+            }
+            out++;        
+        }
     }
     return out;
 }
