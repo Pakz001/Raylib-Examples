@@ -5,6 +5,7 @@
 
 #include "raylib.h"
 #include <string.h>
+#include <stdlib.h>
 
 static	Color c64color[16];  //' our colors
 
@@ -75,9 +76,9 @@ int main(void)
 
             ClearBackground(RAYWHITE);
   
-            if(banana){
-                DrawText("~!!!!!!!!!!!!!",0,0,20,BLACK);
-            }
+//            if(banana){
+//                DrawText("~!!!!!!!!!!!!!",0,0,20,BLACK);
+//            }
             
             DrawText(work,100,100,20,BLACK);
             DrawText(FormatText("Comma Count : %i",numCommas),100,80,20,BLACK);
@@ -92,6 +93,15 @@ int main(void)
                     DrawText(FormatText("%i",tempsprite[y][x]),x*30,y*30,20,BLACK);
                 }
             }
+
+            char banana[20]="{1,20,3,4}";
+            char zet[10]="";
+            zet[0]=banana[3];
+            zet[1]=banana[4];
+            int zet2=0;
+            zet2 = atoi(zet);
+            zet2++;
+            DrawText(FormatText("%i",zet2),400,0,20,BLACK);
 
           
             DrawTexture(target.texture,100,100, WHITE);
@@ -132,17 +142,36 @@ void readtempsprite(int w,int h,char *in){
     int cnt=0;
     int x=0;
     int y=0;
+    bool insidearray=false;
+    int cnt2=0;
     for(int i=0;in[i];i++){
-        if(in[i] >= '0' && in[i] <='9'){
+        
+        if(cnt2<2 && in[i]=='{')cnt2++;
+        if(cnt2>=1)insidearray=true;
+            
+        if(insidearray && in[i] >= '0' && in[i] <='9'){
+        
+            int z=0;
+            int num=0;
+            char charnum[14];
+            while(in[i+z]!=','){                
+                charnum[z]=in[i+z];
+                z++;
+                if(z>=3)break;//no longer numbers than 3
+            }
+            i+=z;
+            num = atoi(charnum);
+            
             cnt++;
             if(cnt>1){
-                x++;
-                if(x>=w){
-                    x=0;
-                    y++;
+                y++;
+                if(y>=h){
+                    y=0;
+                    x++;
                 }                
             }
-            tempsprite[x][y] = in[i]-'0';
+            
+            tempsprite[x][y] = num;//in[i]-'0';
         }
     }
 }
@@ -158,10 +187,9 @@ int countcommas(char *in){
 int countnumbers(char *in){
     int out=0;
     for(int i=0;in[i];i++){
-        if(in[i] >= '0' && in[i] <= '9')out++;
+        if(in[i] >= '0' && in[i] <= '9')out++;        
     }
     return out;
-
 }
 
 bool importspriteis8x8(int in){
