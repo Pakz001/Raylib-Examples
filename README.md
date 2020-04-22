@@ -26,4 +26,4 @@ Each example in here is a standalone .c file. I myself just copy and paste the o
 
 Possibly a .h file like raymath.h sometimes is not found, this happens with certain examples in the official examples. You can copy that .h files from the /src files into the folder with the example that needs it. That seemed to have worked for me.
 
-The pico8 inspired sprite and map editor in the spriteeditor folder exports the current image as a c array into the clipboard buffer that can then be pasted inside your code. I use this myself. The 'c' key inside the editor is used for this(in the sprite editor section.)
+The pico8 inspired sprite and map editor in the spriteeditor folder exports the current image as a c array into the clipboard buffer that can then be pasted inside your code. I use this myself. The 'c' key inside the editor is used for this(in the sprite editor section.) (New version should read 8x8 sprite arrays back into the editor with the 'p' key)
