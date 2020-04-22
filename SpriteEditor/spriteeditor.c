@@ -3,7 +3,7 @@
 // WORK IN PROGRESS CONVERSION....
 // WORK IN PROGRESS CONVERSION....
 //
-// Added - Press p to paste 8x8 sprite back into the editor.
+// Added - Press p to paste 8x8 sprite back into the editor. (key 'c' to copy current sprite as c array into clipboard.
 
 // Conversion from the Monkey2 version that I wrote.
 //
