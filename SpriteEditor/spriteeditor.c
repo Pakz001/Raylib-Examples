@@ -1409,8 +1409,8 @@ void toolview(){
                 if(toolselected == toolpasteid){
                     if(selectionstartx == selectionendx && selectionstarty == selectionendy){
                     }else{
-                        for(int y1=selectionbufferstarty; y1<selectionbufferendy;y1++){
-                        for(int x1=selectionbufferstartx; x1<selectionbufferendx;x1++){
+                        for(int y1=selectionbufferstarty; y1<=selectionbufferendy;y1++){
+                        for(int x1=selectionbufferstartx; x1<=selectionbufferendx;x1++){
                             int destx=selectionstartx+x1-selectionbufferstartx;
                             int desty=selectionstarty+y1-selectionbufferstarty;
                             if(x1<0 || y1<0 || x1>=32 || y1>=32) continue;
@@ -1433,8 +1433,8 @@ void toolview(){
                         selectionbufferstarty = selectionstarty;
                         selectionbufferendx = selectionendx;
                         selectionbufferendy = selectionendy;
-                        for(int y1=selectionstarty;y1<selectionendy;y1++){
-                        for(int x1=selectionstartx;x1<selectionendx;x1++){
+                        for(int y1=selectionstarty;y1<=selectionendy;y1++){
+                        for(int x1=selectionstartx;x1<=selectionendx;x1++){
                             selectionbuffer[x1][y1] = map[x1][y1];
                         }
                         }
@@ -1446,8 +1446,8 @@ void toolview(){
                     if(selectionstartx == selectionendx && selectionstarty == selectionendy){
                     
                     }else{
-                        for(int y1=selectionstarty;y1<selectionendy;y1++){
-                        for(int x1=selectionstartx;x1<selectionendx;x1++){
+                        for(int y1=selectionstarty;y1<=selectionendy;y1++){
+                        for(int x1=selectionstartx;x1<=selectionendx;x1++){
                             map[x1][y1] = paletteeraser;
                         }
                         }
