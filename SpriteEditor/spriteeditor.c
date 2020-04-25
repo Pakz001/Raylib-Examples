@@ -1912,6 +1912,14 @@ void loadspritelib(){
     
     // rebuild the sprite images..
     for(int i=0;i<=80*4;i++){
+    bool empty=true;
+    for(int y=0;y<spriteheight;y++){
+    for(int x=0;x<spritewidth;x++){
+        if(spritelibmap[i][x][y]>0){
+            empty=false;            
+        }
+    }}        
+    if(empty==true)continue;
     for(int y=0;y<spriteheight;y++){
     for(int x=0;x<spritewidth;x++){
         float pointx=x*spritelibscale;
