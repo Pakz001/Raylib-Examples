@@ -3,6 +3,7 @@
 // WORK IN PROGRESS CONVERSION....
 // WORK IN PROGRESS CONVERSION....
 //
+// Added - Save eveything (F5) Load everything(F6 - Very slow!!)
 // Added - Press p to paste 8x8 sprite back into the editor. (key 'c' to copy current sprite as c array into clipboard.
 
 // Conversion from the Monkey2 version that I wrote.
@@ -224,6 +225,9 @@ static void previewselection(bool drawit);
 static void tilemapview(void);
 static void fillatposition(int x, int y,int oldcolor,int newcolor);
 static void midptellipse(int rx, int ry, int xc, int yc);
+static void loadspritelib();
+static void savespritelib();
+    
 // for the copy from clipboard
 static int countcommas(char *in);
 static int countnumbers(char *in);
@@ -1845,6 +1849,15 @@ void spriteview(){
             }
         }
        
+        //' Read from disk..
+        if(IsKeyReleased(KEY_F6)){
+            loadspritelib();
+        }
+        //' Save to disk..
+        if(IsKeyReleased(KEY_F5)){
+            savespritelib();
+        }
+
         //' Copy to clipboard
         if(IsKeyReleased(KEY_C)){
             copytoclipboard();
@@ -1886,6 +1899,48 @@ void updatepreview(){
     }
     }
     //previewcan.Flush()
+
+}
+
+void loadspritelib(){
+    // Read the array from disk..
+    FILE *fp;
+    fp=fopen("spritedata.spr","r");
+    fread(spritelibmap,sizeof(spritelibmap),1,fp); /* read the entire file into the array */    
+    fclose(fp);
+
+    
+    // rebuild the sprite images..
+    for(int i=0;i<=80*4;i++){
+    for(int y=0;y<spriteheight;y++){
+    for(int x=0;x<spritewidth;x++){
+        float pointx=x*spritelibscale;
+        float pointy=y*spritelibscale;
+        BeginTextureMode(spritelibim[i]);
+        if(startsetuppalettemode == 0){
+            DrawRectangle(pointx,pointy,spritelibscale,spritelibscale,c64color[spritelibmap[i][x][y]]);
+            //spritelibcan[spritelibselected].Color = c64color[map[x,y]]
+        }else{
+            DrawRectangle(pointx,pointy,spritelibscale,spritelibscale,db32color[spritelibmap[i][x][y]]);
+            //spritelibcan[spritelibselected].Color = db32color[map[x,y]]
+        }
+        EndTextureMode();
+    }
+    }    
+    }
+    updatepreview();
+    updatespritelib();
+
+}
+
+void savespritelib(){
+    // Create out file pointer.
+    FILE *fp;
+    // Write the array to disk.
+    fp=fopen("spritedata.spr","w");
+    fwrite(spritelibmap,sizeof(spritelibmap),1,fp); /* Write to File */
+    fclose(fp);
+
 
 }
 
