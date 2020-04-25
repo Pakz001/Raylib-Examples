@@ -1911,7 +1911,7 @@ void loadspritelib(){
 
     
     // rebuild the sprite images..
-    for(int i=0;i<=80*4;i++){
+    for(int i=0;i<80*4;i++){
     bool empty=true;
     for(int y=0;y<spriteheight;y++){
     for(int x=0;x<spritewidth;x++){
@@ -1936,9 +1936,16 @@ void loadspritelib(){
     }
     }    
     }
+    //updatepreview();
+    //updatespritelib();
+    // First put the current selected into the map[]
+    //map[0][0]=1;
+    for(int y=0;y<spriteheight;y++){
+    for(int x=0;x<spritewidth;x++){
+        map[x][y] = spritelibmap[spritelibselected][x][y];
+    }}    
+    //updatespritelib();
     updatepreview();
-    updatespritelib();
-
 }
 
 void savespritelib(){
