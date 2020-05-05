@@ -113,6 +113,14 @@ int main(void)
         updateturrets();
         updatebullets();
         updateheatmap();
+        
+        // If the user presses the mouse then place new target on map at mpos;
+        if(IsMouseButtonDown(0)){
+            arr_turret[0].targetactive=true;
+            arr_turret[0].targetx = GetMouseX()/tileWidth;
+            arr_turret[0].targety = GetMouseY()/tileHeight;
+            arr_turret[0].targettime=TURRET_TARGET_TIME;
+        }
 
         //----------------------------------------------------------------------------------
         // Draw
@@ -125,6 +133,7 @@ int main(void)
             drawturrets();
             drawbullets();
             
+            DrawText("Press mouse to place target..",0,0,20,GRAY);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -304,10 +313,15 @@ void updateheatmap(){
         int x=arr_bullet[i].x/tileWidth;
         int y=arr_bullet[i].y/tileHeight;
         if(hmap[y][x]<255)hmap[y][x]+=5;        
-        if(hmap[y-1][x]<255)hmap[y][x]+=1.5;        
-        if(hmap[y][x+1]<255)hmap[y][x]+=1.5;        
-        if(hmap[y+1][x]<255)hmap[y][x]+=1.5;        
-        if(hmap[y][x-1]<255)hmap[y][x]+=1.5;        
+        if(hmap[y-1][x]<255)hmap[y-1][x]+=1.5;        
+        if(hmap[y][x+1]<255)hmap[y][x+1]+=1.5;        
+        if(hmap[y+1][x]<255)hmap[y+1][x]+=1.5;        
+        if(hmap[y][x-1]<255)hmap[y][x-1]+=1.5;        
+        if(hmap[y-2][x]<255)hmap[y-2][x]+=1.0;        
+        if(hmap[y][x+2]<255)hmap[y][x+2]+=1.0;        
+        if(hmap[y+2][x]<255)hmap[y+2][x]+=1.0;        
+        if(hmap[y][x-2]<255)hmap[y][x-2]+=1.0;        
+
     }
     // decrease the heat..
     for(int y=0;y<MAP_HEIGHT;y++){
@@ -321,7 +335,7 @@ void drawheatmap(){
     for(int y=0;y<MAP_HEIGHT;y++){
     for(int x=0;x<MAP_WIDTH;x++){
         if(hmap[y][x]==0)continue;
-        Color col = {255-hmap[y][x],0,0,55};
+        Color col = {hmap[y][x],0,0,25};
         DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,col);
     }
     }
