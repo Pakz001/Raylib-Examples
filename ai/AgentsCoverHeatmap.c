@@ -14,6 +14,7 @@ enum tiles{FLOOR,WALL};
 #define MAX_TURRETS 1
 #define MAX_BULLETS 128
 #define BULLET_SPEED 3
+#define TURRET_TARGET_TIME 600
 
 static int screenWidth,screenHeight;
 
@@ -40,6 +41,9 @@ typedef struct turret{
     float angle;    
     float direction;
     int burst;
+    bool targetactive;
+    int targetx,targety;
+    int targettime;
 }turret;
 
 static struct turret arr_turret[MAX_TURRETS];
@@ -63,7 +67,8 @@ static bool recttilecollide(int x,int y,int w, int h, int offsetx,int offsety);
 static bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2);
 static void drawheatmap();
 static void updateheatmap();
-
+static int orientation(int ax,int ay,int bx, int by, int cx, int cy);
+    
 int main(void)
 {
     // Initialization
@@ -96,6 +101,10 @@ int main(void)
     arr_turret[0].angle = 0;
     arr_turret[0].direction = 0.02;
     arr_turret[0].burst=0;
+    arr_turret[0].targetactive = true;
+    arr_turret[0].targetx = 12;
+    arr_turret[0].targety = 3;
+    arr_turret[0].targettime=TURRET_TARGET_TIME;
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -152,15 +161,38 @@ void drawturrets(){
         int y2 = y1+sin(angle)*(tileHeight);
         DrawRectangle(x,y,tileWidth,tileHeight,BLUE);
         DrawLineEx((Vector2){x1,y1},(Vector2){x2,y2},6,RED);
+        // draw target if active
+        if(arr_turret[i].targetactive){
+            x = arr_turret[i].targetx*tileWidth;
+            y = arr_turret[i].targety*tileHeight;
+            DrawRectangle(x,y,tileWidth,tileHeight,BLUE);
+        }
     }
 }
 
 void updateturrets(){
     for(int i=0;i<MAX_TURRETS;i++){
-        if(GetRandomValue(0,500)<2){
+        
+        // If there is no target the turn randomly
+        if(arr_turret[i].targetactive==false && GetRandomValue(0,500)<2){
             arr_turret[i].direction = -arr_turret[i].direction;
         }
-    
+        // If there is a target then turn towards taget.
+        if(arr_turret[i].targetactive){
+            int x=(arr_turret[i].x*tileWidth)+tileWidth/2;
+            int y=(arr_turret[i].y*tileHeight)+tileHeight/2;
+            if(orientation(     x,
+                                y,
+                                x+cos(arr_turret[i].angle)*tileWidth,
+                                y+sin(arr_turret[i].angle)*tileHeight,
+                                arr_turret[i].targetx*tileWidth,
+                                arr_turret[i].targety*tileHeight)==-1)
+                        {
+                        arr_turret[i].direction=-0.02;
+                        }else{
+                            arr_turret[i].direction=0.02;
+                        }
+        }
         // rotate the turret
         arr_turret[i].angle+=arr_turret[i].direction;        
         if(arr_turret[i].angle>PI*2.0f){
@@ -181,6 +213,14 @@ void updateturrets(){
                             (arr_turret[i].y*tileHeight)+(sin(arr_turret[i].angle)*tileHeight),
                             arr_turret[i].angle);
         }
+        // if target is active then decrease that time
+        if(arr_turret[i].targetactive){
+            arr_turret[i].targettime-=1;
+            if(arr_turret[i].targettime<=0){
+                arr_turret[i].targetactive = false;
+            }
+        }
+
         
     }
 }
@@ -285,4 +325,14 @@ void drawheatmap(){
         DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,col);
     }
     }
+}
+
+//
+// This is the orientation function. It returns -1 if the point is left of the inputted line.
+// 0 if on the same and 1 if on the right of the line.
+// aa,bb,point
+int orientation(int ax,int ay,int bx, int by, int cx, int cy){
+	if(((bx-ax)*(cy-ay)-(by-ay)*(cx-ax))<0)return -1;
+    if(((bx-ax)*(cy-ay)-(by-ay)*(cx-ax))>0)return 1;
+    return 0;
 }
