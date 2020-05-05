@@ -30,6 +30,7 @@ int tempmap[10][20] =            {  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
                                     {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
                                     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}};  
 int map[MAP_HEIGHT][MAP_WIDTH]={0};
+float hmap[MAP_HEIGHT][MAP_WIDTH]={0};
 
 float tileWidth,tileHeight;
 
@@ -38,6 +39,7 @@ typedef struct turret{
     float x,y;
     float angle;    
     float direction;
+    int burst;
 }turret;
 
 static struct turret arr_turret[MAX_TURRETS];
@@ -59,6 +61,8 @@ static void updatebullets();
 static void shootbullet(int x, int y, float angle);
 static bool recttilecollide(int x,int y,int w, int h, int offsetx,int offsety);
 static bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2);
+static void drawheatmap();
+static void updateheatmap();
 
 int main(void)
 {
@@ -91,7 +95,7 @@ int main(void)
     arr_turret[0].y = 10;
     arr_turret[0].angle = 0;
     arr_turret[0].direction = 0.02;
-
+    arr_turret[0].burst=0;
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -99,13 +103,15 @@ int main(void)
         //----------------------------------------------------------------------------------
         updateturrets();
         updatebullets();
-        
+        updateheatmap();
+
         //----------------------------------------------------------------------------------
         // Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
 
             ClearBackground(RAYWHITE);
+            drawheatmap();
             drawmap();
             drawturrets();
             drawbullets();
@@ -165,7 +171,12 @@ void updateturrets(){
             arr_turret[i].angle=PI*2.0f;
         }
         // shoot bullets
-        if(GetRandomValue(0,60)<2){
+        if(GetRandomValue(0,60)<2 || arr_turret[i].burst>0){            
+            if(arr_turret[i].burst>0){
+                arr_turret[i].burst-=1;
+            }else{
+                if(GetRandomValue(0,20)<2)arr_turret[i].burst=5;
+            }
             shootbullet(    (arr_turret[i].x*tileWidth)+(cos(arr_turret[i].angle)*tileWidth),
                             (arr_turret[i].y*tileHeight)+(sin(arr_turret[i].angle)*tileHeight),
                             arr_turret[i].angle);
@@ -244,4 +255,34 @@ bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2){
     if(x1 >= (x2 + w2) || (x1 + w1) <= x2) return false;
     if(y1 >= (y2 + h2) || (y1 + h1) <= y2) return false;
     return true;
+}
+
+void updateheatmap(){
+    // increase heat below bullets
+    for(int i=0;i<MAX_BULLETS;i++){
+        if(arr_bullet[i].active==false)continue;
+        int x=arr_bullet[i].x/tileWidth;
+        int y=arr_bullet[i].y/tileHeight;
+        if(hmap[y][x]<255)hmap[y][x]+=5;        
+        if(hmap[y-1][x]<255)hmap[y][x]+=1.5;        
+        if(hmap[y][x+1]<255)hmap[y][x]+=1.5;        
+        if(hmap[y+1][x]<255)hmap[y][x]+=1.5;        
+        if(hmap[y][x-1]<255)hmap[y][x]+=1.5;        
+    }
+    // decrease the heat..
+    for(int y=0;y<MAP_HEIGHT;y++){
+    for(int x=0;x<MAP_WIDTH;x++){
+        if(hmap[y][x]==0)continue;
+        hmap[y][x]-=0.5;
+        if(hmap[y][x]<0.1)hmap[y][x]=0;
+    }}    
+}
+void drawheatmap(){
+    for(int y=0;y<MAP_HEIGHT;y++){
+    for(int x=0;x<MAP_WIDTH;x++){
+        if(hmap[y][x]==0)continue;
+        Color col = {255-hmap[y][x],0,0,55};
+        DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,col);
+    }
+    }
 }
