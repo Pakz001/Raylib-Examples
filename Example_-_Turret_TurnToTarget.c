@@ -49,9 +49,10 @@ int main(void)
                 myturret.angle+=0.01f;
             }else{
             }
-            // Keep the angle value between 0..360
-            if(myturret.angle<0)myturret.angle=myturret.angle+360;
-            if(myturret.angle>360)myturret.angle=0+myturret.angle;
+            // Keep the angle value between 0..PI*2.0f
+            if(myturret.angle>PI*2.0f)myturret.angle=0; //needs to be above the line here below..
+            if(myturret.angle<0)myturret.angle=PI*2.0f;
+            
             // Get the new barreltip vector.
             myturret.barreltip = (Vector2){myturret.position.x+(cos(myturret.angle)*16),myturret.position.y+(sin(myturret.angle)*16)};
         }
@@ -69,6 +70,8 @@ int main(void)
             DrawLineEx(myturret.position,myturret.barreltip,5,RED);
 
             DrawText("Move the mouse around the turret to see it turn.",0,0,30,DARKGRAY);
+            
+            DrawText(FormatText("Turret Angle : %f",myturret.angle),0,50,30,DARKGRAY);
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
