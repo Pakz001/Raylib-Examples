@@ -207,7 +207,7 @@ int main(void)
             }
             drawagents();
                             
-            DrawText("Press mouse to place target..",0,0,20,GRAY);
+            DrawText("Press mouse to place target.. Space to path..",0,0,20,GRAY);
             
             DrawRectangle(0,screenHeight-44,screenWidth,28,DARKGRAY);
             DrawText("Heatmap",130,screenHeight-40,20,WHITE);
@@ -215,7 +215,6 @@ int main(void)
             DrawRectangle(screenWidth/2,screenHeight-40,20,20,GREEN);
             DrawText("Covermap",screenWidth/2+30,screenHeight-40,20,WHITE);
 
-            DrawText(FormatText("%i",arr_agent[0].myisland),0,0,20,WHITE);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -563,10 +562,12 @@ void updateagents(){
     }
 }
 bool agentfindpath(int island){
-    
     // 4 way search! left/up/down/right
-    int dx[4]={ 0,1,0,-1};
-    int dy[4]={-1,0,1,0};    
+//    int dx[4]={ 0,1,0,-1};
+//    int dy[4]={-1,0,1,0};    
+    // 8 way search! left/up/down/right
+    int dx[8]={-1,0,1,-1,1,-1,0,1};
+    int dy[8]={-1,-1,-1,0,0,1,1,1};    
 
     //find closest cover position that we are currently not ontop of.
     //
@@ -632,7 +633,7 @@ bool agentfindpath(int island){
         listlen-=1;
         //
         // Here we check around our current position.
-        for(int i=0;i<4;i++){
+        for(int i=0;i<8;i++){
             int nx = x1+dx[i];
             int ny = y1+dy[i];
             if(nx<0 || ny<0 || nx>= MAP_WIDTH || ny>= MAP_HEIGHT)continue;            
@@ -671,7 +672,7 @@ bool agentfindpath(int island){
         int ny=0;
         // Get the current distance
         int lowest = pathmap[y1][x1];
-        for(int i=0;i<4;i++){
+        for(int i=0;i<8;i++){
             int x2=x1+dx[i];
             int y2=y1+dy[i];
             if(x2<0 || y2 <0 || x2>=MAP_WIDTH || y2>= MAP_HEIGHT )continue; // stay in bounds of array
