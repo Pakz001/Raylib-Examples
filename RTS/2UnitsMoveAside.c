@@ -1,3 +1,10 @@
+//
+// Here I tried to learn more about how to not let moving units go through each other when moving
+// on the map.
+//
+// Note : I think when just checking for collide between units they should just both stop and plan
+// a new path (for one?) towards the original destination.
+
 
 #include "raylib.h"
 #include <math.h>
@@ -5,12 +12,23 @@
 typedef struct unit{
     float x,y;    
     int asidex,asidey;
-    bool wait;
+    int wait;
     bool moveaside;    
     int pathloc;
     int pathlen;
 }unit;
 
+int path1x[10]={10,11,12,13,14,15,16,17,18,19};
+int path1y[10]={5,5,5,5,5,5,5,5,5,5};
+
+int path2x[10]={19,18,17,16,15,14,13,12,11,10};
+int path2y[10]={5,5,5,5,5,5,5,5,5,5};
+
+unit unit1={0};
+unit unit2={0};
+float tileWidth,tileHeight;
+
+void iniunits();
 
 int main(void)
 {
@@ -21,28 +39,9 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "raylib example.");
 
-    float tileWidth = 24.0f;
-    float tileHeight = 24.0f;
-
-    int path1x[10]={10,11,12,13,14,15,16,17,18,19};
-    int path1y[10]={5,5,5,5,5,5,5,5,5,5};
-
-    int path2x[10]={19,18,17,16,15,14,13,12,11,10};
-    int path2y[10]={5,5,5,5,5,5,5,5,5,5};
-
-    unit unit1={0};
-    unit unit2={0};
-    
-    unit1.pathloc = 0;
-    unit1.pathlen = 10;
-    unit1.x = path1x[unit1.pathloc]*tileWidth;
-    unit1.y = path1y[unit1.pathloc]*tileHeight;    
-    unit1.moveaside=false;
-    unit2.pathloc = 0;
-    unit2.pathlen = 10;
-    unit2.x = path2x[unit2.pathloc]*tileWidth;
-    unit2.y = path2y[unit2.pathloc]*tileHeight;
-    unit2.moveaside=false;
+    tileWidth = 24.0f;
+    tileHeight = 24.0f;
+    iniunits();
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -54,7 +53,8 @@ int main(void)
         //----------------------------------------------------------------------------------
         
         // Move unit 1
-        if(unit1.pathloc<unit1.pathlen){
+        if(unit1.wait>0)unit1.wait-=1;
+        if(unit1.pathloc<unit1.pathlen && unit1.wait<=0){
             // get the next location in the path
             float x=path1x[unit1.pathloc]*tileWidth;
             float y=path1y[unit1.pathloc]*tileHeight;
@@ -68,20 +68,25 @@ int main(void)
                 if(ax==bx && ay==by){
                     // We will collide 
                     unit1.moveaside=true;
+
                     // Get a position on the map to move aside to
-                    while(  unit1.asidex!=ax &&
-                            unit1.asidey!=ay &&
-                            unit1.asidex!=path2x[unit2.pathloc]&&
-                            unit1.asidey!=path2y[unit2.pathloc]&&
-                            unit1.asidex!=path2x[unit2.pathloc-1]&&
-                            unit1.asidey!=path2y[unit2.pathloc-1]&&
-                            unit1.asidex!=bx&&
-                            unit1.asidey!=by&&
-                            unit1.asidex!=path1x[unit1.pathloc-1]&&
-                            unit1.asidey!=path1y[unit1.pathloc-1]){
-                            unit1.asidex=ax+GetRandomValue(-1,2);
-                            unit1.asidey=ay+GetRandomValue(-1,2);
+                    bool found=false;
+                    while(found==false){  
+                        unit1.asidex=bx+GetRandomValue(-1,1);
+                        unit1.asidey=by+GetRandomValue(-1,1);
+                        found=true;
+                        // if new position not on path of unit 1
+                        for(int i=unit1.pathloc-1;i<unit1.pathloc+1;i++){
+                            if(unit1.asidex==path1x[i] && unit1.asidey==path1y[i])found=false;
+                        }
+                        // if new position not on path of unit 2
+                        for(int i=unit2.pathloc-1;i<unit2.pathloc+1;i++){
+                            if(unit1.asidex==path2x[i] && unit1.asidey==path2y[i])found=false;
+                        }
+                        // Add checks for obstacles here...
+
                     }
+
                 }
             }
             // if we are moving aside currently then adjust were we are moving to.
@@ -103,6 +108,7 @@ int main(void)
                 if(unit1.moveaside){
                     unit1.moveaside=false;
                     unit1.pathloc+=3;
+                    unit1.wait=60;
                 //  If we are on the destination and not moving aside then increase our path location.
                 }else{
                     unit1.pathloc++;                
@@ -124,6 +130,8 @@ int main(void)
                 unit2.y==y){
                 unit2.pathloc++;                
             }
+        }else{
+            iniunits();
         }
         
         //----------------------------------------------------------------------------------
@@ -134,7 +142,7 @@ int main(void)
             ClearBackground(RAYWHITE);
                 
             DrawRectangle(unit1.x,unit1.y,tileWidth,tileHeight,RED);    
-            DrawRectangle(unit2.x,unit2.y,tileWidth,tileHeight,YELLOW);
+            DrawRectangle(unit2.x,unit2.y,tileWidth,tileHeight,BLUE);
 
 
         EndDrawing();
@@ -151,3 +159,16 @@ int main(void)
 
 }
 
+void iniunits(){
+    unit1.pathloc = 0;
+    unit1.pathlen = 10;
+    unit1.x = path1x[unit1.pathloc]*tileWidth;
+    unit1.y = path1y[unit1.pathloc]*tileHeight;    
+    unit1.moveaside=false;
+    unit2.pathloc = 0;
+    unit2.pathlen = 10;
+    unit2.x = path2x[unit2.pathloc]*tileWidth;
+    unit2.y = path2y[unit2.pathloc]*tileHeight;
+    unit2.moveaside=false;
+    return;
+}
