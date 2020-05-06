@@ -117,7 +117,8 @@ static void drawcoverislands();
 static void createcoverislands();
 static void drawagents();    
 static void updateagents();
-    
+static bool agentfindpath(int island);
+        
 int main(void)
 {
     // Initialization
@@ -552,6 +553,17 @@ void drawagents(){
 }
 
 void updateagents(){
+    for(int shuffle=0;shuffle<5;shuffle++){
+        int i=GetRandomValue(1,numislands);
+        if(arr_agent[0].myisland!=i && agentfindpath(i)==true){
+            arr_agent[0].myisland = i;
+            return;
+        }
+    
+    }
+}
+bool agentfindpath(int island){
+    
     // 4 way search! left/up/down/right
     int dx[4]={ 0,1,0,-1};
     int dy[4]={-1,0,1,0};    
@@ -570,51 +582,22 @@ void updateagents(){
 
     //flood to find closest cover position
     startx = arr_agent[0].x/tileWidth;    
-    starty = arr_agent[0].y/tileHeight;
-    int currentisland = arr_agent[0].myisland;
-    int nextisland = currentisland+1;
-    if(currentisland>=numislands)nextisland=1;    
-    arr_agent[0].myisland = nextisland;
-    int mx[1200];
-    int my[1200];
-    int tmp[MAP_HEIGHT][MAP_WIDTH]={0};
-    tmp[starty][startx]=1;
-    int mc=0;
-    mx[mc]=startx;
-    my[mc]=starty;
-    mc++;
-    while(mc>0){
-        mc--;
-        int fx=mx[mc];
-        int fy=my[mc];
-
-        for(int i=0;i<4;i++){
-            int zx=fx+dx[i];
-            int zy=fy+dy[i];
-            if(zx<0 || zy<0 || zx>=MAP_WIDTH || zy>=MAP_HEIGHT)continue;
-            if(map[zy][zx]!=1 && tmp[zy][zx]==0){                                                
-                mx[mc]=zx;
-                my[mc]=zy;                
-                mc++;
-                tmp[zy][zx]=1;
-            }
-        
+    starty = arr_agent[0].y/tileHeight;    
+    // find the destination coordinates.
+    bool exitloop=false;
+    int failloop=0; 
+    while(exitloop==false){
+        int x = GetRandomValue(0,MAP_WIDTH);
+        int y = GetRandomValue(0,MAP_HEIGHT);
+        if(cimap[y][x]==island){
+            endx = x;
+            endy = y;
+            exitloop=true;
         }
-        
-        if(cmap[fy][fx]==true && cimap[fy][fx]==nextisland){
-            endx = fx;
-            endy = fy;
-            break;
-        }
+        failloop++;
+        if(failloop>1000000)return false;
     }
-
-
     
-    
-//    startx = 3;
-//    starty = 3;
-//    endx = 20;
-//   endy = 8;
         
     //
     // Flood the map with distances from the start.
@@ -641,7 +624,7 @@ void updateagents(){
             list[i].x = list[i+1].x;
             list[i].y = list[i+1].y;
         }
-        if(x1==endx && y1==endy){            
+        if(x1==endx && y1==endy){                    
             break;
         }
 
@@ -702,6 +685,10 @@ void updateagents(){
         // store our new location
         x1 = nx;
         y1 = ny;
+        if(hmap[y1][x1]>0){
+            arr_path_len=0;
+            return false;
+        }
         // add to the path struct
         arr_path[arr_path_len].x = nx;
         arr_path[arr_path_len].y = ny;
@@ -711,11 +698,11 @@ void updateagents(){
         failed+=1;
         if(failed>15000)return;
     }
-    
-    
-    // Put the agents new location in
     arr_agent[0].x = endx*tileWidth;
     arr_agent[0].y = endy*tileHeight;
+    
+    
+    return true;
 }
  
 
