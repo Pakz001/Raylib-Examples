@@ -1,10 +1,10 @@
 // Agents take Cover.
 
 // Todo :   
-//          add agents and agents follow path.
-//              select path not going through heatmap.
-
-
+            //gfx
+            // agents shoot back
+            // collision bullets vs entities
+            
 #include "raylib.h"
 #include <math.h>
 
