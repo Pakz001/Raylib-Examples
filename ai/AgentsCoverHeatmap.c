@@ -17,7 +17,7 @@ enum tiles{FLOOR,WALL};
 #define MAX_BULLETS 128
 #define BULLET_SPEED 3
 #define TURRET_TARGET_TIME 600
-#define MAX_AGENTS 1
+#define MAX_AGENTS 15
 #define MAX_PATH 100024 
 
 static int screenWidth,screenHeight;
@@ -118,7 +118,7 @@ static void drawcoverislands();
 static void createcoverislands();
 static void drawagents();    
 static void updateagents();
-static bool agentfindpath(int island);
+static bool agentfindpath(int agent, int island);
         
 int main(void)
 {
@@ -147,6 +147,7 @@ int main(void)
 
     // Our turret is placed in the center..
     arr_turret[0].x = 20;
+
     arr_turret[0].y = 10;
     arr_turret[0].angle = 0;
     arr_turret[0].direction = TURRET_TURNSPEED;
@@ -159,15 +160,24 @@ int main(void)
     createcovermap();
     createcoverislands();
     
-    
-    arr_agent[0].active = true;
+  
+for (int i=0;i<MAX_AGENTS;i++){
+    arr_agent[i].active = true;
+    arr_agent[i].x = 3*tileWidth;
+    arr_agent[i].y = 3*tileHeight;
+    arr_agent[i].speed = 2;
+    arr_agent[i].myisland=1;
+    arr_agent[i].pathloc=-1;
+    arr_agent[i].pathlen=-1;
+}    
+/*    arr_agent[0].active = true;
     arr_agent[0].x = 3*tileWidth;
     arr_agent[0].y = 3*tileHeight;
     arr_agent[0].speed = 2;
     arr_agent[0].myisland=1;
     arr_agent[0].pathloc=-1;
     arr_agent[0].pathlen=-1;
-
+*/
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
@@ -552,37 +562,45 @@ void drawagents(){
 }
 
 void updateagents(){
-    if(arr_agent[0].pathloc>=0){
-        for(int spd=0;spd<arr_agent[0].speed;spd++){
-            if(arr_agent[0].x<arr_agent[0].pathx[arr_agent[0].pathloc]*tileWidth)arr_agent[0].x+=1;
-            if(arr_agent[0].x>arr_agent[0].pathx[arr_agent[0].pathloc]*tileWidth)arr_agent[0].x-=1;
-            if(arr_agent[0].y<arr_agent[0].pathy[arr_agent[0].pathloc]*tileHeight)arr_agent[0].y+=1;
-            if(arr_agent[0].y>arr_agent[0].pathy[arr_agent[0].pathloc]*tileHeight)arr_agent[0].y-=1;
-            if(     arr_agent[0].x==arr_agent[0].pathx[arr_agent[0].pathloc]*tileWidth && 
-                    arr_agent[0].y==arr_agent[0].pathy[arr_agent[0].pathloc]*tileHeight){
-                arr_agent[0].pathloc--;        
-                break;
+    for(int a=0;a<MAX_AGENTS;a++){
+        if(arr_agent[a].active==false)continue;
+        // Move agent from path location to next path location(smooth)
+        if(arr_agent[a].pathloc>=0){
+            for(int spd=0;spd<arr_agent[a].speed;spd++){
+                if(arr_agent[a].x<arr_agent[a].pathx[arr_agent[a].pathloc]*tileWidth)arr_agent[a].x+=1;
+                if(arr_agent[a].x>arr_agent[a].pathx[arr_agent[a].pathloc]*tileWidth)arr_agent[a].x-=1;
+                if(arr_agent[a].y<arr_agent[a].pathy[arr_agent[a].pathloc]*tileHeight)arr_agent[a].y+=1;
+                if(arr_agent[a].y>arr_agent[a].pathy[arr_agent[a].pathloc]*tileHeight)arr_agent[a].y-=1;
+                if(     arr_agent[a].x==arr_agent[a].pathx[arr_agent[a].pathloc]*tileWidth && 
+                        arr_agent[a].y==arr_agent[a].pathy[arr_agent[a].pathloc]*tileHeight){
+                    arr_agent[a].pathloc--;                    
+                    break;
+                }
+            }
+        }
+        // If the agent is at the end of its path.
+        // move to next cover position.
+        bool planpath = false;
+        if(arr_agent[a].pathloc == -1 && GetRandomValue(0,1000)<10 )planpath=true;
+        if(planpath==true){
+            
+            for(int shuffle=0;shuffle<5;shuffle++){
+                int i=GetRandomValue(1,numislands);
+                if(arr_agent[a].myisland!=i && agentfindpath(a,i)==true){
+                    arr_agent[a].myisland = i;
+                    arr_agent[a].pathlen = arr_path_len;
+                    arr_agent[a].pathloc = arr_path_len-1;
+                    for(int p=0;p<arr_path_len;p++){
+                        arr_agent[a].pathx[p] = arr_path[p].x;
+                        arr_agent[a].pathy[p] = arr_path[p].y;
+                    }                    
+                    return;
+                }    
             }
         }
     }
-    if(arr_agent[0].pathloc == -1 && GetRandomValue(0,1000)<10){
-        for(int shuffle=0;shuffle<5;shuffle++){
-            int i=GetRandomValue(1,numislands);
-            if(arr_agent[0].myisland!=i && agentfindpath(i)==true){
-                arr_agent[0].myisland = i;
-                arr_agent[0].pathlen = arr_path_len;
-                arr_agent[0].pathloc = arr_path_len-1;
-                for(int p=0;p<arr_path_len;p++){
-                    arr_agent[0].pathx[p] = arr_path[p].x;
-                    arr_agent[0].pathy[p] = arr_path[p].y;
-                }
-                
-                return;
-            }    
-        }
-    }
 }
-bool agentfindpath(int island){
+bool agentfindpath(int agent, int island){
     // 4 way search! left/up/down/right
 //    int dx[4]={ 0,1,0,-1};
 //    int dy[4]={-1,0,1,0};    
@@ -603,8 +621,8 @@ bool agentfindpath(int island){
 
 
     //flood to find closest cover position
-    startx = arr_agent[0].x/tileWidth;    
-    starty = arr_agent[0].y/tileHeight;    
+    startx = arr_agent[agent].x/tileWidth;    
+    starty = arr_agent[agent].y/tileHeight;    
     // find the destination coordinates.
     bool exitloop=false;
     int failloop=0; 
@@ -720,8 +738,8 @@ bool agentfindpath(int island){
         failed+=1;
         if(failed>15000)return;
     }
-    arr_agent[0].x = startx*tileWidth;
-    arr_agent[0].y = starty*tileHeight;
+    arr_agent[agent].x = startx*tileWidth;
+    arr_agent[agent].y = starty*tileHeight;
     
     
     return true;
