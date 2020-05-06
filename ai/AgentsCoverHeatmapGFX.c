@@ -88,6 +88,7 @@ typedef struct agent{
     bool active;
     float x,y;
     int speed;
+    bool left,right,up,down;
     int pathx[1024];
     int pathy[1024];
     int pathloc;
@@ -127,7 +128,17 @@ static void drawagents();
 static void updateagents();
 static bool agentfindpath(int agent, int island);
 static void inidb32colors(void);
+static void inisprites(void);
 
+static RenderTexture2D spriteUnitLeft; 
+static RenderTexture2D spriteUnitRight; 
+static RenderTexture2D spriteUnitUp; 
+static RenderTexture2D spriteUnitDown;
+static RenderTexture2D spriteUnitLeftUp; 
+static RenderTexture2D spriteUnitRightUp; 
+static RenderTexture2D spriteUnitLeftDown; 
+static RenderTexture2D spriteUnitRightDown;
+static RenderTexture2D tiledesert1; 
         
 int main(void)
 {
@@ -136,7 +147,7 @@ int main(void)
     screenWidth = 800;
     screenHeight = 450;
     tileWidth = ceil((float)screenWidth/(float)MAP_WIDTH);
-    tileHeight = ceil((float)screenHeight/(float)MAP_HEIGHT);
+    tileHeight = ceil((float)screenHeight/(float)MAP_HEIGHT);    
     
     // first let us copy the temp map into the main map(double size)
     for (int y=0;y<MAP_HEIGHT/2;y++){
@@ -150,8 +161,18 @@ int main(void)
     }
     
     InitWindow(screenWidth, screenHeight, "raylib example.");
-    
+
+    spriteUnitLeft=LoadRenderTexture(32,32); 
+    spriteUnitRight=LoadRenderTexture(32,32); 
+    spriteUnitUp=LoadRenderTexture(32,32); 
+    spriteUnitDown=LoadRenderTexture(32,32);
+    spriteUnitLeftUp=LoadRenderTexture(32,32); 
+    spriteUnitRightUp=LoadRenderTexture(32,32); 
+    spriteUnitLeftDown=LoadRenderTexture(32,32); 
+    spriteUnitRightDown=LoadRenderTexture(32,32);
+    tiledesert1=LoadRenderTexture(32,32);     
     inidb32colors(); 
+    inisprites();
     
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -224,7 +245,7 @@ for (int i=0;i<MAX_AGENTS;i++){
             drawbullets();
             //draw the path..
             for(int i=0;i<arr_path_len-1;i++){
-                DrawRectangle(arr_path[i].x*tileWidth,arr_path[i].y*tileHeight,tileWidth,tileHeight,YELLOW);
+                DrawRectangle(arr_path[i].x*tileWidth,arr_path[i].y*tileHeight,tileWidth,tileHeight,(Color){200,200,0,128});
             }
             drawagents();
                             
@@ -236,6 +257,10 @@ for (int i=0;i<MAX_AGENTS;i++){
             DrawRectangle(screenWidth/2,screenHeight-40,20,20,GREEN);
             DrawText("Covermap",screenWidth/2+30,screenHeight-40,20,WHITE);
 
+//            DrawTexturePro(spriteUnitRight.texture,         (Rectangle){0,0,spriteUnitRight.texture.width,spriteUnitRight.texture.height},
+//                                                            (Rectangle){320,100,
+//                                                            tileWidth*3,tileHeight*3},
+//                                                            (Vector2){0,0},90,WHITE);             
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -243,6 +268,16 @@ for (int i=0;i<MAX_AGENTS;i++){
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
+    UnloadRenderTexture(spriteUnitLeft); 
+    UnloadRenderTexture(spriteUnitRight); 
+    UnloadRenderTexture(spriteUnitUp); 
+    UnloadRenderTexture(spriteUnitDown);
+    UnloadRenderTexture(spriteUnitLeftUp); 
+    UnloadRenderTexture(spriteUnitRightUp); 
+    UnloadRenderTexture(spriteUnitLeftDown); 
+    UnloadRenderTexture(spriteUnitRightDown);
+    UnloadRenderTexture(tiledesert1); 
+
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
@@ -254,6 +289,13 @@ for (int i=0;i<MAX_AGENTS;i++){
 void drawmap(){
     for(int y=0;y<MAP_HEIGHT;y++){
     for(int x=0;x<MAP_WIDTH;x++){
+        if(map[y][x]==0){
+            DrawTexturePro(tiledesert1.texture,         (Rectangle){0,0,tiledesert1.texture.width,tiledesert1.texture.height},
+                                                            (Rectangle){x*tileWidth,y*tileHeight,
+                                                            tileWidth,tileHeight},
+                                                            (Vector2){0,0},0,WHITE);             
+        }
+                
         if(map[y][x]==1){
             DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,BLACK);
         }
@@ -568,7 +610,57 @@ void createcoverislands(){
 void drawagents(){
     for(int i=0;i<MAX_AGENTS;i++){
         if(arr_agent[i].active==false)continue;        
-        DrawRectangle(arr_agent[i].x,arr_agent[i].y,tileWidth,tileHeight,RED);
+        //DrawRectangle(arr_agent[i].x,arr_agent[i].y,tileWidth,tileHeight,RED);
+        //left frame
+        if(arr_agent[i].right==true && arr_agent[i].up==false && arr_agent[i].down==false){
+            DrawTexturePro(spriteUnitRight.texture,         (Rectangle){0,0,spriteUnitRight.texture.width,spriteUnitRight.texture.height},
+                                                            (Rectangle){arr_agent[i].x+tileWidth,arr_agent[i].y,
+                                                            tileWidth,tileHeight},
+                                                            (Vector2){0,0},90,WHITE);             
+        }
+        if(arr_agent[i].left==true && arr_agent[i].up==false && arr_agent[i].down==false){
+            DrawTexturePro(spriteUnitLeft.texture,         (Rectangle){0,0,spriteUnitLeft.texture.width,spriteUnitLeft.texture.height},
+                                                            (Rectangle){arr_agent[i].x+tileWidth,arr_agent[i].y,
+                                                            tileWidth,tileHeight},
+                                                            (Vector2){0,0},90,WHITE);             
+        }
+        if(arr_agent[i].left==false && arr_agent[i].up==true && arr_agent[i].right==false){
+            DrawTexturePro(spriteUnitUp.texture,            (Rectangle){0,0,spriteUnitUp.texture.width,spriteUnitUp.texture.height},
+                                                            (Rectangle){arr_agent[i].x+tileWidth,arr_agent[i].y,
+                                                            tileWidth,tileHeight},
+                                                            (Vector2){0,0},90,WHITE);             
+        }
+        if(arr_agent[i].left==false && arr_agent[i].down==true && arr_agent[i].right==false){
+            DrawTexturePro(spriteUnitDown.texture,          (Rectangle){0,0,spriteUnitDown.texture.width,spriteUnitDown.texture.height},
+                                                            (Rectangle){arr_agent[i].x+tileWidth,arr_agent[i].y,
+                                                            tileWidth,tileHeight},
+                                                            (Vector2){0,0},90,WHITE);             
+        }
+        if(arr_agent[i].right==true && arr_agent[i].up==true){
+            DrawTexturePro(spriteUnitRightUp.texture,         (Rectangle){0,0,spriteUnitRightUp.texture.width,spriteUnitRightUp.texture.height},
+                                                            (Rectangle){arr_agent[i].x+tileWidth,arr_agent[i].y,
+                                                            tileWidth,tileHeight},
+                                                            (Vector2){0,0},90,WHITE);             
+        }
+        if(arr_agent[i].left==true && arr_agent[i].up==true){
+            DrawTexturePro(spriteUnitLeftUp.texture,         (Rectangle){0,0,spriteUnitLeftUp.texture.width,spriteUnitLeftUp.texture.height},
+                                                            (Rectangle){arr_agent[i].x+tileWidth,arr_agent[i].y,
+                                                            tileWidth,tileHeight},
+                                                            (Vector2){0,0},90,WHITE);             
+        }
+        if(arr_agent[i].left==true && arr_agent[i].down==true){
+            DrawTexturePro(spriteUnitLeftDown.texture,         (Rectangle){0,0,spriteUnitLeftDown.texture.width,spriteUnitLeftDown.texture.height},
+                                                            (Rectangle){arr_agent[i].x+tileWidth,arr_agent[i].y,
+                                                            tileWidth,tileHeight},
+                                                            (Vector2){0,0},90,WHITE);             
+        }
+        if(arr_agent[i].right==true && arr_agent[i].down==true){
+            DrawTexturePro(spriteUnitRightDown.texture,         (Rectangle){0,0,spriteUnitRightDown.texture.width,spriteUnitRightDown.texture.height},
+                                                            (Rectangle){arr_agent[i].x+tileWidth,arr_agent[i].y,
+                                                            tileWidth,tileHeight},
+                                                            (Vector2){0,0},90,WHITE);             
+        }
+
     }
 }
 
@@ -578,10 +670,33 @@ void updateagents(){
         // Move agent from path location to next path location(smooth)
         if(arr_agent[a].pathloc>=0){
             for(int spd=0;spd<arr_agent[a].speed;spd++){
-                if(arr_agent[a].x<arr_agent[a].pathx[arr_agent[a].pathloc]*tileWidth)arr_agent[a].x+=1;
-                if(arr_agent[a].x>arr_agent[a].pathx[arr_agent[a].pathloc]*tileWidth)arr_agent[a].x-=1;
-                if(arr_agent[a].y<arr_agent[a].pathy[arr_agent[a].pathloc]*tileHeight)arr_agent[a].y+=1;
-                if(arr_agent[a].y>arr_agent[a].pathy[arr_agent[a].pathloc]*tileHeight)arr_agent[a].y-=1;
+                arr_agent[a].left=false;
+                arr_agent[a].right=false;
+                arr_agent[a].up=false;
+                arr_agent[a].down=false;
+                if(arr_agent[a].x<arr_agent[a].pathx[arr_agent[a].pathloc]*tileWidth){
+                    arr_agent[a].x+=1;
+                    arr_agent[a].left=false;
+                    arr_agent[a].right=true;
+                }
+                if(arr_agent[a].x>arr_agent[a].pathx[arr_agent[a].pathloc]*tileWidth){
+                    arr_agent[a].x-=1;
+                    arr_agent[a].left=true;
+                    arr_agent[a].right=false;
+
+                }
+                if(arr_agent[a].y<arr_agent[a].pathy[arr_agent[a].pathloc]*tileHeight){
+                    arr_agent[a].y+=1;
+                    arr_agent[a].up=false;
+                    arr_agent[a].down=true;
+                    
+                }
+                if(arr_agent[a].y>arr_agent[a].pathy[arr_agent[a].pathloc]*tileHeight){
+                    arr_agent[a].y-=1;
+                    arr_agent[a].up=true;
+                    arr_agent[a].down=false;
+
+                }
                 if(     arr_agent[a].x==arr_agent[a].pathx[arr_agent[a].pathloc]*tileWidth && 
                         arr_agent[a].y==arr_agent[a].pathy[arr_agent[a].pathloc]*tileHeight){
                     arr_agent[a].pathloc--;                    
@@ -701,7 +816,7 @@ bool agentfindpath(int agent, int island){
         }
         // Error?
         failed+=1;
-        if(failed>160000)return;
+        if(failed>160000)return false;
         
     }
     
@@ -747,7 +862,7 @@ bool agentfindpath(int agent, int island){
         arr_path_len+=1;
         // error?
         failed+=1;
-        if(failed>15000)return;
+        if(failed>15000)return false;
     }
     arr_agent[agent].x = startx*tileWidth;
     arr_agent[agent].y = starty*tileHeight;
@@ -758,17 +873,17 @@ bool agentfindpath(int agent, int island){
  
 
 void inisprites(){
-int sprite_right[8][8] = {
-{0,0,2,2,2,2,0,0},
-{0,23,27,25,27,23,23,1},
-{0,1,29,23,27,24,1,1},
-{0,0,21,23,25,2,0,0},
-{0,0,21,23,25,2,0,0},
-{0,23,22,21,24,23,23,1},
-{0,1,22,27,22,25,1,1},
-{0,0,21,0,21,0,0,0}};
+    int sprite_right[8][8] = {
+    {0,0,2,2,2,2,0,0},
+    {0,23,27,25,27,23,23,1},
+    {0,1,29,23,27,24,1,1},
+    {0,0,21,23,25,2,0,0},
+    {0,0,21,23,25,2,0,0},
+    {0,23,22,21,24,23,23,1},
+    {0,1,22,27,22,25,1,1},
+    {0,0,21,0,21,0,0,0}};
 
-int sprite_left[8][8] = {
+    int sprite_left[8][8] = {
 {0,0,21,0,21,0,0,0},
 {0,1,22,27,22,25,1,1},
 {0,23,22,21,24,23,23,1},
@@ -778,75 +893,144 @@ int sprite_left[8][8] = {
 {0,23,27,25,27,23,23,1},
 {0,0,2,2,2,2,0,0}};
 
-int sprite_down[8][8] = {
-{0,0,0,0,0,0,0,0},
-{1,25,2,1,1,2,25,1},
-{0,2,25,27,28,27,27,0},
-{2,2,24,24,22,21,22,21},
-{2,2,24,24,22,21,1,0},
-{0,2,25,27,22,21,22,21},
-{1,25,2,1,1,2,25,1},
-{0,0,0,0,0,0,0,0}};
 
-int sprite_up[8][8] = {
-{0,0,0,0,0,0,0,0},
-{1,25,2,1,1,2,25,1},
-{0,27,27,28,27,25,2,0},
-{21,22,21,22,24,24,2,2},
-{0,1,21,22,24,24,2,2},
-{21,22,21,22,27,25,2,0},
-{1,25,2,1,1,2,25,1},
-{0,0,0,0,0,0,0,0}};
 
-int sprite_rightdown[8][8] = {
-{0,0,1,25,0,0,0,0},
-{0,2,2,1,0,0,0,0},
-{1,2,27,27,2,0,0,0},
-{24,1,22,22,27,2,0,0},
-{0,0,21,22,22,27,1,25},
-{0,0,0,21,22,27,20,1},
-{0,0,0,0,1,20,2,0},
-{0,0,0,0,24,1,0,0}};
 
-int sprite_leftdown[8][8] = {
-{0,0,0,0,24,1,0,0},
-{0,0,0,0,1,20,2,0},
-{0,0,0,21,22,27,20,1},
-{0,0,21,22,22,27,1,25},
-{24,1,22,22,27,2,0,0},
-{1,2,27,27,2,0,0,0},
-{0,2,2,1,0,0,0,0},
-{0,0,1,25,0,0,0,0}};
+    int sprite_down[8][8] = {
+    {0,0,0,0,0,0,0,0},
+    {1,25,2,1,1,2,25,1},
+    {0,2,25,27,28,27,27,0},
+    {2,2,24,24,22,21,22,21},
+    {2,2,24,24,22,21,1,0},
+    {0,2,25,27,22,21,22,21},
+    {1,25,2,1,1,2,25,1},
+    {0,0,0,0,0,0,0,0}};
 
-int sprite_rightup[8][8] = {
-{0,0,0,0,25,1,0,0},
-{0,0,0,0,1,2,2,0},
-{0,0,0,2,27,27,2,1},
-{0,0,2,27,22,22,1,24},
-{25,1,27,22,22,21,0,0},
-{1,20,27,22,21,0,0,0},
-{0,2,20,1,0,0,0,0},
-{0,0,1,24,0,0,0,0}};
+    int sprite_up[8][8] = {
+    {0,0,0,0,0,0,0,0},
+    {1,25,2,1,1,2,25,1},
+    {0,27,27,28,27,25,2,0},
+    {21,22,21,22,24,24,2,2},
+    {0,1,21,22,24,24,2,2},
+    {21,22,21,22,27,25,2,0},
+    {1,25,2,1,1,2,25,1},
+    {0,0,0,0,0,0,0,0}};
 
-int sprite_leftup[8][8] = {
-{0,0,1,24,0,0,0,0},
-{0,2,20,1,0,0,0,0},
-{1,20,27,22,21,0,0,0},
-{25,1,27,22,22,21,0,0},
-{0,0,2,27,22,22,1,24},
-{0,0,0,2,27,27,2,1},
-{0,0,0,0,1,2,2,0},
-{0,0,0,0,25,1,0,0}};
+    int sprite_rightdown[8][8] = {
+    {0,0,1,25,0,0,0,0},
+    {0,2,2,1,0,0,0,0},
+    {1,2,27,27,2,0,0,0},
+    {24,1,22,22,27,2,0,0},
+    {0,0,21,22,22,27,1,25},
+    {0,0,0,21,22,27,20,1},
+    {0,0,0,0,1,20,2,0},
+    {0,0,0,0,24,1,0,0}};
 
-int sprite_desert1[8][8] = {
-{5,5,5,5,5,5,5,5},
-{5,31,5,5,5,5,31,5},
-{5,5,5,5,5,5,5,5},
-{5,5,5,5,31,5,5,5},
-{5,5,5,5,5,5,5,5},
-{5,5,5,5,5,5,31,5},
-{5,5,31,5,5,5,5,5},
-{5,5,5,5,5,5,5,5}};
+    int sprite_leftdown[8][8] = {
+    {0,0,0,0,24,1,0,0},
+    {0,0,0,0,1,20,2,0},
+    {0,0,0,21,22,27,20,1},
+    {0,0,21,22,22,27,1,25},
+    {24,1,22,22,27,2,0,0},
+    {1,2,27,27,2,0,0,0},
+    {0,2,2,1,0,0,0,0},
+    {0,0,1,25,0,0,0,0}};
+
+    int sprite_rightup[8][8] = {
+    {0,0,0,0,25,1,0,0},
+    {0,0,0,0,1,2,2,0},
+    {0,0,0,2,27,27,2,1},
+    {0,0,2,27,22,22,1,24},
+    {25,1,27,22,22,21,0,0},
+    {1,20,27,22,21,0,0,0},
+    {0,2,20,1,0,0,0,0},
+    {0,0,1,24,0,0,0,0}};
+
+    int sprite_leftup[8][8] = {
+    {0,0,1,24,0,0,0,0},
+    {0,2,20,1,0,0,0,0},
+    {1,20,27,22,21,0,0,0},
+    {25,1,27,22,22,21,0,0},
+    {0,0,2,27,22,22,1,24},
+    {0,0,0,2,27,27,2,1},
+    {0,0,0,0,1,2,2,0},
+    {0,0,0,0,25,1,0,0}};
+
+    int sprite_desert1[8][8] = {
+    {5,5,5,5,5,5,5,5},
+    {5,31,5,5,5,5,31,5},
+    {5,5,5,5,5,5,5,5},
+    {5,5,5,5,31,5,5,5},
+    {5,5,5,5,5,5,5,5},
+    {5,5,5,5,5,5,31,5},
+    {5,5,31,5,5,5,5,5},
+    {5,5,5,5,5,5,5,5}};
+
+    BeginTextureMode(spriteUnitLeft);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode();
+    BeginTextureMode(spriteUnitRight);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode();
+    BeginTextureMode(spriteUnitUp);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode();
+    BeginTextureMode(spriteUnitDown);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode();
+    BeginTextureMode(spriteUnitLeftUp);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode();
+    BeginTextureMode(spriteUnitRightUp);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode();
+    BeginTextureMode(spriteUnitLeftDown);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode();
+    BeginTextureMode(spriteUnitRightDown);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode();
+    BeginTextureMode(tiledesert1);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode();
+    
+    db32color[0] = (Color){0,0,0,0};
+    // Draw something on it.
+    for (int y=0;y<8;y++)
+    {
+        for (int x=0;x<8; x++)
+        {            
+                BeginTextureMode(spriteUnitLeft);    
+                DrawRectangle(x*4,y*4,4,4,db32color[sprite_left[y][x]]);
+                EndTextureMode(); 
+                BeginTextureMode(spriteUnitRight);    
+                DrawRectangle(x*4,y*4,4,4,db32color[sprite_right[y][x]]);
+                EndTextureMode(); 
+                BeginTextureMode(spriteUnitUp);    
+                DrawRectangle(x*4,y*4,4,4,db32color[sprite_up[y][x]]);
+                EndTextureMode(); 
+                BeginTextureMode(spriteUnitDown);    
+                DrawRectangle(x*4,y*4,4,4,db32color[sprite_down[y][x]]);
+                EndTextureMode(); 
+                BeginTextureMode(spriteUnitLeftUp);    
+                DrawRectangle(x*4,y*4,4,4,db32color[sprite_leftup[y][x]]);
+                EndTextureMode(); 
+                BeginTextureMode(spriteUnitRightUp);    
+                DrawRectangle(x*4,y*4,4,4,db32color[sprite_rightup[y][x]]);
+                EndTextureMode(); 
+                BeginTextureMode(spriteUnitLeftDown);    
+                DrawRectangle(x*4,y*4,4,4,db32color[sprite_leftdown[y][x]]);
+                EndTextureMode(); 
+                BeginTextureMode(spriteUnitRightDown);    
+                DrawRectangle(x*4,y*4,4,4,db32color[sprite_rightdown[y][x]]);
+                EndTextureMode(); 
+                BeginTextureMode(tiledesert1);    
+                DrawRectangle(x*4,y*4,4,4,db32color[sprite_desert1[y][x]]);
+                EndTextureMode(); 
+
+
+        }
+    }
 
 }
 
