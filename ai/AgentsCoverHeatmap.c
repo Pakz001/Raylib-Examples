@@ -31,7 +31,14 @@ int tempmap[10][20] =            {  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
                                     {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
                                     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}};  
 int map[MAP_HEIGHT][MAP_WIDTH]={0};
+// heat map..
+// The heat map is used here to let the agents know the map area heated is dangerous and not
+// to be traveled on. (influence mapping.)
 float hmap[MAP_HEIGHT][MAP_WIDTH]={0};
+// cover position map..
+// The cover map is a map where positions are where bullets from the enemy do not have effect. (behind walls)
+// I find them by simulating the turret shooting in every angle.
+bool cmap[MAP_HEIGHT][MAP_WIDTH]={0};
 
 float tileWidth,tileHeight;
 
@@ -68,6 +75,8 @@ static bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2
 static void drawheatmap();
 static void updateheatmap();
 static int orientation(int ax,int ay,int bx, int by, int cx, int cy);
+static void createcovermap();
+static void drawcovermap();
     
 int main(void)
 {
@@ -89,7 +98,6 @@ int main(void)
     }
     }
     
-    
     InitWindow(screenWidth, screenHeight, "raylib example.");
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
@@ -105,6 +113,9 @@ int main(void)
     arr_turret[0].targetx = 12;
     arr_turret[0].targety = 3;
     arr_turret[0].targettime=TURRET_TARGET_TIME;
+    // create our covermap
+    createcovermap();
+
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -129,6 +140,7 @@ int main(void)
 
             ClearBackground(RAYWHITE);
             drawheatmap();
+            drawcovermap();
             drawmap();
             drawturrets();
             drawbullets();
@@ -188,17 +200,17 @@ void updateturrets(){
         }
         // If there is a target then turn towards taget.
         if(arr_turret[i].targetactive){
-            int x=(arr_turret[i].x*tileWidth)+tileWidth/2;
-            int y=(arr_turret[i].y*tileHeight)+tileHeight/2;
-            if(orientation(     x,
-                                y,
-                                x+cos(arr_turret[i].angle)*tileWidth,
-                                y+sin(arr_turret[i].angle)*tileHeight,
-                                arr_turret[i].targetx*tileWidth,
-                                arr_turret[i].targety*tileHeight)==-1)
-                        {
+            int x=(arr_turret[i].x*tileWidth);
+            int y=(arr_turret[i].y*tileHeight);
+            int oriented=orientation(       x,
+                                            y,
+                                            x+cos(arr_turret[i].angle)*tileWidth*12,
+                                            y+sin(arr_turret[i].angle)*tileHeight*12,
+                                            arr_turret[i].targetx*tileWidth,
+                                            arr_turret[i].targety*tileHeight);
+            if(oriented==-1){                        
                         arr_turret[i].direction=-0.02;
-                        }else{
+                        }else if(oriented==1){
                             arr_turret[i].direction=0.02;
                         }
         }
@@ -218,8 +230,10 @@ void updateturrets(){
             }else{
                 if(GetRandomValue(0,20)<2)arr_turret[i].burst=5;
             }
-            shootbullet(    (arr_turret[i].x*tileWidth)+(cos(arr_turret[i].angle)*tileWidth),
-                            (arr_turret[i].y*tileHeight)+(sin(arr_turret[i].angle)*tileHeight),
+            int bx = arr_turret[i].x*tileWidth;
+            int by = arr_turret[i].y*tileHeight;
+            shootbullet(    (bx+tileWidth/2)+(cos(arr_turret[i].angle)*tileWidth),
+                            (by+tileHeight/2)+(sin(arr_turret[i].angle)*tileHeight),
                             arr_turret[i].angle);
         }
         // if target is active then decrease that time
@@ -349,4 +363,46 @@ int orientation(int ax,int ay,int bx, int by, int cx, int cy){
 	if(((bx-ax)*(cy-ay)-(by-ay)*(cx-ax))<0)return -1;
     if(((bx-ax)*(cy-ay)-(by-ay)*(cx-ax))>0)return 1;
     return 0;
+}
+
+void createcovermap(){
+    for(int i=0;i<MAX_TURRETS;i++){
+        
+        for(float angle=0;angle<PI*2.0f;angle+=0.03f){
+            float x=(float)arr_turret[i].x*tileWidth;
+            float y=(float)arr_turret[i].y*tileHeight;
+            for(int z=0;z<300;z++){
+                x+=cos(angle);
+                y+=sin(angle);
+                int x2 = (float)x/(float)tileWidth;
+                int y2 = (float)y/(float)tileHeight;
+                if(x2<0 || y2<0 || x2>=MAP_WIDTH || y2>=MAP_HEIGHT){
+                    goto LABEL;
+                }
+                if(recttilecollide(x,y,1,1,0,0)){                    
+                    while(recttilecollide(x,y,1,1,0,0)){
+                        x+=cos(angle);
+                        y+=sin(angle);
+                        x2 = (float)x/(float)tileWidth;
+                        y2 = (float)y/(float)tileHeight;
+                        if(x2<0 || y2<0 || x2>=MAP_WIDTH || y2>=MAP_HEIGHT){
+                            goto LABEL;
+                        }                    
+                    }
+                    cmap[y2][x2] = true;
+                    goto LABEL;
+                }
+            }
+            LABEL:{}
+        }
+    }
+}
+
+void drawcovermap(){
+    for(int y=0;y<MAP_HEIGHT;y++){
+    for(int x=0;x<MAP_WIDTH;x++){
+        if(cmap[y][x]==false)continue;        
+        DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,GREEN);
+    }
+    }
 }
