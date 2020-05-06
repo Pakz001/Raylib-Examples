@@ -15,6 +15,8 @@ enum tiles{FLOOR,WALL};
 #define MAX_BULLETS 128
 #define BULLET_SPEED 3
 #define TURRET_TARGET_TIME 600
+#define MAX_AGENTS 1
+#define MAX_PATH 100024 
 
 static int screenWidth,screenHeight;
 
@@ -39,6 +41,15 @@ float hmap[MAP_HEIGHT][MAP_WIDTH]={0};
 // The cover map is a map where positions are where bullets from the enemy do not have effect. (behind walls)
 // I find them by simulating the turret shooting in every angle.
 bool cmap[MAP_HEIGHT][MAP_WIDTH]={0};
+// coverislands 
+// coverspots connected to each other have a unique number.
+// These are used to let the agents run from one island to another
+int cimap[MAP_HEIGHT][MAP_WIDTH]={0};
+static int numislands;
+
+//path map
+int pathmap[MAP_HEIGHT][MAP_WIDTH]={0};
+
 
 float tileWidth,tileHeight;
 
@@ -64,6 +75,29 @@ typedef struct bullet{
 
 static struct bullet arr_bullet[MAX_BULLETS];
 
+typedef struct agent{
+    bool active;
+    float x,y;
+    int speed;
+    int pathx[1024];
+    int pathy[1024];
+    int pathloc;
+    int myisland;
+}agent;
+
+static struct agent arr_agent[MAX_AGENTS];
+
+typedef struct pathnode{
+    int x;
+    int y;
+    
+}pathnode;
+
+static pathnode arr_path[MAX_PATH];
+static int arr_path_len;
+
+
+
 static void drawmap();
 static void drawturrets();
 static void updateturrets();
@@ -77,6 +111,10 @@ static void updateheatmap();
 static int orientation(int ax,int ay,int bx, int by, int cx, int cy);
 static void createcovermap();
 static void drawcovermap();
+static void drawcoverislands();    
+static void createcoverislands();
+static void drawagents();    
+static void updateagents();
     
 int main(void)
 {
@@ -115,7 +153,17 @@ int main(void)
     arr_turret[0].targettime=TURRET_TARGET_TIME;
     // create our covermap
     createcovermap();
+    createcoverislands();
+    
+    
+    arr_agent[0].active = true;
+    arr_agent[0].x = 3*tileWidth;
+    arr_agent[0].y = 3*tileHeight;
+    arr_agent[0].speed = 1;
+    arr_agent[0].myisland=1;
 
+
+    updateagents();
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -132,6 +180,11 @@ int main(void)
             arr_turret[0].targety = GetMouseY()/tileHeight;
             arr_turret[0].targettime=TURRET_TARGET_TIME;
         }
+        if(IsKeyPressed(KEY_SPACE)){
+            updateagents();
+        }
+
+
 
         //----------------------------------------------------------------------------------
         // Draw
@@ -141,10 +194,16 @@ int main(void)
             ClearBackground(RAYWHITE);
             drawheatmap();
             drawcovermap();
+            drawcoverislands();
             drawmap();
             drawturrets();
             drawbullets();
-            
+            //draw the path..
+            for(int i=0;i<arr_path_len-1;i++){
+                DrawRectangle(arr_path[i].x*tileWidth,arr_path[i].y*tileHeight,tileWidth,tileHeight,YELLOW);
+            }
+            drawagents();
+                            
             DrawText("Press mouse to place target..",0,0,20,GRAY);
             
             DrawRectangle(0,screenHeight-44,screenWidth,28,DARKGRAY);
@@ -152,6 +211,8 @@ int main(void)
             DrawRectangle(100,screenHeight-40,20,20,RED);
             DrawRectangle(screenWidth/2,screenHeight-40,20,20,GREEN);
             DrawText("Covermap",screenWidth/2+30,screenHeight-40,20,WHITE);
+
+            DrawText(FormatText("%i",arr_agent[0].myisland),0,0,20,WHITE);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -384,7 +445,7 @@ void createcovermap(){
                 y+=sin(angle);
                 int x2 = (float)x/(float)tileWidth;
                 int y2 = (float)y/(float)tileHeight;
-                if(x2<0 || y2<0 || x2>=MAP_WIDTH || y2>=MAP_HEIGHT){
+                if(x2<1 || y2<1 || x2>=MAP_WIDTH || y2>=MAP_HEIGHT){
                     goto LABEL;
                 }
                 if(recttilecollide(x,y,1,1,0,0)){                    
@@ -393,7 +454,7 @@ void createcovermap(){
                         y+=sin(angle);
                         x2 = (float)x/(float)tileWidth;
                         y2 = (float)y/(float)tileHeight;
-                        if(x2<0 || y2<0 || x2>=MAP_WIDTH || y2>=MAP_HEIGHT){
+                        if(x2<1 || y2<1 || x2>=MAP_WIDTH || y2>=MAP_HEIGHT){
                             goto LABEL;
                         }                    
                     }
@@ -435,3 +496,224 @@ void drawcovermap(){
     }
     }
 }
+
+void drawcoverislands(){
+    for(int y=0;y<MAP_HEIGHT;y++){
+    for(int x=0;x<MAP_WIDTH;x++){
+        if(cimap[y][x]==0)continue;
+        DrawText(FormatText("%i",cimap[y][x]),x*tileWidth,y*tileHeight,15,BLACK);
+    }}
+}
+
+void createcoverislands(){
+    int island=1;
+    for(int y=0;y<MAP_HEIGHT;y++){
+    for(int x=0;x<MAP_WIDTH;x++){
+        if(cmap[y][x]==true && cimap[y][x]==0){
+            //flood
+            cimap[y][x]=island;
+            int mx[200];
+            int my[200];
+            int mc=0;
+            mx[mc]=x;
+            my[mc]=y;
+            mc++;
+            while(mc>0){
+                mc--;
+                int fx=mx[mc];
+                int fy=my[mc];
+                
+                for(int zy=fy-1;zy<fy+2;zy++){
+                for(int zx=fx-1;zx<fx+2;zx++){
+                    if(zx<0 || zy<0 || zx>=MAP_WIDTH || zy>MAP_HEIGHT)continue;
+                    if(cmap[zy][zx]==true && cimap[zy][zx]==0){                                                
+                        mx[mc]=zx;
+                        my[mc]=zy;
+                        cimap[zy][zx]=island;
+                        mc++;
+                    }
+                }
+                }
+            }
+            island++;
+            numislands=island;
+        }
+        
+    }}    
+}
+
+void drawagents(){
+    for(int i=0;i<MAX_AGENTS;i++){
+        if(arr_agent[i].active==false)continue;
+        DrawRectangle(arr_agent[i].x,arr_agent[i].y,tileWidth,tileHeight,RED);
+    }
+}
+
+void updateagents(){
+    // 4 way search! left/up/down/right
+    int dx[4]={ 0,1,0,-1};
+    int dy[4]={-1,0,1,0};    
+
+    //find closest cover position that we are currently not ontop of.
+    //
+    // find a start and end location.
+    //
+    for(int y=0;y<MAP_HEIGHT;y++){
+        for(int x=0;x<MAP_WIDTH;x++){
+            pathmap[y][x]=0;
+    }}
+
+    int startx,starty,endx,endy;
+
+
+    //flood to find closest cover position
+    startx = arr_agent[0].x/tileWidth;    
+    starty = arr_agent[0].y/tileHeight;
+    int currentisland = arr_agent[0].myisland;
+    int nextisland = currentisland+1;
+    if(currentisland>=numislands)nextisland=1;    
+    arr_agent[0].myisland = nextisland;
+    int mx[1200];
+    int my[1200];
+    int tmp[MAP_HEIGHT][MAP_WIDTH]={0};
+    tmp[starty][startx]=1;
+    int mc=0;
+    mx[mc]=startx;
+    my[mc]=starty;
+    mc++;
+    while(mc>0){
+        mc--;
+        int fx=mx[mc];
+        int fy=my[mc];
+
+        for(int i=0;i<4;i++){
+            int zx=fx+dx[i];
+            int zy=fy+dy[i];
+            if(zx<0 || zy<0 || zx>=MAP_WIDTH || zy>=MAP_HEIGHT)continue;
+            if(map[zy][zx]!=1 && tmp[zy][zx]==0){                                                
+                mx[mc]=zx;
+                my[mc]=zy;                
+                mc++;
+                tmp[zy][zx]=1;
+            }
+        
+        }
+        
+        if(cmap[fy][fx]==true && cimap[fy][fx]==nextisland){
+            endx = fx;
+            endy = fy;
+            break;
+        }
+    }
+
+
+    
+    
+//    startx = 3;
+//    starty = 3;
+//    endx = 20;
+//   endy = 8;
+        
+    //
+    // Flood the map with distances from the start.
+    //
+    
+    struct pathnode list[MAX_PATH];
+    //
+    // We store the distance on each map cell if there is no wall there.
+    //
+    pathmap[starty][startx]=1;
+    int listlen=0;    
+    list[listlen].x=startx;
+    list[listlen].y=starty;
+    listlen+=1;        
+    int failed=0;
+    // While we have a list to work with
+    while(listlen>0){
+        // Take the first value from the array.
+        int x1=list[0].x;
+        int y1=list[0].y;
+        
+        // shift all up.
+        for(int i=0;i<listlen;i++){
+            list[i].x = list[i+1].x;
+            list[i].y = list[i+1].y;
+        }
+        if(x1==endx && y1==endy){            
+            break;
+        }
+
+        // Decrease list length
+        listlen-=1;
+        //
+        // Here we check around our current position.
+        for(int i=0;i<4;i++){
+            int nx = x1+dx[i];
+            int ny = y1+dy[i];
+            if(nx<0 || ny<0 || nx>= MAP_WIDTH || ny>= MAP_HEIGHT)continue;            
+            // If we can get there then put the new distance there and add this position
+            // to the list.
+            if(pathmap[ny][nx]==0 && map[ny][nx]==0){
+                pathmap[ny][nx]=pathmap[y1][x1]+1;
+                // add to last
+                //
+                list[listlen].x = nx;
+                list[listlen].y = ny;
+                listlen++;
+                //                
+            }
+        }
+        // Error?
+        failed+=1;
+        if(failed>160000)return;
+        
+    }
+    
+    //
+    // Here we create the actual path.
+    //
+    arr_path_len = 0;
+    int x1=endx;
+    int y1=endy;
+    arr_path[0].x = x1;
+    arr_path[0].y = y1;
+    arr_path_len+=1;
+    failed=0;
+    // While distance is greater than 1
+    while(pathmap[y1][x1]>1){
+        
+        int nx=0;
+        int ny=0;
+        // Get the current distance
+        int lowest = pathmap[y1][x1];
+        for(int i=0;i<4;i++){
+            int x2=x1+dx[i];
+            int y2=y1+dy[i];
+            if(x2<0 || y2 <0 || x2>=MAP_WIDTH || y2>= MAP_HEIGHT )continue; // stay in bounds of array
+            if(pathmap[y2][x2]>0 && pathmap[y2][x2]<lowest){ //if there is a map distance and if it is lower than the lowest variable
+                lowest = pathmap[y2][x2];
+                nx = x2;
+                ny = y2;
+            }                
+        }
+
+        // store our new location
+        x1 = nx;
+        y1 = ny;
+        // add to the path struct
+        arr_path[arr_path_len].x = nx;
+        arr_path[arr_path_len].y = ny;
+        // add to length
+        arr_path_len+=1;
+        // error?
+        failed+=1;
+        if(failed>15000)return;
+    }
+    
+    
+    // Put the agents new location in
+    arr_agent[0].x = endx*tileWidth;
+    arr_agent[0].y = endy*tileHeight;
+}
+ 
+
