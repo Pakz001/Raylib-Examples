@@ -84,6 +84,7 @@ typedef struct agent{
     int pathx[1024];
     int pathy[1024];
     int pathloc;
+    int pathlen;
     int myisland;
 }agent;
 
@@ -162,11 +163,12 @@ int main(void)
     arr_agent[0].active = true;
     arr_agent[0].x = 3*tileWidth;
     arr_agent[0].y = 3*tileHeight;
-    arr_agent[0].speed = 1;
+    arr_agent[0].speed = 2;
     arr_agent[0].myisland=1;
+    arr_agent[0].pathloc=-1;
+    arr_agent[0].pathlen=-1;
 
 
-    updateagents();
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -175,6 +177,7 @@ int main(void)
         updateturrets();
         updatebullets();
         updateheatmap();
+        updateagents();
         
         // If the user presses the mouse then place new target on map at mpos;
         if(IsMouseButtonDown(0)){
@@ -182,9 +185,6 @@ int main(void)
             arr_turret[0].targetx = GetMouseX()/tileWidth;
             arr_turret[0].targety = GetMouseY()/tileHeight;
             arr_turret[0].targettime=TURRET_TARGET_TIME;
-        }
-        if(IsKeyPressed(KEY_SPACE)){
-            updateagents();
         }
 
 
@@ -546,19 +546,40 @@ void createcoverislands(){
 
 void drawagents(){
     for(int i=0;i<MAX_AGENTS;i++){
-        if(arr_agent[i].active==false)continue;
+        if(arr_agent[i].active==false)continue;        
         DrawRectangle(arr_agent[i].x,arr_agent[i].y,tileWidth,tileHeight,RED);
     }
 }
 
 void updateagents(){
-    for(int shuffle=0;shuffle<5;shuffle++){
-        int i=GetRandomValue(1,numislands);
-        if(arr_agent[0].myisland!=i && agentfindpath(i)==true){
-            arr_agent[0].myisland = i;
-            return;
+    if(arr_agent[0].pathloc>=0){
+        for(int spd=0;spd<arr_agent[0].speed;spd++){
+            if(arr_agent[0].x<arr_agent[0].pathx[arr_agent[0].pathloc]*tileWidth)arr_agent[0].x+=1;
+            if(arr_agent[0].x>arr_agent[0].pathx[arr_agent[0].pathloc]*tileWidth)arr_agent[0].x-=1;
+            if(arr_agent[0].y<arr_agent[0].pathy[arr_agent[0].pathloc]*tileHeight)arr_agent[0].y+=1;
+            if(arr_agent[0].y>arr_agent[0].pathy[arr_agent[0].pathloc]*tileHeight)arr_agent[0].y-=1;
+            if(     arr_agent[0].x==arr_agent[0].pathx[arr_agent[0].pathloc]*tileWidth && 
+                    arr_agent[0].y==arr_agent[0].pathy[arr_agent[0].pathloc]*tileHeight){
+                arr_agent[0].pathloc--;        
+                break;
+            }
         }
-    
+    }
+    if(arr_agent[0].pathloc == -1 && GetRandomValue(0,1000)<10){
+        for(int shuffle=0;shuffle<5;shuffle++){
+            int i=GetRandomValue(1,numislands);
+            if(arr_agent[0].myisland!=i && agentfindpath(i)==true){
+                arr_agent[0].myisland = i;
+                arr_agent[0].pathlen = arr_path_len;
+                arr_agent[0].pathloc = arr_path_len-1;
+                for(int p=0;p<arr_path_len;p++){
+                    arr_agent[0].pathx[p] = arr_path[p].x;
+                    arr_agent[0].pathy[p] = arr_path[p].y;
+                }
+                
+                return;
+            }    
+        }
     }
 }
 bool agentfindpath(int island){
@@ -699,8 +720,8 @@ bool agentfindpath(int island){
         failed+=1;
         if(failed>15000)return;
     }
-    arr_agent[0].x = endx*tileWidth;
-    arr_agent[0].y = endy*tileHeight;
+    arr_agent[0].x = startx*tileWidth;
+    arr_agent[0].y = starty*tileHeight;
     
     
     return true;
