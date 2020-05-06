@@ -146,6 +146,12 @@ int main(void)
             drawbullets();
             
             DrawText("Press mouse to place target..",0,0,20,GRAY);
+            
+            DrawRectangle(0,screenHeight-44,screenWidth,28,DARKGRAY);
+            DrawText("Heatmap",130,screenHeight-40,20,WHITE);
+            DrawRectangle(100,screenHeight-40,20,20,RED);
+            DrawRectangle(screenWidth/2,screenHeight-40,20,20,GREEN);
+            DrawText("Covermap",screenWidth/2+30,screenHeight-40,20,WHITE);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -365,9 +371,11 @@ int orientation(int ax,int ay,int bx, int by, int cx, int cy){
     return 0;
 }
 
+
 void createcovermap(){
     for(int i=0;i<MAX_TURRETS;i++){
         
+        // Find all cover positions
         for(float angle=0;angle<PI*2.0f;angle+=0.03f){
             float x=(float)arr_turret[i].x*tileWidth;
             float y=(float)arr_turret[i].y*tileHeight;
@@ -395,6 +403,27 @@ void createcovermap(){
             }
             LABEL:{}
         }
+        
+        // Remove edge cases.
+        for(float angle=0;angle<PI*2.0f;angle+=0.03f){
+            float x=(float)arr_turret[i].x*tileWidth;
+            float y=(float)arr_turret[i].y*tileHeight;
+            for(int z=0;z<300;z++){
+                x+=cos(angle);
+                y+=sin(angle);
+                int x2 = (float)x/(float)tileWidth;
+                int y2 = (float)y/(float)tileHeight;
+                if(x2<0 || y2<0 || x2>=MAP_WIDTH || y2>=MAP_HEIGHT){
+                    goto LABEL2;
+                }
+                cmap[y2][x2]=false;
+                if(recttilecollide(x,y,1,1,0,0)){                    
+                    goto LABEL2;
+                }
+            }
+            LABEL2:{}
+        }
+
     }
 }
 
