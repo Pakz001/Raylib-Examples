@@ -8,6 +8,9 @@
 #include "raylib.h"
 #include <math.h>
 
+
+
+
 enum tiles{FLOOR,WALL};
 
 #define MAP_WIDTH 40
@@ -19,6 +22,10 @@ enum tiles{FLOOR,WALL};
 #define TURRET_TARGET_TIME 600
 #define MAX_AGENTS 15
 #define MAX_PATH 100024 
+
+static	Color db32color[32];// ' our colors	
+
+
 
 static int screenWidth,screenHeight;
 
@@ -119,6 +126,8 @@ static void createcoverislands();
 static void drawagents();    
 static void updateagents();
 static bool agentfindpath(int agent, int island);
+static void inidb32colors(void);
+
         
 int main(void)
 {
@@ -141,7 +150,9 @@ int main(void)
     }
     
     InitWindow(screenWidth, screenHeight, "raylib example.");
- 
+    
+    inidb32colors(); 
+    
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
@@ -837,4 +848,39 @@ int sprite_desert1[8][8] = {
 {5,5,31,5,5,5,5,5},
 {5,5,5,5,5,5,5,5}};
 
+}
+
+void inidb32colors(){		
+    db32color[0 ] =  (Color){0      ,0      ,0      ,255};
+    db32color[1 ] =  (Color){34     ,32     ,52     ,255};
+    db32color[2 ] =  (Color){69     ,40     ,60     ,255};
+    db32color[3 ] =  (Color){102    ,57     ,49     ,255};
+    db32color[4 ] =  (Color){143    ,86     ,59     ,255};
+    db32color[5 ] =  (Color){223    ,113    ,38     ,255};
+    db32color[6 ] =  (Color){217    ,160    ,102    ,255};
+    db32color[7 ] =  (Color){238    ,195    ,154    ,255};
+    db32color[8 ] =  (Color){251    ,242    ,54     ,255};
+    db32color[9 ] =  (Color){153    ,229    ,80     ,255};
+    db32color[10] =  (Color){106    ,190    ,48     ,255};
+    db32color[11] =  (Color){55     ,148    ,110    ,255};
+    db32color[12] =  (Color){75     ,105    ,47     ,255};
+    db32color[13] =  (Color){82     ,75     ,36     ,255};
+    db32color[14] =  (Color){50     ,60     ,57     ,255};
+    db32color[15] =  (Color){63     ,63     ,116    ,255};
+    db32color[16] =  (Color){48     ,96     ,130    ,255};
+    db32color[17] =  (Color){91     ,110    ,225    ,255};
+    db32color[18] =  (Color){99     ,155    ,225    ,255};
+    db32color[19] =  (Color){95     ,205    ,228    ,255};
+    db32color[20] =  (Color){203    ,219    ,252    ,255};
+    db32color[21] =  (Color){255    ,255    ,255    ,255};
+    db32color[22] =  (Color){155    ,173    ,183    ,255};
+    db32color[23] =  (Color){132    ,126    ,135    ,255};
+    db32color[24] =  (Color){105    ,106    ,106    ,255};
+    db32color[25] =  (Color){89     ,86     ,82     ,255};
+    db32color[26] =  (Color){118    ,66     ,138    ,255};
+    db32color[27] =  (Color){172    ,50     ,50     ,255};
+    db32color[28] =  (Color){217    ,87     ,99     ,255};
+    db32color[29] =  (Color){215    ,123    ,186    ,255};
+    db32color[30] =  (Color){143    ,151    ,74     ,255};
+    db32color[31] =  (Color){138    ,111    ,48     ,255};
 }
