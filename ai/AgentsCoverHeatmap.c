@@ -1,7 +1,8 @@
 // Agents take Cover.
 
-// Todo :   add heatmap below bullets path.
+// Todo :   
 //          add agents and agents follow path.
+//              select path not going through heatmap.
 
 
 #include "raylib.h"
@@ -12,6 +13,7 @@ enum tiles{FLOOR,WALL};
 #define MAP_WIDTH 40
 #define MAP_HEIGHT 20
 #define MAX_TURRETS 1
+#define TURRET_TURNSPEED 0.01
 #define MAX_BULLETS 128
 #define BULLET_SPEED 3
 #define TURRET_TARGET_TIME 600
@@ -145,7 +147,7 @@ int main(void)
     arr_turret[0].x = 20;
     arr_turret[0].y = 10;
     arr_turret[0].angle = 0;
-    arr_turret[0].direction = 0.02;
+    arr_turret[0].direction = TURRET_TURNSPEED;
     arr_turret[0].burst=0;
     arr_turret[0].targetactive = true;
     arr_turret[0].targetx = 12;
@@ -276,9 +278,9 @@ void updateturrets(){
                                             arr_turret[i].targetx*tileWidth,
                                             arr_turret[i].targety*tileHeight);
             if(oriented==-1){                        
-                        arr_turret[i].direction=-0.02;
+                        arr_turret[i].direction=-TURRET_TURNSPEED;
                         }else if(oriented==1){
-                            arr_turret[i].direction=0.02;
+                            arr_turret[i].direction=TURRET_TURNSPEED;
                         }
         }
         // rotate the turret
