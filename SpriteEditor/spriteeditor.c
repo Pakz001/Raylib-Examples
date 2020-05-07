@@ -5,7 +5,7 @@
 //
 // Added - Save eveything (F5) Load everything(F6 - Very slow!!)
 // Added - Press p to paste 8x8 sprite back into the editor. (key 'c' to copy current sprite as c array into clipboard.
-
+// Added - Press tab to switch between sprite editor and map editor
 // Conversion from the Monkey2 version that I wrote.
 //
 // Todo : Add isometric/hexagon map edit/view, Fix update preview and spritelib), Floodfill(more testing),  ovals!(find solution for layout), testing. 
@@ -111,6 +111,7 @@ static	float gridwidth;
 static  float gridheight;//	 ' grids width and height
 static	int spritewidth;
 static  int spriteheight;// ' our main sprite width and height
+static bool spriteviewaction=false;
 	//' line tool fields
 static	bool linepressed=false;
 static	bool lineactive=false;
@@ -833,7 +834,7 @@ void middlebarview(){
         //canvas.DrawImage(middlebarim[num],pointx,pointy)
         //'
         //' Selection of the sprite editor or the map editor
-        if(IsMouseButtonDown(0)){
+        if(spriteviewaction==false && IsMouseButtonDown(0)){
             if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,32,32)){
                 middlebarcurrentid = num;
             }
@@ -988,7 +989,7 @@ void topbarview(){
         //canvas.DrawImage(topbarim[num],pointx,pointy,0,.6,.6)
         //'
         //' Selection of the sprite editor or the map editor
-        if(IsMouseButtonDown(0)){
+        if(spriteviewaction==false && IsMouseButtonDown(0)){
             if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,32,32)){
                 topbarcurrentid = num;
             }
@@ -1036,7 +1037,7 @@ void paletteview(){
         }
         //'
         //' Select our color
-        if(IsMouseButtonDown(0)){				
+        if(spriteviewaction==false && IsMouseButtonDown(0)){				
             if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,palettecellwidth,palettecellheight)){
                 paletteselected = cc;
             }
@@ -1404,7 +1405,7 @@ void toolview(){
         //'
         //'/ Interaction with the tool area
         //'
-        if(IsMouseButtonDown(0)){
+        if(spriteviewaction==false && IsMouseButtonDown(0)){
             if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,32,32)){
                 toolselected = num;
 
@@ -1548,7 +1549,7 @@ void spritelibview(){
 
 
         
-        if(IsMouseButtonDown(0)){
+        if(spriteviewaction==false && IsMouseButtonDown(0)){
             if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,pointx,pointy,spritewidth*spritelibscale,spriteheight*spritelibscale)){
                 spritelibselected = num;
                 spritelibcopytocanvas();
@@ -1565,7 +1566,14 @@ void spritelibview(){
 
 
 void spriteview(){
-    
+
+    // If drawing then do not allow presses outside spriteview unless mouse is not pressed.
+    if(rectsoverlap(GetMouseX(),GetMouseY(),1,1,canvasx,canvasy,canvaswidth,canvasheight) && IsMouseButtonDown(0) || IsMouseButtonDown(1)){
+        spriteviewaction=true;
+    }
+    if(IsMouseButtonDown(0)==false && IsMouseButtonDown(1)==false){
+        spriteviewaction=false;
+    }
     
     for(int y=0;y<spriteheight;y++){
     for(int x=0;x<spritewidth;x++){
@@ -1847,6 +1855,12 @@ void spriteview(){
                     bcselectionstartx=0;
                 }
             }
+        }
+
+        // Tab between map view and sprite view.
+        if(IsKeyReleased(KEY_TAB)){
+            spriteviewaction = false;
+            topbarcurrentid = topbarmapeditid;
         }
        
         //' Read from disk..
@@ -2243,6 +2257,11 @@ void tilemapview(){
             tilemap[x][y] = spritelibselected;            
             }
         }
+    }
+    
+    // Tab back to sprite view
+    if(IsKeyReleased(KEY_TAB)){
+        topbarcurrentid = topbarspriteeditid;
     }
 }
 
