@@ -237,10 +237,10 @@ for (int i=0;i<MAX_AGENTS;i++){
         BeginDrawing();
 
             ClearBackground(RAYWHITE);
+            drawmap();
             drawheatmap();
             drawcovermap();
-            drawcoverislands();
-            drawmap();
+            drawcoverislands();            
             drawturrets();
             drawbullets();
             //draw the path..
@@ -458,15 +458,15 @@ void updateheatmap(){
         if(arr_bullet[i].active==false)continue;
         int x=arr_bullet[i].x/tileWidth;
         int y=arr_bullet[i].y/tileHeight;
-        if(hmap[y][x]<255)hmap[y][x]+=5;        
-        if(hmap[y-1][x]<255)hmap[y-1][x]+=1.5;        
-        if(hmap[y][x+1]<255)hmap[y][x+1]+=1.5;        
-        if(hmap[y+1][x]<255)hmap[y+1][x]+=1.5;        
-        if(hmap[y][x-1]<255)hmap[y][x-1]+=1.5;        
-        if(hmap[y-2][x]<255)hmap[y-2][x]+=1.0;        
-        if(hmap[y][x+2]<255)hmap[y][x+2]+=1.0;        
-        if(hmap[y+2][x]<255)hmap[y+2][x]+=1.0;        
-        if(hmap[y][x-2]<255)hmap[y][x-2]+=1.0;        
+        if(hmap[y][x]<255)hmap[y][x]+=15;        
+        if(hmap[y-1][x]<255)hmap[y-1][x]+=5.5;        
+        if(hmap[y][x+1]<255)hmap[y][x+1]+=5.5;        
+        if(hmap[y+1][x]<255)hmap[y+1][x]+=5.5;        
+        if(hmap[y][x-1]<255)hmap[y][x-1]+=5.5;        
+        if(hmap[y-2][x]<255)hmap[y-2][x]+=2.5;        
+        if(hmap[y][x+2]<255)hmap[y][x+2]+=2.5;        
+        if(hmap[y+2][x]<255)hmap[y+2][x]+=2.5;        
+        if(hmap[y][x-2]<255)hmap[y][x-2]+=2.5;        
 
     }
     // decrease the heat..
@@ -557,7 +557,7 @@ void drawcovermap(){
     for(int y=0;y<MAP_HEIGHT;y++){
     for(int x=0;x<MAP_WIDTH;x++){
         if(cmap[y][x]==false)continue;        
-        DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,GREEN);
+        DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,(Color){0,200,0,100});
     }
     }
 }
