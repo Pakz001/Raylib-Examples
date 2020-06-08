@@ -20,6 +20,12 @@ Dotate to author (book and motivation funds) https://www.paypal.me/RudyvanEtten/
 
 <br>
 
+There might be periods where I spend time practising other things like music composition and/or pixelart. Thus there might be a time where I spend less or no time coding. My pixelart blog is : http://pixelart001.blogspot.com/ My music is at : https://soundcloud.com/pakz001
+
+
+
+<br>
+
 How to use these examples :
 
 Each example in here is a standalone .c file. I myself just copy and paste the one I need into notepad++ and save it as a new .c file and it just works. You should also be able to save this repo as a zip and unzip it and be able to load each example and run it.
