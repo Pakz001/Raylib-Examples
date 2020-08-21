@@ -245,6 +245,13 @@ static void edgeenhance(){
             if(map[x][y]==2 && map[x+1][y]==1){
                 DrawRectangle(dx+tileWidth,dy,tileWidth/2,tileHeight,DARKGRAY);
             }
+            if(map[x][y]==2 && map[x-1][y]==1){
+                DrawRectangle(dx-tileWidth/2,dy,tileWidth/2,tileHeight,(Color){200,150,0,255});
+            }
+            if(map[x][y]==2 && map[x][y-1]==1){
+                DrawRectangle(dx,dy-tileHeight/2,tileWidth,tileHeight/2,(Color){200,150,0,255});
+            }
+            
 
     }}    
 }
