@@ -191,21 +191,33 @@ static bool maprectcheck(int x,int y,int w,int h){
 }
 
 static void drawmap(){
+    int swx=0;
+    
     for(int y=0;y<mapHeight;y++){
+        
         for(int x=0;x<mapWidth;x++){
             int dx=x*tileWidth;
             int dy=y*tileHeight;
+  
             if(map[x][y]==0){// Nothing on the map here
                 
             }
             if(map[x][y]==1){// Floor tile
-                DrawRectangle(dx,dy,tileWidth,tileHeight,GRAY);                
+                
+                if(swx==0)DrawRectangle(dx,dy,tileWidth,tileHeight,GRAY);
+                else DrawRectangle(dx,dy,tileWidth,tileHeight,DARKGRAY);                
             }            
             if(map[x][y]==2){// Wall tile
                 DrawRectangle(dx,dy,tileWidth,tileHeight,BROWN);
             }            
 
-    }}
+            swx++;
+            if(swx>1)swx=0;
+
+        }
+        swx++;
+        if(swx>1)swx=0;
+    }
 };
 
 static void edgeenhance(){
