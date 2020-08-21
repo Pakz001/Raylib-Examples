@@ -53,7 +53,7 @@ int main(void)
             ClearBackground(RAYWHITE);
             drawmap();  
             DrawRectangle(0,0,screenWidth,24,DARKGRAY);
-            DrawText("Press Space to Generate new map",2,2,20,WHITE);
+            DrawText("Hold Space to Generate new map",2,2,20,WHITE);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ static void makemap(int px,int py){
     // We create a random spot and draw a line there somewhat randomly
     // We create a line of some sort to create more realistic landmasses. :Experiment:
     int rx,ry;
-    for(int i=0;i<40/3;i++){
+    for(int i=0;i<40/4;i++){
         rx = GetRandomValue(-10,60-5);
         ry = GetRandomValue(-10,60-5);
         int mx=GetRandomValue(-1,1);
@@ -91,7 +91,7 @@ static void makemap(int px,int py){
             int ny=ry+my;
             
             //if(nx>0&&nx<55-1 && ny>0 && ny<55-1){
-                map[nx+px][ny+py] = 1;
+                map[nx+px][ny+py]++;
             //}
         }
         
@@ -99,11 +99,11 @@ static void makemap(int px,int py){
     // Now we want to pile sand ontop and right next to the current hills.
     // This will make them into larger hills. We do this by picking a random
     // spot. If there is something below that we increase the height there.
-    int clunk=(50*50)*GetRandomValue(2,3);
+    int clunk=(50*50)*5;//GetRandomValue(2,3);
     for(int i=0;i<clunk;i++){
         int nx,ny;
-        nx = GetRandomValue(-20,70-2);
-        ny = GetRandomValue(-20,70-2);
+        nx = GetRandomValue(-100,100-2);
+        ny = GetRandomValue(-100,100-2);
         if(map[nx+px][ny+py]>0){
             for(int y=-1;y<2;y++){
                 for(int x=-1;x<2;x++){
@@ -132,12 +132,13 @@ static void drawmap(){
             if(map[x][y]>3){//If the height is larger than 3 than draw trees
             DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,(Color){0,210,0,255});
             }
-            if(map[x][y]>15){ // here we draw some more trees
-            DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,(Color){0,170,0,255});
+            if(map[x][y]>10){ // here we draw some more trees            
+            DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,(Color){0,140,0,255});
             }
 
-            if(map[x][y]>20){ // draw mountains or rocks
-            DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,(Color){110,110,110,255});
+            if(map[x][y]>22){ // draw mountains or rocks
+            int col=(map[x][y]-22)*4;
+            DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,(Color){110+col,110+col,110+col,255});
             }
 
         }
@@ -153,8 +154,8 @@ static void genmap(){
         map[x][y]=0;
     }}
 
-    for(int y=1;y<7;y++){
-    for(int x=1;x<8;x++){
+    for(int y=2;y<8;y++){
+    for(int x=2;x<9;x++){
         makemap(x*50,y*50);
     }}
 };
