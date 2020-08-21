@@ -4,6 +4,9 @@
 // and if on that spot is sand than drop sand on that spot and around it. This will
 // grow that into a hill.
 //
+// I drop the sand in a pattern so the hills grow with that shape. 
+//
+//
 //
 
 
@@ -82,6 +85,7 @@ static void makemap(){
 
     // First we create a couple of hills in the map
     // We create a random spot and draw a line there somewhat randomly
+    // We create a line of some sort to create more realistic landmasses. :Experiment:
     int rx,ry;
     for(int i=0;i<mapWidth/3;i++){
         rx = GetRandomValue(5,mapWidth-5);
@@ -103,10 +107,9 @@ static void makemap(){
         }
         
     }
-    // Now we want to pile sand ontop or right next to the current hills.
+    // Now we want to pile sand ontop and right next to the current hills.
     // This will make them into larger hills. We do this by picking a random
     // spot. If there is something below that we increase the height there.
-    // We also throw sand in the direct area around this spot.(+1)
     for(int i=0;i<(mapWidth*mapHeight)*2;i++){
         int nx,ny;
         nx = GetRandomValue(1,mapWidth-2);
