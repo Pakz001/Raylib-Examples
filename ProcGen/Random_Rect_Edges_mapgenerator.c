@@ -23,6 +23,7 @@ static void makemap();
 static void makerect(int x,int y,int w,int h,bool force);
 static bool maprectcheck(int x,int y,int w,int h);
 static void edgeenhance();
+static float edistance(float x1,float y1,float x2,float y2);
 
 int main(void)
 {
@@ -203,9 +204,9 @@ static void drawmap(){
                 
             }
             if(map[x][y]==1){// Floor tile
-                
-                if(swx==0)DrawRectangle(dx,dy,tileWidth,tileHeight,(Color){150,150,150,255});
-                else DrawRectangle(dx,dy,tileWidth,tileHeight,(Color){120,120,120,255});                
+                int z=edistance(screenWidth/2,screenHeight/2,dx,dy)/5;                
+                if(swx==0)DrawRectangle(dx,dy,tileWidth,tileHeight,(Color){150-z,150-z,150-z,255});
+                else DrawRectangle(dx,dy,tileWidth,tileHeight,(Color){120-z,120-z,120-z,255});                
             }            
             if(map[x][y]==2){// Wall tile
                 DrawRectangle(dx,dy,tileWidth,tileHeight,BROWN);
@@ -254,4 +255,9 @@ static void edgeenhance(){
             
 
     }}    
+}
+
+// Euclidean distance (more precise)
+float edistance(float x1,float y1,float x2,float y2){
+    return sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2) );
 }
