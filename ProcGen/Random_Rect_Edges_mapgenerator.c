@@ -22,6 +22,7 @@ static void drawmap();
 static void makemap();
 static void makerect(int x,int y,int w,int h,bool force);
 static bool maprectcheck(int x,int y,int w,int h);
+static void edgeenhance();
 
 int main(void)
 {
@@ -54,9 +55,10 @@ int main(void)
         //----------------------------------------------------------------------------------
         BeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            ClearBackground(BLACK);
             drawmap();
-            DrawRectangle(0,0,screenWidth,20,BLACK);
+            edgeenhance();
+            DrawRectangle(0,0,screenWidth,20,DARKGRAY);
             DrawText("Press space to generate new map.",3,0,20,WHITE);
 
         EndDrawing();
@@ -84,7 +86,7 @@ static void makemap(){
     for(int i=0;i<1500;i++){
         int x=GetRandomValue(4,mapWidth-4);
         int y=GetRandomValue(4,mapHeight-4);
-        makerect(x,y,GetRandomValue(4,18),GetRandomValue(4,18),false);
+        makerect(x,y,GetRandomValue(5,18),GetRandomValue(5,18),false);
     }
 };
 
@@ -94,49 +96,56 @@ static void makerect(int x,int y,int w,int h,bool force){
     //
     if(force==false){
         int edge=0;
-
+        int cnt=0;
         bool good1=false;
         // Check if top is inside another rect and one below is nothing.
-        for(int x1=x+2;x1<x+w-4;x1++){
+        for(int x1=x;x1<x+w;x1++){
             
             if(map[x1][y]==2){
                 good1=true;
+                cnt++;
             }
         }
-        if(good1==true && maprectcheck(x,y+1,w,h))edge++;
+        if(good1==true && maprectcheck(x,y+1,w,h) && cnt>3)edge++;
 
-        good1=false;     
+        good1=false;  
+        cnt=0;        
         // Check if bottom is inside another rect and one above is nothing.
-        for(int x1=x+2;x1<x+w-4;x1++){
+        for(int x1=x;x1<x+w;x1++){
             
             if(map[x1][y+h-1]==2){
                 good1=true;
+                cnt++;
             }
         }
-        if(good1==true && maprectcheck(x,y,w,h-1))edge++;
+        if(good1==true && maprectcheck(x,y,w,h-1) && cnt>3)edge++;
 
         good1=false;    
+        cnt=0;
         // Check if left side is inside another rect and one lefter is nothing.
-        for(int y1=y+2;y1<y+h-4;y1++){
+        for(int y1=y;y1<y+h;y1++){
             
             if(map[x][y1]==2){
                 good1=true;
+                cnt++;
             }
         }
-        if(good1==true && maprectcheck(x+1,y,w,h))edge++;
+        if(good1==true && maprectcheck(x+1,y,w,h) && cnt>3)edge++;
         
 
         
         good1=false;
+        cnt=0;
             
         // Check if right side is inside another rect and one righter is nothing.
-        for(int y1=y+2;y1<y+h-4;y1++){
+        for(int y1=y;y1<y+h;y1++){
             
             if(map[x+w-1][y1]==2){
                 good1=true;
+                cnt++;
             }
         }
-        if(good1==true && maprectcheck(x,y,w-1,h))edge++;
+        if(good1==true && maprectcheck(x,y,w-1,h) && cnt>3)edge++;
         
         if(edge!=1)return;        
     }
@@ -155,6 +164,20 @@ static void makerect(int x,int y,int w,int h,bool force){
             map[x1][y1]=1;
         }
     }
+    
+    // bugremoval - it appears there can be holes in the walls. removed here
+    for(int y1=y;y1<y+h;y1++){
+        for(int x1=x;x1<x+w;x1++){          
+        if(map[x1][y1]==1){
+            if(map[x1+1][y1]==0||map[x1-1][y1]==0||map[x1][y1-1]==0||map[x1][y1+1]==0){
+                map[x1][y1]=2;
+            }
+            if(map[x1+1][y1+1]==0||map[x1-1][y1-1]==0||map[x1+1][y1-1]==0||map[x1-1][y1+1]==0){
+                map[x1][y1]=2;
+            }                        
+        }
+
+    }}    
 
 };
 
@@ -176,7 +199,7 @@ static void drawmap(){
                 
             }
             if(map[x][y]==1){// Floor tile
-                DrawRectangle(dx,dy,tileWidth,tileHeight,GRAY);
+                DrawRectangle(dx,dy,tileWidth,tileHeight,GRAY);                
             }            
             if(map[x][y]==2){// Wall tile
                 DrawRectangle(dx,dy,tileWidth,tileHeight,BROWN);
@@ -185,3 +208,31 @@ static void drawmap(){
     }}
 };
 
+static void edgeenhance(){
+    for(int y=0;y<mapHeight;y++){
+        for(int x=0;x<mapWidth;x++){
+            int dx=x*tileWidth;
+            int dy=y*tileHeight;
+            //outer edges
+            if(map[x][y]==2 && map[x-1][y]==0){
+                DrawRectangle(dx-tileWidth/2,dy,tileWidth/2,tileHeight,(Color){200,150,0,255});
+            }
+            if(map[x][y]==2 && map[x][y-1]==0){
+                DrawRectangle(dx,dy-tileHeight/2,tileWidth,tileHeight/2,(Color){200,150,0,255});
+            }
+            if(map[x][y]==2 && map[x+1][y]==0){
+                DrawRectangle(dx+tileWidth,dy,tileWidth/2,tileHeight,BLACK);
+            }
+            if(map[x][y]==2 && map[x][y+1]==0){
+                DrawRectangle(dx,dy+tileHeight,tileWidth,tileHeight/2,BLACK);
+            }
+            //inner edges
+            if(map[x][y]==2 && map[x][y+1]==1){
+                DrawRectangle(dx,dy+tileHeight,tileWidth,tileHeight/2,DARKGRAY);
+            }
+            if(map[x][y]==2 && map[x+1][y]==1){
+                DrawRectangle(dx+tileWidth,dy,tileWidth/2,tileHeight,DARKGRAY);
+            }
+
+    }}    
+}
