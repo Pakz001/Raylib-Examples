@@ -5,7 +5,7 @@
 //
 // We only draw walls on empty map places so there will be a floor area created.
 //
-
+// Edit:there is still a bug where closed rooms are created.
 
 #include "raylib.h"
 #include <math.h> // For the ceil function
@@ -21,7 +21,6 @@ static int tileHeight = 100;
 static void drawmap();
 static void makemap();
 static void makerect(int x,int y,int w,int h,bool force);
-static bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2);
 
 
 int main(void)
@@ -46,6 +45,9 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
         
+        if(IsKeyReleased(KEY_SPACE)){
+            makemap();
+        }
         
         //----------------------------------------------------------------------------------
         // Draw
@@ -76,7 +78,7 @@ static void makemap(){
             map[x][y]=0;
     }}
     // Place the first rectangle.
-    makerect(20,20,10,10,true);
+    makerect(mapWidth/2,mapHeight/2,10,10,true);
     for(int i=0;i<1500;i++){
         int x=GetRandomValue(4,mapWidth-4);
         int y=GetRandomValue(4,mapHeight-4);
@@ -99,7 +101,7 @@ static void makerect(int x,int y,int w,int h,bool force){
             if(map[x1][y]==2){
                 good1=true;
             }
-            if(map[x1][y+1]==2){
+            if(map[x1][y+1]==0){
                 good2=false;
             }
         }
@@ -113,7 +115,7 @@ static void makerect(int x,int y,int w,int h,bool force){
             if(map[x1][y+h]==2){
                 good1=true;
             }
-            if(map[x1][y+h-1]==2){
+            if(map[x1][y+h-1]==0){
                 good2=false;
             }
         }
@@ -127,7 +129,7 @@ static void makerect(int x,int y,int w,int h,bool force){
             if(map[x][y1]==2){
                 good1=true;
             }
-            if(map[x-1][y1]==2){
+            if(map[x-1][y1]==0){
                 good2=false;
             }
         }
@@ -143,7 +145,7 @@ static void makerect(int x,int y,int w,int h,bool force){
             if(map[x+w][y1]==2){
                 good1=true;
             }
-            if(map[x+w+1][y1]==2){
+            if(map[x+w-1][y1]==0){
                 good2=false;
             }
         }
@@ -186,9 +188,3 @@ static void drawmap(){
     }}
 };
 
-// Rectangles overlap
-bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2){
-    if(x1 >= (x2 + w2) || (x1 + w1) <= x2) return false;
-    if(y1 >= (y2 + h2) || (y1 + h1) <= y2) return false;
-    return true;
-}
