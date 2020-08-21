@@ -55,7 +55,7 @@ int main(void)
         //----------------------------------------------------------------------------------
         BeginDrawing();
 
-            ClearBackground(BLACK);
+            ClearBackground((Color){20,20,20,255});
             drawmap();
             edgeenhance();
             DrawRectangle(0,0,screenWidth,20,DARKGRAY);
@@ -204,8 +204,8 @@ static void drawmap(){
             }
             if(map[x][y]==1){// Floor tile
                 
-                if(swx==0)DrawRectangle(dx,dy,tileWidth,tileHeight,GRAY);
-                else DrawRectangle(dx,dy,tileWidth,tileHeight,DARKGRAY);                
+                if(swx==0)DrawRectangle(dx,dy,tileWidth,tileHeight,(Color){150,150,150,255});
+                else DrawRectangle(dx,dy,tileWidth,tileHeight,(Color){120,120,120,255});                
             }            
             if(map[x][y]==2){// Wall tile
                 DrawRectangle(dx,dy,tileWidth,tileHeight,BROWN);
@@ -233,10 +233,10 @@ static void edgeenhance(){
                 DrawRectangle(dx,dy-tileHeight/2,tileWidth,tileHeight/2,(Color){200,150,0,255});
             }
             if(map[x][y]==2 && map[x+1][y]==0){
-                DrawRectangle(dx+tileWidth,dy,tileWidth/2,tileHeight,BLACK);
+                DrawRectangle(dx+tileWidth,dy,tileWidth/2,tileHeight,(Color){80,50,50,255});
             }
             if(map[x][y]==2 && map[x][y+1]==0){
-                DrawRectangle(dx,dy+tileHeight,tileWidth,tileHeight/2,BLACK);
+                DrawRectangle(dx,dy+tileHeight,tileWidth,tileHeight/2,(Color){80,50,50,255});
             }
             //inner edges
             if(map[x][y]==2 && map[x][y+1]==1){
