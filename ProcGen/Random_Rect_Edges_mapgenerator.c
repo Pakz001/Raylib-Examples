@@ -5,7 +5,7 @@
 //
 // We only draw walls on empty map places so there will be a floor area created.
 //
-// Edit:there is still a bug where closed rooms are created.
+
 
 #include "raylib.h"
 #include <math.h> // For the ceil function
@@ -21,7 +21,7 @@ static int tileHeight = 100;
 static void drawmap();
 static void makemap();
 static void makerect(int x,int y,int w,int h,bool force);
-
+static bool maprectcheck(int x,int y,int w,int h);
 
 int main(void)
 {
@@ -56,6 +56,8 @@ int main(void)
 
             ClearBackground(RAYWHITE);
             drawmap();
+            DrawRectangle(0,0,screenWidth,20,BLACK);
+            DrawText("Press space to generate new map.",3,0,20,WHITE);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -94,69 +96,55 @@ static void makerect(int x,int y,int w,int h,bool force){
         int edge=0;
 
         bool good1=false;
-        bool good2=true;
         // Check if top is inside another rect and one below is nothing.
-        for(int x1=x;x1<x+w;x1++){
+        for(int x1=x+2;x1<x+w-4;x1++){
             
             if(map[x1][y]==2){
                 good1=true;
             }
-            if(map[x1][y+1]==0){
-                good2=false;
-            }
         }
-        if(good1==true && good2==true)edge++;
+        if(good1==true && maprectcheck(x,y+1,w,h))edge++;
 
-        good1=false;
-        good2=true;        
+        good1=false;     
         // Check if bottom is inside another rect and one above is nothing.
-        for(int x1=x;x1<x+w;x1++){
+        for(int x1=x+2;x1<x+w-4;x1++){
             
-            if(map[x1][y+h]==2){
+            if(map[x1][y+h-1]==2){
                 good1=true;
             }
-            if(map[x1][y+h-1]==0){
-                good2=false;
-            }
         }
-        if(good1==true && good2==true)edge++;
+        if(good1==true && maprectcheck(x,y,w,h-1))edge++;
 
-        good1=false;
-        good2=true;        
+        good1=false;    
         // Check if left side is inside another rect and one lefter is nothing.
-        for(int y1=y;y1<y+h;y1++){
+        for(int y1=y+2;y1<y+h-4;y1++){
             
             if(map[x][y1]==2){
                 good1=true;
             }
-            if(map[x-1][y1]==0){
-                good2=false;
-            }
         }
-        if(good1==true && good2==true)edge++;
+        if(good1==true && maprectcheck(x+1,y,w,h))edge++;
         
 
         
         good1=false;
-        good2=true;        
-        // Check if right side is inside another rect and one righter is nothing.
-        for(int y1=y;y1<y+h;y1++){
             
-            if(map[x+w][y1]==2){
+        // Check if right side is inside another rect and one righter is nothing.
+        for(int y1=y+2;y1<y+h-4;y1++){
+            
+            if(map[x+w-1][y1]==2){
                 good1=true;
             }
-            if(map[x+w-1][y1]==0){
-                good2=false;
-            }
         }
-        if(good1==true && good2==true)edge++;
+        if(good1==true && maprectcheck(x,y,w-1,h))edge++;
         
         if(edge!=1)return;        
     }
     
     //Draw walls
     for(int y1=y;y1<y+h;y1++){
-        for(int x1=x;x1<x+w;x1++){
+        for(int x1=x;x1<x+w;x1++){          
+            if(map[x1][y1]==2)map[x1][y1]=1;        
             if(map[x1][y1]==0)map[x1][y1]=2;
         }
     }
@@ -169,6 +157,15 @@ static void makerect(int x,int y,int w,int h,bool force){
     }
 
 };
+
+static bool maprectcheck(int x,int y,int w,int h){
+    for(int y1=y;y1<y+h;y1++){
+        for(int x1=x;x1<x+w;x1++){
+            if(map[x1][y1]!=0)return false;
+        }
+    }
+    return true;
+}
 
 static void drawmap(){
     for(int y=0;y<mapHeight;y++){
