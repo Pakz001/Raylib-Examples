@@ -322,7 +322,7 @@ int main(void)
     };
 
     void removeleftsidedconnections(int x,int y){
-        if(x<0 || y<0 || x>=MAP_WIDTH || y>=MAP_HEIGHT)return false;
+        if(x<0 || y<0 || x>=MAP_WIDTH || y>=MAP_HEIGHT)return;
         for(int i=0;i<MAX_TILES;i++){
             if(map[x][y][i]==1 && tile[0][1][i]==1){ //if the flag of the tile is enabled(1) and the tile has a connection on the left(x)and center(y) spot
                 map[x][y][i]=-1; // disable the flag
@@ -330,7 +330,7 @@ int main(void)
         }
     };
     void removerightsidedconnections(int x,int y){
-        if(x<0 || y<0 || x>=MAP_WIDTH || y>=MAP_HEIGHT)return false;
+        if(x<0 || y<0 || x>=MAP_WIDTH || y>=MAP_HEIGHT)return;
         for(int i=0;i<MAX_TILES;i++){
             if(map[x][y][i]==1 && tile[2][1][i]==1){
                 map[x][y][i]=-1;
@@ -338,7 +338,7 @@ int main(void)
         }
     };
     void removetopsidedconnections(int x,int y){
-        if(x<0 || y<0 || x>=MAP_WIDTH || y>=MAP_HEIGHT)return false;
+        if(x<0 || y<0 || x>=MAP_WIDTH || y>=MAP_HEIGHT)return;
         for(int i=0;i<MAX_TILES;i++){
             if(map[x][y][i]==1 && tile[1][0][i]==1){
                 map[x][y][i]=-1;
@@ -346,7 +346,7 @@ int main(void)
         }
     };
     void removebottomsidedconnections(int x,int y){
-        if(x<0 || y<0 || x>=MAP_WIDTH || y>=MAP_HEIGHT)return false;
+        if(x<0 || y<0 || x>=MAP_WIDTH || y>=MAP_HEIGHT)return;
         for(int i=0;i<MAX_TILES;i++){
             if(map[x][y][i]==1 && tile[1][2][i]==1){
                 map[x][y][i]=-1;
