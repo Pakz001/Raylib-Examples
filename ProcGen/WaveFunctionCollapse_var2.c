@@ -12,6 +12,8 @@
 // There is a array that contains a list of all possible tiles. There are functions that check if a position on the grid
 // has connections to another position on the grid. This is used to unflag the tiles that are on the list to get
 // selected(one random) as a tile to be placed.
+// note: the array(x,y,slot) has one slot for every possible tile. when tile x,y has no left sided connection then
+// the array position on the left of that one will have all right sided connection tiles unflagged.
 //
 // The MAX_TILES is the amount of tiles that I have created to create the map with. I check the middle top/left/right/bottom
 // tile value to see if there is a connection(1). Experiment with making different tiles.
