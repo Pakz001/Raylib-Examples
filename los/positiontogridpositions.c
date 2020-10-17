@@ -1,5 +1,5 @@
 // 
-// Line of sight or raycasting into every direction of player.
+// 2d Line of sight or raycasting into every direction of player. (for roguelikes etc.)
 
 // The method I used is by taking an area around the player. In this area each tile is indexed. Than
 // a invisible bullet is shot from the player position into the direction of this tile. The area underneath
@@ -22,7 +22,7 @@ typedef struct player{
 float tilewidth;
 float tileheight;
 
-// This is out collision map.
+// This is out collision map. NOTE! the x is the second slot of the array. y is the first slot.
 bool colmap[10][20] = {false};
 bool losmap[10][20] = {false};
 // This is our tile map.
