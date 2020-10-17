@@ -3,8 +3,16 @@
 //
 //
 
+#define MAX_TILES 100
 
 #include "raylib.h"
+
+typedef struct tileset{
+    int frame;
+    RenderTexture2D tile;
+}tileset;
+
+static struct tileset arr_tileset[MAX_TILES];
 
 typedef struct spider{
     Vector2 position;
@@ -19,8 +27,7 @@ typedef struct player{
     float height;    
 }player;
 
-// This is out collision map.
-static bool colmap[10][20] = {false};
+
 // This is our tile map.
 static int map[10][20] = { {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
                     {1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,1,1,1,1},
@@ -70,6 +77,12 @@ int main(void)
     spritespider1=LoadRenderTexture(tileWidth,tileHeight); 
     spritespider2=LoadRenderTexture(tileWidth,tileHeight); 
     spriteplayer=LoadRenderTexture(tileWidth,tileHeight); 
+    
+    // tile 
+    for(int i=0;i<MAX_TILES;i++){
+        arr_tileset[i].frame=i;
+        arr_tileset[i].tile = LoadRenderTexture(tileWidth,tileHeight);
+    }
     inidb32colors(); 
     inisprites();
     
@@ -164,6 +177,9 @@ int main(void)
     UnloadRenderTexture(spritespider1); 
     UnloadRenderTexture(spritespider2); 
     UnloadRenderTexture(spriteplayer); 
+    for(int i=0;i<MAX_TILES;i++){
+        UnloadRenderTexture(arr_tileset[i].tile); 
+    }
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
@@ -206,7 +222,6 @@ int sprite_player[8][8] = {
 {21,21,20,21,21,2,3,0},
 {21,21,21,18,21,21,21,21},
 {21,21,21,21,6,21,21,21}};
-
     
     BeginTextureMode(spritespider1);    
     ClearBackground(BLANK); // Make the entire Sprite Transparent.
@@ -217,6 +232,373 @@ int sprite_player[8][8] = {
     BeginTextureMode(spriteplayer);    
     ClearBackground(BLANK); // Make the entire Sprite Transparent.
     EndTextureMode();
+
+int sprite_1[8][8] = {
+{14,14,14,14,14,14,14,1},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,1,14,14,14,14,14,1},
+{14,14,14,14,14,14,14,14},
+{14,1,14,14,14,14,14,14},
+{14,1,14,14,14,14,14,14},
+{1,1,14,14,14,14,14,14}};
+
+int sprite_2[8][8] = {
+{14,14,14,14,1,14,1,0},
+{31,14,13,13,14,13,13,14},
+{31,14,13,13,14,13,13,14},
+{31,14,13,13,1,13,13,1},
+{31,14,1,1,1,13,13,1},
+{31,14,13,13,1,13,13,14},
+{31,14,13,13,14,13,13,14},
+{31,14,13,13,14,13,13,1}};
+
+int sprite_3[8][8] = {
+{14,14,14,14,0,14,0,0},
+{6,31,31,31,14,31,31,14},
+{31,13,13,13,14,13,13,14},
+{31,13,13,13,14,13,13,14},
+{14,14,14,14,14,14,14,14},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0}};
+
+int sprite_4[8][8] = {
+{14,14,14,14,14,14,14,14},
+{31,31,31,31,14,31,31,14},
+{13,13,13,13,14,13,13,14},
+{13,13,13,13,14,13,13,14},
+{14,14,14,14,14,14,14,14},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0}};
+
+int sprite_5[8][8] = {
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{14,14,14,14,14,14,14,14},
+{31,13,13,13,13,14,13,13},
+{31,13,13,13,13,14,13,13},
+{6,31,31,31,31,14,31,31}};
+
+int sprite_6[8][8] = {
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{14,14,14,14,14,14,14,14},
+{13,13,13,13,14,13,13,14},
+{13,13,13,13,14,13,13,14},
+{31,31,31,31,14,31,31,14}};
+
+int sprite_7[8][8] = {
+{14,14,14,1,0,0,0,0},
+{31,14,13,14,0,0,0,1},
+{31,14,13,14,0,0,0,0},
+{31,14,13,14,0,0,0,1},
+{31,14,14,1,0,1,14,14},
+{31,14,13,14,0,0,0,0},
+{31,14,13,14,0,0,0,1},
+{31,14,13,14,0,0,0,0}};
+
+int sprite_8[8][8] = {
+{31,13,13,14,0,0,0,1},
+{6,13,13,14,0,0,0,0},
+{4,13,13,14,0,0,0,0},
+{13,13,14,0,0,0,0,1},
+{14,14,0,0,1,0,1,14},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0}};
+
+int sprite_9[8][8] = {
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{14,14,0,0,0,1,0,14},
+{13,13,14,0,0,0,0,1},
+{4,13,13,14,0,0,0,0},
+{6,13,13,14,0,0,0,1}};
+
+int sprite_10[8][8] = {
+{0,1,1,1,1,1,1,0},
+{31,1,31,7,1,31,1,0},
+{3,2,3,3,2,3,2,0},
+{3,1,3,3,1,3,1,0},
+{0,1,1,1,1,1,1,0},
+{0,1,14,14,14,14,1,0},
+{0,1,14,14,14,14,1,0},
+{0,1,14,14,14,14,1,0}};
+
+int sprite_11[8][8] = {
+{14,14,14,14,1,14,1,0},
+{31,14,13,13,14,13,13,14},
+{31,14,21,22,14,13,13,14},
+{31,21,1,22,22,13,22,1},
+{31,22,1,22,23,13,23,1},
+{31,14,22,23,1,13,13,14},
+{31,14,13,13,14,13,13,14},
+{31,14,13,13,14,13,13,1}};
+
+int sprite_12[8][8] = {
+{14,14,14,14,1,14,1,0},
+{31,20,5,5,27,13,13,14},
+{31,23,5,5,27,27,13,14},
+{31,25,8,8,5,5,27,1},
+{31,25,8,8,5,5,27,1},
+{31,23,5,5,27,27,13,14},
+{31,22,5,5,27,13,13,14},
+{31,14,13,13,14,13,13,1}};
+
+int sprite_20[8][8] = {
+{0,1,14,14,14,1,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,1,14,14},
+{0,1,14,14,14,1,14,1},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,1,1,1,1,1,1},
+{0,0,0,0,0,0,0,0}};
+
+int sprite_21[8][8] = {
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14}};
+
+int sprite_22[8][8] = {
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{1,1,1,1,1,1,1,1},
+{0,0,0,0,0,0,0,0}};
+
+int sprite_23[8][8] = {
+{0,1,14,14,14,14,1,0},
+{0,1,14,14,14,14,1,0},
+{0,1,14,14,14,14,1,0},
+{0,1,14,14,14,14,1,0},
+{0,1,14,14,14,14,1,0},
+{0,1,14,14,14,14,1,0},
+{0,1,14,1,14,14,1,0},
+{0,1,14,14,14,14,1,0}};
+
+int sprite_24[8][8] = {
+{14,14,14,14,14,14,14,14},
+{6,30,31,31,14,31,31,14},
+{30,13,13,13,14,13,13,14},
+{31,13,13,13,14,13,13,14},
+{31,13,13,14,14,14,14,14},
+{31,13,13,14,0,0,0,0},
+{31,13,13,14,0,0,0,0},
+{31,13,13,14,0,0,0,0}};
+
+int sprite_26[8][8] = {
+{31,13,13,14,0,0,0,0},
+{31,13,13,14,0,0,0,0},
+{31,13,13,14,0,0,0,0},
+{31,13,13,14,0,0,0,0},
+{31,13,13,14,14,14,14,14},
+{31,13,13,13,14,13,13,14},
+{30,13,13,13,14,13,13,14},
+{6,30,31,31,14,31,31,14}};
+
+int sprite_27[8][8] = {
+{14,14,14,14,1,14,1,0},
+{31,14,13,13,1,13,13,14},
+{31,14,13,13,14,1,1,1},
+{31,14,13,13,1,13,1,1},
+{31,14,2,1,1,13,13,1},
+{31,14,31,13,1,13,13,14},
+{31,14,13,13,14,4,1,1},
+{31,14,13,13,14,13,13,1}};
+
+int sprite_28[8][8] = {
+{14,14,14,1,0,0,0,0},
+{31,14,13,14,0,0,0,1},
+{31,14,13,14,0,0,0,0},
+{25,14,13,2,0,0,0,1},
+{13,1,2,1,0,1,14,14},
+{25,14,13,1,0,0,0,0},
+{31,1,13,14,0,0,0,1},
+{31,14,13,14,0,0,0,0}};
+
+int sprite_30[8][8] = {
+{0,0,0,0,0,0,0,0},
+{1,1,1,1,1,2,1,1},
+{14,14,14,1,3,3,31,1},
+{14,14,14,1,1,2,1,1},
+{14,14,14,1,1,2,7,1},
+{14,14,14,1,3,3,31,1},
+{1,1,1,1,1,2,1,1},
+{0,0,0,0,3,3,31,0}};
+
+int sprite_31[8][8] = {
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,1,14,14,14},
+{14,14,1,1,4,1,14,14},
+{14,1,7,6,1,3,1,14},
+{1,22,25,4,3,1,14,14},
+{1,7,6,1,3,1,1,14},
+{14,1,6,3,1,6,4,1},
+{14,14,1,1,1,4,1,14}};
+
+int sprite_40[8][8] = {
+{0,0,0,0,0,0,0,0},
+{0,1,1,1,1,1,1,1},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,1,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14}};
+
+int sprite_41[8][8] = {
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,1,1,1,1,1,1},
+{0,0,0,0,0,0,0,0}};
+
+int sprite_42[8][8] = {
+{0,0,0,0,0,0,0,0},
+{1,1,1,1,1,1,1,1},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14}};
+
+int sprite_43[8][8] = {
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14}};
+
+int sprite_44[8][8] = {
+{0,0,0,0,0,0,0,0},
+{0,1,1,1,1,1,1,0},
+{0,1,1,14,14,14,1,0},
+{0,1,14,14,14,14,1,0},
+{0,1,14,14,14,1,1,0},
+{0,1,14,14,14,14,1,0},
+{0,1,14,14,14,14,1,0},
+{0,1,14,14,14,14,1,0}};
+
+int sprite_45[8][8] = {
+{0,0,0,0,0,0,0,0},
+{1,1,1,1,1,1,1,1},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{14,14,14,14,14,14,14,14},
+{1,1,1,1,1,1,1,1},
+{0,0,0,0,0,0,0,0}};
+
+int sprite_47[8][8] = {
+{14,14,14,14,14,14,14,14},
+{31,25,31,31,14,31,31,14},
+{13,13,13,13,1,13,13,14},
+{13,13,1,1,14,13,13,14},
+{14,14,1,14,14,14,14,14},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0}};
+
+int sprite_48[8][8] = {
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0},
+{14,1,1,1,14,14,14,14},
+{13,13,25,1,14,13,13,14},
+{13,13,13,13,1,13,13,14},
+{31,31,31,31,14,25,31,14}};
+
+int sprite_60[8][8] = {
+{0,0,0,0,0,0,0,0},
+{1,1,1,1,1,1,1,0},
+{14,14,14,14,14,14,1,0},
+{14,14,14,14,14,14,1,0},
+{14,1,14,14,14,14,1,0},
+{14,14,14,14,14,14,1,0},
+{14,14,14,14,1,14,1,0},
+{14,14,14,14,14,14,1,0}};
+
+int sprite_61[8][8] = {
+{14,14,14,14,14,14,1,0},
+{14,14,1,14,14,14,1,0},
+{14,14,14,14,14,14,1,0},
+{14,14,14,14,14,14,1,0},
+{14,14,14,14,14,14,1,0},
+{14,14,14,1,14,14,1,0},
+{1,1,1,1,1,1,1,0},
+{0,0,0,0,0,0,0,0}};
+
+int sprite_62[8][8] = {
+{0,0,0,0,0,0,0,0},
+{0,1,1,1,1,1,1,1},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,14,14,14,1,14,14},
+{0,1,14,14,14,14,14,14},
+{0,1,1,1,1,1,1,1},
+{0,0,0,0,0,0,0,0}};
+
+int sprite_63[8][8] = {
+{14,14,14,14,14,14,1,0},
+{14,14,14,14,14,14,1,0},
+{14,14,14,14,14,14,1,0},
+{14,14,14,14,14,14,1,0},
+{14,14,14,14,14,14,1,0},
+{14,14,14,14,14,14,1,0},
+{14,14,14,14,14,14,1,0},
+{14,14,14,14,14,14,1,0}};
+
+int sprite_64[8][8] = {
+{0,1,14,14,14,14,1,0},
+{0,1,14,14,14,14,1,0},
+{0,1,14,14,14,14,1,0},
+{0,1,14,14,14,14,1,0},
+{0,1,14,14,14,14,1,0},
+{0,1,14,14,14,14,1,0},
+{0,1,1,1,1,1,1,0},
+{0,0,0,0,0,0,0,0}};
+
+int sprite_65[8][8] = {
+{0,0,0,0,0,0,0,0},
+{1,1,1,1,1,1,1,0},
+{14,14,14,14,14,14,1,0},
+{14,1,14,14,14,14,1,0},
+{14,14,14,14,14,14,1,0},
+{14,14,14,14,1,14,1,0},
+{1,1,1,1,1,1,1,0},
+{0,0,0,0,0,0,0,0}};
+
+
+    for(int i=0;i<MAX_TILES;i++){
+        BeginTextureMode(arr_tileset[i].tile);    
+        ClearBackground(BLANK); // Make the entire Sprite Transparent.
+        EndTextureMode();
+    }
     
     //db32color[0] = (Color){0,0,0,0};
     // Draw something on it.
@@ -233,7 +615,121 @@ int sprite_player[8][8] = {
 
                 BeginTextureMode(spriteplayer);    
                 if(sprite_player[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_player[x][7-y]]);
-                EndTextureMode(); 
+                EndTextureMode();
+
+                BeginTextureMode(arr_tileset[1].tile);    
+                if(sprite_1[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_1[x][7-y]]);
+                EndTextureMode();                
+                BeginTextureMode(arr_tileset[2].tile);    
+                if(sprite_2[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_2[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[3].tile);    
+                if(sprite_3[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_3[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[4].tile);    
+                if(sprite_4[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_4[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[5].tile);    
+                if(sprite_5[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_5[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[6].tile);    
+                if(sprite_6[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_6[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[7].tile);    
+                if(sprite_7[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_7[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[8].tile);    
+                if(sprite_8[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_8[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[9].tile);    
+                if(sprite_9[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_9[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[10].tile);    
+                if(sprite_10[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_10[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[11].tile);    
+                if(sprite_11[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_11[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[12].tile);    
+                if(sprite_12[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_12[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[20].tile);    
+                if(sprite_20[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_20[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[21].tile);    
+                if(sprite_21[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_21[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[22].tile);    
+                if(sprite_22[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_22[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[23].tile);    
+                if(sprite_23[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_23[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[24].tile);    
+                if(sprite_24[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_24[x][7-y]]);
+                EndTextureMode();
+
+
+                BeginTextureMode(arr_tileset[26].tile);    
+                if(sprite_26[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_26[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[27].tile);    
+                if(sprite_27[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_27[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[28].tile);    
+                if(sprite_28[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_28[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[30].tile);    
+                if(sprite_30[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_30[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[31].tile);    
+                if(sprite_31[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_31[x][7-y]]);
+                EndTextureMode();
+
+                BeginTextureMode(arr_tileset[40].tile);    
+                if(sprite_40[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_40[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[41].tile);    
+                if(sprite_41[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_41[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[42].tile);    
+                if(sprite_42[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_42[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[43].tile);    
+                if(sprite_43[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_43[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[44].tile);    
+                if(sprite_44[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_44[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[45].tile);    
+                if(sprite_45[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_45[x][7-y]]);
+                EndTextureMode();
+
+                BeginTextureMode(arr_tileset[47].tile);    
+                if(sprite_47[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_47[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[48].tile);    
+                if(sprite_48[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_48[x][7-y]]);
+                EndTextureMode();
+
+                BeginTextureMode(arr_tileset[60].tile);    
+                if(sprite_60[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_60[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[61].tile);    
+                if(sprite_61[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_61[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[62].tile);    
+                if(sprite_62[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_62[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[63].tile);    
+                if(sprite_63[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_63[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[64].tile);    
+                if(sprite_64[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_64[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(arr_tileset[65].tile);    
+                if(sprite_65[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_65[x][7-y]]);
+                EndTextureMode();
 
 
         }
