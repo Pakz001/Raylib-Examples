@@ -1,15 +1,11 @@
 // 
-// 2d Line of sight or raycasting into every direction of player. (for roguelikes etc.)
+// Line of sight or raycasting.
 
 // The method I used is by taking an area around the player. In this area each tile is indexed. Than
 // a invisible bullet is shot from the player position into the direction of this tile. The area underneath
 // this invisible bullet is marked as visible area. If the bullet hits a wall then the line of sight stops.
 // I think this method will make sure that every tile is handled!
 //
-// My previous method I just shot a x amount of rays into every direction which I think might be less
-// efficient.
-
-// Controls are : cursors up down left right.
 
 
 #include "raylib.h"
@@ -22,7 +18,7 @@ typedef struct player{
 float tilewidth;
 float tileheight;
 
-// This is out collision map. NOTE! the x is the second slot of the array. y is the first slot.
+// This is out collision map.
 bool colmap[10][20] = {false};
 bool losmap[10][20] = {false};
 // This is our tile map.
@@ -51,7 +47,7 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib example.");
+    InitWindow(screenWidth, screenHeight, "raylib LOS example.");
 
     myplayer.position = (Vector2){5,5};
 
@@ -136,36 +132,35 @@ int main(void)
 }
 
 void makelos(){
-    for(int y=0;y<10;y++){
+    for(int y=0;y<10;y++){ // erase the map lighted tiles
         for(int x=0;x<20;x++){
         if(map[y][x]!=1)map[y][x]=0;
     }}
-    float x1 = myplayer.position.y;
+    float x1 = myplayer.position.y; // x1 and y1 is the tile position of the player
     float y1 = myplayer.position.x;
-    for(int y=y1-8;y<y1+8;y++){
+    for(int y=y1-8;y<y1+8;y++){ // x and y is the area we check for line of sight
         for(int x=x1-8;x<x1+8;x++){
-            float x4 = x1*tilewidth+tilewidth/2;
+            float x4 = x1*tilewidth+tilewidth/2; // x4 and y4 is the screen position of the player
             float y4 = y1*tileheight+tileheight/2;
-            float x2=(float)x*tilewidth;
+            float x2=(float)x*tilewidth; // x2 and y2 is the screen position of the tiles in the area around the player
             float y2=(float)y*tileheight;
-            float angle = getangle(x2,y2,x4,y4);
-            bool donot=false;
-            for(int z=0;z<200;z++){
-                x4+=cos(angle)*1;
+            float angle = getangle(x2,y2,x4,y4); //get the angle from the player screen position and the tile screen position.
+            bool donot=false; // donot is a variable that is true! if the ray has hit a wall/obstacle
+            for(int z=0;z<200;z++){ // our ray distance traveled
+                x4+=cos(angle)*1; // x4 and y4 are the rays position(inc!) 
                 y4+=sin(angle)*1;
-                int x3 = x4/tilewidth;
+                int x3 = x4/tilewidth; // x3 and y3 is the tile position under the ray
                 int y3 = y4/tileheight;
-                if(x3!=x1 || y3!=y1){
-                    if(map[x3][y3]==1)donot=true;
-                    
-                    if(donot==false){
-                    if(x3>-1 && y3>-1){
-                    if(x3<10 && y3<20){
-                    
-                    
-                    map[x3][y3]=GetRandomValue(2,3);
-                    
-                    }}}
+                if(x3!=x1 || y3!=y1){ // If the ray is not on the starting tile
+                    if(x3>-1 && y3>-1){ // if we are inside the map bounds
+                    if(x3<10 && y3<20){ // ,,
+
+                        if(map[x3][y3]==1)donot=true; // If the ray hits a wall/obstacle
+                        
+                        if(donot==false){ // if we have not hit a obstacle/wall                                                
+                            map[x3][y3]=GetRandomValue(2,3); // set the ground to a color(lighted area)                    
+                        }
+                    }}
                 }                    
             }
             
