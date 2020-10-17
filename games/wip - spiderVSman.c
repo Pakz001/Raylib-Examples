@@ -29,16 +29,18 @@ typedef struct player{
 
 
 // This is our tile map.
-static int map[10][20] = { {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-                    {1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,1,1,1,1},
-                    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1},
-                    {1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,1,1,1,1},
-                    {1,1,1,1,1,1,1,1,0,1,1,1,1,0,0,1,1,1,1,1},
-                    {1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1},
-                    {1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1},
-                    {1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,1},
-                    {1,0,0,0,0,0,0,1,0,0,0,1,1,1,1,0,0,0,0,1},
-                    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}};   
+static int tilemap[10][20]={0};
+
+static int map[10][20] = {  {1,1,1,1,1,1,1,1,1,1,1,1,9,9,1,1,1,9,9,9},
+                            {1,0,0,0,0,0,0,0,0,0,0,1,9,9,1,0,1,9,9,9},
+                            {1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,1,9,9,9},
+                            {1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,9,9,9},
+                            {9,9,9,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1},
+                            {9,9,9,1,0,0,1,1,1,0,0,1,1,1,0,0,0,0,0,1},
+                            {1,1,1,1,0,0,1,9,1,0,0,1,9,1,0,0,0,0,0,1},
+                            {1,0,0,0,0,0,1,9,1,0,0,1,9,1,1,0,0,0,0,1},
+                            {1,0,0,0,0,0,1,9,1,0,0,1,9,9,1,0,0,0,0,1},
+                            {1,1,1,1,1,1,1,9,1,1,1,1,9,9,1,1,1,1,1,1}};   
 
 static float tileWidth;
 static float tileHeight;
@@ -60,7 +62,7 @@ static void inidb32colors(void);
 static void inisprites(void);
 static bool playertilecollide(int offsetx,int offsety);
 static bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2);
-
+static void maketilemap(void);
 
 int main(void)
 {
@@ -81,18 +83,20 @@ int main(void)
     // tile 
     for(int i=0;i<MAX_TILES;i++){
         arr_tileset[i].frame=i;
-        arr_tileset[i].tile = LoadRenderTexture(tileWidth,tileHeight);
+        arr_tileset[i].tile = LoadRenderTexture(32,32);
     }
     inidb32colors(); 
     inisprites();
+
+    maketilemap();
     
     // Our player setup
-    myplayer.position = (Vector2){352,240};
+    myplayer.position = (Vector2){352,140};
     myplayer.width = tileWidth/1.5;
     myplayer.height = tileHeight/1.5;
     myspider.width = tileWidth/1.5;
     myspider.height = tileHeight/1.5;
-    myspider.position = (Vector2){320+tileWidth/2,240};
+    myspider.position = (Vector2){320+tileWidth/2,140};
     
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -140,14 +144,24 @@ int main(void)
         //----------------------------------------------------------------------------------
         BeginDrawing();
 
-            ClearBackground((Color){60,120,60,255});
-
+            //ClearBackground((Color){60,120,60,255});
+            ClearBackground(BLACK);
             // Draw our tilemap.
             for(int y=0;y<10;y++){
                 for(int x=0;x<20;x++){
                     if(map[y][x]==1){
-                        DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,LIGHTGRAY);
+                        //DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,LIGHTGRAY);
                     }
+                    if(tilemap[y][x]>0){
+                        DrawTexturePro(arr_tileset[tilemap[y][x]].tile.texture,       (Rectangle){0,0,arr_tileset[tilemap[y][x]].tile.texture.width,arr_tileset[tilemap[y][x]].tile.texture.height},
+                                                                    (Rectangle){x*tileWidth,y*tileHeight,
+                                                                    tileWidth,tileHeight},
+                                                                    (Vector2){0,0},0,WHITE);                  
+                        
+                    }
+
+
+
                 }
             }            
             if(frame==1){
@@ -796,4 +810,187 @@ bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2){
     if(x1 >= (x2 + w2) || (x1 + w1) <= x2) return false;
     if(y1 >= (y2 + h2) || (y1 + h1) <= y2) return false;
     return true;
+}
+
+static void maketilemap(void){
+    for(int y=0;y<mapHeight;y++){
+    for(int x=0;x<mapWidth;x++){
+        if(map[y][x]==0)tilemap[y][x]=43;
+        if(map[y][x]==1)tilemap[y][x]=2;
+    }}
+ 
+    for(int y=0;y<mapHeight;y++){
+    for(int x=0;x<mapWidth;x++){
+        if(x<mapWidth-2){
+        if(x>0 && map[y][x-1]==1){
+        }else{
+        if(map[y][x]==1 && map[y][x+1]==0)tilemap[y][x]=6;
+        }
+        }
+    }}
+
+    
+    for(int y=0;y<mapHeight;y++){
+    for(int x=0;x<mapWidth;x++){
+
+        if(y<mapHeight-1){//shadow below top wall
+            if(map[y][x]==1 && map[y+1][x]==0)tilemap[y+1][x]=21;
+        }
+        if(y>0){//shadow on bottom wall
+            if(map[y][x]==1 && map[y-1][x]==0)tilemap[y-1][x]=63;
+        }
+
+        if(x<mapWidth-1){//Shadow on the walls left side
+            if(map[y][x]==1 && map[y][x+1]==0)tilemap[y][x+1]=42;
+        }
+        if(x>0){//Shadow on the walls right side
+            if(map[y][x]==1 && map[y][x-1]==0)tilemap[y][x-1]=22;
+        }
+        
+ 
+    }}
+    for(int y=0;y<mapHeight;y++){
+    for(int x=0;x<mapWidth;x++){
+       if(y<mapHeight-1){//shadow top left
+            if(map[y][x]==1 && map[y+1][x]==1 && map[y][x+1]==1 && map[y+1][x+1]==0)tilemap[y+1][x+1]=40;
+        }
+       if(x<mapWidth && y<mapHeight-1){//shadow top right
+            if(map[y][x]==1 && map[y][x-1]==1 && map[y+1][x]==1 && map[y+1][x-1]==0)tilemap[y+1][x-1]=41;
+        }
+        if(x<mapWidth-1 && y>0){//shadow bottom left
+            if(map[y][x]==1 && map[y-1][x]==1 && map[y][x+1]==1 && map[y-1][x+1]==0)tilemap[y-1][x+1]=60;
+        }
+        if(x>0 && y>0){//shadow bottom right
+            if(map[y][x]==1 && map[y-1][x]==1 && map[y][x-1]==1 && map[y-1][x-1]==0)tilemap[y-1][x-1]=61;
+        }
+        if(y>0 && y<mapHeight-1){//above and below shadow
+        if(map[y][x]==0 && map[y-1][x]==1 && map[y+1][x]==1)tilemap[y][x]=23;
+        }
+        if(x>0 && x<mapWidth-1){//left and right shadow
+        if(map[y][x]==0 && map[y][x-1]==1 && map[y][x+1]==1)tilemap[y][x]=45;
+        }
+
+    }}
+    
+    for(int y=0;y<mapHeight;y++){
+    for(int x=0;x<mapWidth;x++){
+        //if bottom of map and wall than bottom wall
+        if(y==mapHeight-1){
+            if(map[y][x]==1)tilemap[y][x]=7;
+        }
+        //top left corner
+        if(x<mapWidth && y<mapHeight){
+        if(map[y][x]==1 && map[y+1][x+1]==9 && map[y+1][x]==1 && map[y][x+1]==1)tilemap[y][x]=24;
+        }
+        //top right corner
+        if(y-1>0 && x-1>0 && x+1<mapWidth && y+1<mapHeight){
+        if(map[y][x]==1 && map[y+1][x-1]==9 && map[y+1][x]==1 && map[y][x-1]==1)tilemap[y][x]=26;
+        }
+        //top right corner top row
+        if(y==0){
+        if(y>-1 && x>0 && x+1<mapWidth && y+1<mapHeight){
+        if(map[y][x]==1 && map[y+1][x-1]==0 && map[y+1][x]==1 && map[y][x-1]==1)tilemap[y][x]=3;
+        }}
+        //top left corner top row
+        if(y==0){
+        if(y>-1 && x>0 && x+1<mapWidth && y+1<mapHeight){
+        if(map[y][x]==1 && map[y+1][x+1]==0 && map[y+1][x]==1 && map[y][x+1]==1)tilemap[y][x]=5;
+        }}
+        //top left corner
+        if(y>-1 && x>-1 && x+1<mapWidth && y+1<mapHeight){
+        if(map[y][x]==1 && map[y+1][x+1]==0 && map[y+1][x]==1 && map[y][x+1]==1)tilemap[y][x]=5;
+        }
+        //top right corner
+        if(y>-1 && x>-1 && x<mapWidth && y+1<mapHeight){
+        if(map[y][x]==1 && map[y+1][x-1]==0 && map[y+1][x]==1 && map[y][x-1]==1)tilemap[y][x]=3;
+        }
+
+        //bottom with nothing below and wall left and right
+        if(x>0 && y>0 && x+1<mapWidth && y+1<mapHeight){
+        if(map[y][x]==1 && map[y+1][x]==9 && map[y][x-1]==1 && map[y][x+1]==1)tilemap[y][x]=7;
+        }
+        //left side with nothing on the right side
+        if(x>0 && y>0 && x+1<mapWidth && y+1<mapHeight){
+        if(map[y][x]==1 && map[y][x+1]==9 && map[y+1][x]==1 && map[y-1][x]==1)tilemap[y][x]=4;
+        }
+        //left side at the edge
+        if(x==mapWidth-1){
+        if(x>0 && y>0  && y+1<mapHeight){
+        if(map[y][x]==1  && map[y+1][x]==1 && map[y-1][x]==1)tilemap[y][x]=4;
+        }}
+
+        //bottom left corner cut
+        if(x>-1 && y>-1 && y<mapHeight && x<mapWidth){
+        if(map[y][x]==1 && map[y-1][x]==1 && map[y][x+1]==1 && map[y-1][x+1]==0)tilemap[y][x]=9;
+        }
+        //bottom right cornet cut
+        if(x>-1 && y>-1 && y<mapHeight && x<mapWidth){
+        if(map[y][x]==1 && map[y-1][x]==1 && map[y][x-1]==1 && map[y-1][x-1]==0)tilemap[y][x]=8;
+        }
+    }}
+    
+    //a handfull of random wall decorations.
+    int num=3;
+    int cnt=1000;
+    while(num>0){
+        cnt--;
+        if(cnt<0)num=0;
+        int x=GetRandomValue(0,mapWidth);
+        int y=GetRandomValue(0,mapHeight);
+        if(tilemap[y][x]==2){
+            tilemap[y][x]=11+GetRandomValue(0,1);
+            num--;
+        }
+    }
+    num=3;cnt=1000;
+    while(num>0){
+        cnt--;
+        if(cnt<0)num=0;
+
+        int x=GetRandomValue(0,mapWidth);
+        int y=GetRandomValue(0,mapHeight);
+        if(tilemap[y][x]==2){
+            tilemap[y][x]=27;
+            num--;
+        }
+    }
+    num=3;cnt=1000;
+    while(num>0){
+        cnt--;
+        if(cnt<0)num=0;
+
+        int x=GetRandomValue(0,mapWidth);
+        int y=GetRandomValue(0,mapHeight);
+        if(tilemap[y][x]==7){
+            tilemap[y][x]=28;
+            num--;
+        }
+    }
+
+    num=3;cnt=1000;
+    while(num>0){
+        cnt--;
+        if(cnt<0)num=0;
+
+        int x=GetRandomValue(0,mapWidth);
+        int y=GetRandomValue(0,mapHeight);
+        if(tilemap[y][x]==4){
+            tilemap[y][x]=47;
+            num--;
+        }
+    }
+    num=3;cnt=1000;
+    while(num>0){
+        cnt--;
+        if(cnt<0)num=0;
+
+        int x=GetRandomValue(0,mapWidth);
+        int y=GetRandomValue(0,mapHeight);
+        if(tilemap[y][x]==6){
+            tilemap[y][x]=48;
+            num--;
+        }
+    }
+
+
 }
