@@ -662,7 +662,7 @@ int sprite_65[8][8] = {
                 if(sprite_10[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_10[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[11].tile);    
-                if(sprite_11[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_11[x][7-y]]);
+                DrawRectangle(x*4,y*4,4,4,db32color[sprite_11[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[12].tile);    
                 if(sprite_12[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_12[x][7-y]]);
