@@ -63,29 +63,30 @@ int main(void)
 void inisprites(){
     //
     // The sprite data goes here.
-    int sprite_data[8][8] = {
-    {0,0,2,2,2,2,0,0},
-    {0,23,27,25,27,23,23,1},
-    {0,1,29,23,27,24,1,1},
-    {0,0,21,23,25,2,0,0},
-    {0,0,21,23,25,2,0,0},
-    {0,23,22,21,24,23,23,1},
-    {0,1,22,27,22,25,1,1},
-    {0,0,21,0,21,0,0,0}};
+int sprite_data[8][8] = {
+{0,21,21,0,21,21,0,21},
+{0,21,0,21,21,0,21,21},
+{21,0,0,0,0,21,0,21},
+{21,0,0,0,8,0,21,0},
+{21,0,0,0,8,0,21,0},
+{21,0,0,0,0,21,0,21},
+{0,21,0,21,21,0,21,21},
+{0,21,21,0,21,21,0,21}};
+
 
     
     BeginTextureMode(sprite);    
     ClearBackground(BLANK); // Make the entire Sprite Transparent.
     EndTextureMode();
     
-    db32color[0] = (Color){0,0,0,0};
+    //db32color[0] = (Color){0,0,0,0};
     // Draw something on it.
     for (int y=0;y<8;y++)
     {
         for (int x=0;x<8; x++)
         {            
                 BeginTextureMode(sprite);    
-                DrawRectangle(x*4,y*4,4,4,db32color[sprite_data[y][x]]);
+                if(sprite_data[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_data[x][7-y]]);
                 EndTextureMode(); 
 
 
