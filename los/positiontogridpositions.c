@@ -146,7 +146,7 @@ void makelos(){
             float y2=(float)y*tileheight;
             float angle = getangle(x2,y2,x4,y4); //get the angle from the player screen position and the tile screen position.
             bool donot=false; // donot is a variable that is true! if the ray has hit a wall/obstacle
-            for(int z=0;z<200;z++){ // our ray distance traveled
+            for(int z=0;z<200;z++){ // our ray distance traveled (set shorter for circular lighted area!)
                 x4+=cos(angle)*1; // x4 and y4 are the rays position(inc!) 
                 y4+=sin(angle)*1;
                 int x3 = x4/tilewidth; // x3 and y3 is the tile position under the ray
