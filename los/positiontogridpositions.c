@@ -1,11 +1,15 @@
 // 
-// Line of sight or raycasting.
+// Line of sight or raycasting into every direction of player.
 
 // The method I used is by taking an area around the player. In this area each tile is indexed. Than
 // a invisible bullet is shot from the player position into the direction of this tile. The area underneath
 // this invisible bullet is marked as visible area. If the bullet hits a wall then the line of sight stops.
 // I think this method will make sure that every tile is handled!
 //
+// My previous method I just shot a x amount of rays into every direction which I think might be less
+// efficient.
+
+// Controls are : cursors up down left right.
 
 
 #include "raylib.h"
