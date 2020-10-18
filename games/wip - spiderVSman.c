@@ -4,6 +4,7 @@
 // Added - walking animation for player.
 // Added - spider turns towards and move to target(press mouse on screen to see this..)
 // Added - spiders! can roam and avoid the walls and stop if player gets near them.
+// Added - spiders will sprint towards player(attack!) when nearby.
 
 enum flag1{IDLE,QUICKDASH,SCOUTNEWPOSITION,SEEATTACKPLAYER};
 enum flag2{FINDSPOT,SPIDERTURN,FOUNDSPOT};
@@ -253,10 +254,10 @@ int main(void)
                         }
                     }
                     // if spider position on player..
-                    if(rectsoverlap(myplayer.position.x,myplayer.position.y,myplayer.width,myplayer.height,myspider[i].position.x,myspider[i].position.y,myspider[i].width,myspider[i].height)==true){
-                        myspider[i].state=IDLE;
-                        myspider[i].position = oldposition;
-                    }                        
+                    //if(rectsoverlap(myplayer.position.x,myplayer.position.y,myplayer.width,myplayer.height,myspider[i].position.x,myspider[i].position.y,myspider[i].width,myspider[i].height)==true){
+                    //    myspider[i].state=IDLE;
+                    //    myspider[i].position = oldposition;
+                    //}                        
                     // if spider reaches destination
                     if((abs(myspider[i].target.x-myspider[i].position.x) + abs(myspider[i].target.y-myspider[i].position.y))<4)myspider[i].state=IDLE;
                 }
