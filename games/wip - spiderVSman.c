@@ -6,6 +6,7 @@
 #define MAX_TILES 100
 
 #include "raylib.h"
+#include <math.h>
 
 typedef struct tileset{
     int frame;
@@ -17,7 +18,10 @@ static struct tileset arr_tileset[MAX_TILES];
 typedef struct spider{
     Vector2 position;
     float width;
-    float height;    
+    float height;  
+    int state; // state 99 = Quick turn to target and sprint towards target
+    Vector2 target;
+    float angle;
 }spider;
 
 
@@ -56,7 +60,7 @@ static int mapWidth = 20;//width and height of map dimensions
 static int mapHeight = 10;
 
 static player myplayer = {0};
-static player myspider = {0};
+static spider myspider = {0};
 
 
 static	Color db32color[32];// ' our colors	
@@ -71,6 +75,11 @@ static void inisprites(void);
 static bool playertilecollide(int offsetx,int offsety);
 static bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2);
 static void maketilemap(void);
+static float getangle(float x1,float y1,float x2,float y2);
+// Return on which side of the line the point is. l-1 0= r=1
+// lineback x,y linefront x,y point x,y
+int orientation(int ax,int ay,int bx, int by, int cx, int cy);
+
 
 int main(void)
 {
@@ -114,11 +123,11 @@ int main(void)
     myspider.width = tileWidth/2;
     myspider.height = tileHeight/2;
     myspider.position = (Vector2){320+tileWidth/2,140};
+    myspider.state = 0;
     
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
     
-    int sa=0;
     int frame=1;
     int time=0;
     
@@ -128,16 +137,39 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
         
-        
-        sa+=1;
-        time++;
-        if(time>20){
-            frame++;
-            time=0;
-        }
-        if(frame>2)frame=1;
-        if(sa>360)sa=0;
 
+        //spider logic
+        if(myspider.state==0){
+            myspider.angle+=1;            
+            time++;
+            if(time>20){
+                frame++;
+                time=0;
+            }
+            if(frame>2)frame=1;
+            if(myspider.angle>360)myspider.angle=0;
+        }
+        if(myspider.state==99){
+            time++;
+            if(time>2){
+                frame++;
+                time=0;
+            }
+            if(frame>2)frame=1;
+            float angle = getangle(myspider.position.x,myspider.position.y,myspider.target.x,myspider.target.y);
+            
+            
+            myspider.position.x += cos(angle)*3;
+            myspider.position.y += sin(angle)*3;
+            myspider.angle = angle*180/PI-90;
+            if((abs(myspider.target.x-myspider.position.x) + abs(myspider.target.y-myspider.position.y))<10)myspider.state=0;
+        }
+
+        if(IsMouseButtonPressed(0)){
+            myspider.target = GetMousePosition();
+            myspider.state = 99;
+        }
+        
         myplayer.idle = true;
         if(IsKeyDown(KEY_RIGHT)&& myplayer.position.x+1<(mapWidth-1)*tileWidth){
             if(playertilecollide(1,0)==false){
@@ -207,13 +239,13 @@ int main(void)
             DrawTexturePro(spritespider1.texture,    (Rectangle){0,0,spritespider1.texture.width,spritespider1.texture.height},
                                                     (Rectangle){myspider.position.x,myspider.position.y,
                                                     myspider.width,myspider.height},
-                                                    (Vector2){myspider.width/2,myspider.height/1.5},sa,WHITE);                  
+                                                    (Vector2){myspider.width/2,myspider.height/1.5},myspider.angle,WHITE);                  
             }
             if(frame==2){
             DrawTexturePro(spritespider2.texture,    (Rectangle){0,0,spritespider2.texture.width,spritespider2.texture.height},
                                                     (Rectangle){myspider.position.x,myspider.position.y,
                                                     myspider.width,myspider.height},
-                                                    (Vector2){myspider.width/2,myspider.height/1.5},sa,WHITE);                  
+                                                    (Vector2){myspider.width/2,myspider.height/1.5},myspider.angle,WHITE);                  
             }
             
             int zztop = myplayer.frame[myplayer.frameposition].texture.width;
@@ -1067,4 +1099,19 @@ static void maketilemap(void){
     }
 
 
+}
+
+// Return the angle from - to in float
+float getangle(float x1,float y1,float x2,float y2){
+    return (float)atan2(y2-y1, x2-x1);
+}
+
+//
+// This is the orientation function. It returns -1 if the point is left of the inputted line.
+// 0 if on the same and 1 if on the right of the line.
+// aa,bb,point
+int orientation(int ax,int ay,int bx, int by, int cx, int cy){
+	if(((bx-ax)*(cy-ay)-(by-ay)*(cx-ax))<0)return -1;
+    if(((bx-ax)*(cy-ay)-(by-ay)*(cx-ax))>0)return 1;
+    return 0;
 }
