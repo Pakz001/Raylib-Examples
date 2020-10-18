@@ -1,7 +1,8 @@
 //
 // STILL A WORK IN PROGRESS
 //
-//
+// Added - walking animation for player.
+// Added - spider turns towards and move to target(press mouse on screen to see this..)
 
 #define MAX_TILES 100
 
@@ -79,7 +80,7 @@ static float getangle(float x1,float y1,float x2,float y2);
 // Return on which side of the line the point is. l-1 0= r=1
 // lineback x,y linefront x,y point x,y
 int orientation(int ax,int ay,int bx, int by, int cx, int cy);
-
+static float angledifference(float angle1, float angle2);
 
 int main(void)
 {
@@ -130,7 +131,7 @@ int main(void)
     
     int frame=1;
     int time=0;
-    
+    float debug=0.0f;
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -140,7 +141,7 @@ int main(void)
 
         //spider logic
         if(myspider.state==0){
-            myspider.angle+=1;            
+            myspider.angle+=2;            
             time++;
             if(time>20){
                 frame++;
@@ -157,12 +158,24 @@ int main(void)
             }
             if(frame>2)frame=1;
             float angle = getangle(myspider.position.x,myspider.position.y,myspider.target.x,myspider.target.y);
-            
-            
-            myspider.position.x += cos(angle)*3;
-            myspider.position.y += sin(angle)*3;
-            myspider.angle = angle*180/PI-90;
+            // turn towards target                
+            float difference = angledifference((myspider.angle-90)/180*PI,angle);
+            debug=difference;
+            if(difference<0)myspider.angle-=6;
+            if(difference>0)myspider.angle+=6;
+
+            if(difference>3){
+            myspider.position.x += cos(angle)*5;
+            myspider.position.y += sin(angle)*5;
+
             if((abs(myspider.target.x-myspider.position.x) + abs(myspider.target.y-myspider.position.y))<10)myspider.state=0;
+            }
+
+            //myspider.angle = (PI/180)*angle;
+            //myspider.position.x += cos(angle)*3;
+            //myspider.position.y += sin(angle)*3;
+            //myspider.angle = angle*180/PI-90;
+            //if((abs(myspider.target.x-myspider.position.x) + abs(myspider.target.y-myspider.position.y))<10)myspider.state=0;
         }
 
         if(IsMouseButtonPressed(0)){
@@ -254,6 +267,8 @@ int main(void)
                                                     (Rectangle){myplayer.position.x,myplayer.position.y,
                                                     myplayer.width,myplayer.height},
                                                     (Vector2){0,0},0,WHITE);                  
+
+            DrawText(FormatText("hello: %02.02f",debug),10,10,20,WHITE);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -1114,4 +1129,18 @@ int orientation(int ax,int ay,int bx, int by, int cx, int cy){
 	if(((bx-ax)*(cy-ay)-(by-ay)*(cx-ax))<0)return -1;
     if(((bx-ax)*(cy-ay)-(by-ay)*(cx-ax))>0)return 1;
     return 0;
+}
+
+// takes radian iput! <0 is left is shorter else right turn is shorter.
+// When it outputs >3 you can asume it aligns with the target(2) angle.
+float angledifference(float angle1, float angle2){
+    float difference = angle1 - angle2;
+    while (difference < -PI){
+        difference += (PI*2);
+    }
+    while (difference > PI){ 
+        difference -= (PI*2);
+    }
+    return difference;
+
 }
