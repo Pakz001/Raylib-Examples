@@ -24,12 +24,20 @@ typedef struct spider{
 typedef struct player{
     Vector2 position;
     float width;
-    float height;    
+    float height;  
+    RenderTexture2D frame[10];
+    bool idle;
+    int hdirection; // horizontal direction -1 = left - 1 = right
+    int frameposition;
+    int framewalkstart;//walking is 1 and 2
+    int framewalkend;//
+    int framewalkdelay;
+    int framewalkcount;
 }player;
 
 
 // This is our tile map.
-static int tilemap[10][20]={0};
+static int tilemap[10][20] = {0};
 
 static int map[10][20] = {  {1,1,1,1,1,1,1,1,1,1,1,1,9,9,1,1,1,9,9,9},
                             {1,0,0,0,0,0,0,0,0,0,0,1,9,9,1,0,1,9,9,9},
@@ -76,9 +84,12 @@ int main(void)
     mapHeight = 10;
     tileWidth = (float)screenWidth/mapWidth;
     tileHeight = (float)screenHeight/mapHeight;
-    spritespider1=LoadRenderTexture(tileWidth,tileHeight); 
-    spritespider2=LoadRenderTexture(tileWidth,tileHeight); 
-    spriteplayer=LoadRenderTexture(tileWidth,tileHeight); 
+    spritespider1=LoadRenderTexture(32,32); 
+    spritespider2=LoadRenderTexture(32,32); 
+    spriteplayer=LoadRenderTexture(32,32); 
+    myplayer.frame[0] = LoadRenderTexture(32,32); 
+    myplayer.frame[1] = LoadRenderTexture(32,32); 
+    myplayer.frame[2] = LoadRenderTexture(32,32); 
     
     // tile 
     for(int i=0;i<MAX_TILES;i++){
@@ -92,10 +103,16 @@ int main(void)
     
     // Our player setup
     myplayer.position = (Vector2){352,140};
-    myplayer.width = tileWidth/1.5;
-    myplayer.height = tileHeight/1.5;
-    myspider.width = tileWidth/1.5;
-    myspider.height = tileHeight/1.5;
+    myplayer.width = tileWidth/2;
+    myplayer.height = tileHeight/2;
+    myplayer.hdirection = -1;
+    myplayer.frameposition = 1;
+    myplayer.framewalkstart = 1;
+    myplayer.framewalkend = 2;
+    myplayer.framewalkdelay = 5;
+    myplayer.idle = true;
+    myspider.width = tileWidth/2;
+    myspider.height = tileHeight/2;
     myspider.position = (Vector2){320+tileWidth/2,140};
     
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
@@ -104,11 +121,13 @@ int main(void)
     int sa=0;
     int frame=1;
     int time=0;
+    
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
+        
         
         sa+=1;
         time++;
@@ -118,27 +137,47 @@ int main(void)
         }
         if(frame>2)frame=1;
         if(sa>360)sa=0;
-        
+
+        myplayer.idle = true;
         if(IsKeyDown(KEY_RIGHT)&& myplayer.position.x+1<(mapWidth-1)*tileWidth){
             if(playertilecollide(1,0)==false){
                 myplayer.position.x+=1;
+                myplayer.hdirection = 1;
+                myplayer.idle = false;
             }
         }
         if(IsKeyDown(KEY_LEFT) && myplayer.position.x-1>-1){
             if(playertilecollide(-1,0)==false){
                 myplayer.position.x-=1;
+                myplayer.hdirection = -1;
+                myplayer.idle = false;
             }
         }
         if(IsKeyDown(KEY_UP)&& myplayer.position.y-1>-1){
             if(playertilecollide(0,-1)==false){
                 myplayer.position.y-=1;
+                myplayer.idle = false;
             }
         }
         if(IsKeyDown(KEY_DOWN) && myplayer.position.y+1<(mapHeight-1)*tileHeight){
             if(playertilecollide(0,1)==false){
                 myplayer.position.y+=1;
+                myplayer.idle = false;
             }
         }        
+
+        // player animations
+        if(myplayer.idle==false){
+            myplayer.framewalkcount++;
+            if(myplayer.framewalkcount>myplayer.framewalkdelay){
+                myplayer.framewalkcount = 0;
+                myplayer.frameposition++;
+                if(myplayer.frameposition>myplayer.framewalkend)myplayer.frameposition=myplayer.framewalkstart;
+            }            
+        }else{
+            myplayer.frameposition = 1;
+        }
+
         //----------------------------------------------------------------------------------
         // Draw
         //----------------------------------------------------------------------------------
@@ -176,8 +215,10 @@ int main(void)
                                                     myspider.width,myspider.height},
                                                     (Vector2){myspider.width/2,myspider.height/1.5},sa,WHITE);                  
             }
-
-            DrawTexturePro(spriteplayer.texture,    (Rectangle){0,0,spriteplayer.texture.width,spriteplayer.texture.height},
+            
+            int zztop = myplayer.frame[myplayer.frameposition].texture.width;
+            if(myplayer.hdirection==-1)zztop=-zztop;
+            DrawTexturePro(myplayer.frame[myplayer.frameposition].texture,    (Rectangle){0,0,zztop,myplayer.frame[0].texture.height},
                                                     (Rectangle){myplayer.position.x,myplayer.position.y,
                                                     myplayer.width,myplayer.height},
                                                     (Vector2){0,0},0,WHITE);                  
@@ -236,6 +277,28 @@ int sprite_player[8][8] = {
 {21,21,20,21,21,2,3,0},
 {21,21,21,18,21,21,21,21},
 {21,21,21,21,6,21,21,21}};
+
+int sprite_playerw1[8][8] = {
+{21,21,21,21,6,21,21,21},
+{21,21,21,18,21,21,21,0},
+{21,21,20,21,21,21,4,21},
+{0,2,19,18,3,2,21,21},
+{0,6,19,18,3,21,21,21},
+{21,21,20,21,21,2,21,21},
+{21,21,21,18,21,21,4,21},
+{21,21,21,21,6,21,21,0}};
+
+int sprite_playerw2[8][8] = {
+{21,21,21,21,21,21,21,21},
+{21,21,21,21,18,6,21,21},
+{21,21,20,18,21,21,21,21},
+{0,2,19,18,3,2,4,0},
+{0,6,19,18,3,2,4,0},
+{21,21,20,18,18,21,21,21},
+{21,21,21,21,6,21,21,21},
+{21,21,21,21,21,21,21,21}};
+
+
     
     BeginTextureMode(spritespider1);    
     ClearBackground(BLANK); // Make the entire Sprite Transparent.
@@ -630,6 +693,17 @@ int sprite_65[8][8] = {
                 BeginTextureMode(spriteplayer);    
                 if(sprite_player[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_player[x][7-y]]);
                 EndTextureMode();
+                BeginTextureMode(myplayer.frame[0]);    
+                if(sprite_player[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_player[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(myplayer.frame[1]);    
+                if(sprite_playerw1[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_playerw1[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(myplayer.frame[2]);    
+                if(sprite_playerw2[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_playerw2[x][7-y]]);
+                EndTextureMode();
+                
+                
 
                 BeginTextureMode(arr_tileset[1].tile);    
                 if(sprite_1[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_1[x][7-y]]);
@@ -796,7 +870,7 @@ bool playertilecollide(int offsetx,int offsety){
             if(map[y2][x2] == 1){
                 int x3 = (x2)*tileWidth;
                 int y3 = (y2)*tileHeight;
-                if(rectsoverlap(myplayer.position.x+offsetx,myplayer.position.y+8+offsety,myplayer.width-5,myplayer.height-8,x3,y3,tileWidth,tileHeight)){
+                if(rectsoverlap(myplayer.position.x+offsetx,myplayer.position.y+offsety,myplayer.width,myplayer.height,x3,y3,tileWidth,tileHeight)){
                     return true;
                 }
             }
