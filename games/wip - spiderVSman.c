@@ -5,7 +5,7 @@
 // Added - spider turns towards and move to target(press mouse on screen to see this..)
 // Added - spiders! can roam and avoid the walls and stop if player gets near them.
 
-enum flag1{IDLE,QUICKDASH,SCOUTNEWPOSITION};
+enum flag1{IDLE,QUICKDASH,SCOUTNEWPOSITION,SEEATTACKPLAYER};
 enum flag2{FINDSPOT,SPIDERTURN,FOUNDSPOT};
 
 #define MAX_TILES 100
@@ -94,6 +94,7 @@ int orientation(int ax,int ay,int bx, int by, int cx, int cy);
 static float angledifference(float angle1, float angle2);
 static bool spidertilecollide(int index, int offsetx,int offsety);
 static bool recttilecollide(int x,int y,int w, int h);
+static float getdistance(float x1,float y1,float x2,float y2);
 
 int main(void)
 {
@@ -171,7 +172,97 @@ int main(void)
                     myspider[i].state=SCOUTNEWPOSITION;
                     myspider[i].substate=FINDSPOT;
                 }
+                if(GetRandomValue(0,20)==1){
+                    myspider[i].state=SEEATTACKPLAYER;
+                    myspider[i].substate=FINDSPOT;
+                }
+
             }
+            //
+            //
+            //
+            // spider SEES player and attacks him
+            if(myspider[i].state==SEEATTACKPLAYER){
+                myspider[i].time++;
+                if(myspider[i].time>2){
+                    myspider[i].frame++;
+                    myspider[i].time=0;
+                }
+                if(myspider[i].frame>2)myspider[i].frame=1;
+                //
+                if(myspider[i].substate==FINDSPOT){
+                    bool newspotisgood=true;
+                    float x1=myspider[i].position.x;
+                    float y1=myspider[i].position.y;
+                    
+                    myspider[i].target.x = myplayer.position.x+myplayer.width/2;
+                    myspider[i].target.y = myplayer.position.y+myplayer.height/2;
+                    float angle = getangle(myspider[i].position.x,myspider[i].position.y,myspider[i].target.x,myspider[i].target.y);
+                    int distance=getdistance(myspider[i].position.x,myspider[i].position.y,myspider[i].target.x,myspider[i].target.y);    
+                    if(distance>150){
+                        newspotisgood=false;
+                        myspider[i].state=IDLE;                            
+                        goto skipsap;
+                    }
+                    for(int j=0;j<distance;j++){
+                        x1+=cos(angle);
+                        y1+=sin(angle);
+                        if(recttilecollide(x1,y1,myspider[i].width,myspider[i].height)==true)
+                            {
+                            newspotisgood=false;
+                            myspider[i].state=IDLE;                            
+                            j=100;
+                        }
+                        // if hit other spider than stop idle
+                        for(int j=0;j<MAX_SPIDERS;j++){
+                            if(i==j)continue;
+                            if(rectsoverlap(x1,y1,myspider[i].width,myspider[i].height,myspider[j].position.x,myspider[j].position.y,myspider[j].width,myspider[j].height)==true) {
+                                newspotisgood=false;
+                                myspider[i].state=IDLE;                            
+                                j=100;
+                            }
+                        }                        
+                    }
+                    skipsap:
+                    if(newspotisgood){
+                        myspider[i].target = (Vector2){x1,y1};
+                        myspider[i].substate = SPIDERTURN;
+                    }
+                }
+                if(myspider[i].substate==SPIDERTURN){
+                    float angle = getangle(myspider[i].position.x,myspider[i].position.y,myspider[i].target.x,myspider[i].target.y);
+                    // turn towards target                
+                    float difference = angledifference((myspider[i].angle-90)/180*PI,angle);
+                    debug=difference;
+                    if(difference<0)myspider[i].angle-=6;
+                    if(difference>0)myspider[i].angle+=6;
+                    if(difference>3)myspider[i].substate=FOUNDSPOT;
+                }
+                if(myspider[i].substate==FOUNDSPOT){
+                    float angle = getangle(myspider[i].position.x,myspider[i].position.y,myspider[i].target.x,myspider[i].target.y);
+                    Vector2 oldposition = myspider[i].position;                    
+                    myspider[i].position.x += cos(angle)*2;
+                    myspider[i].position.y += sin(angle)*2;
+                    // if hit other spider than stop idle
+                    for(int j=0;j<MAX_SPIDERS;j++){
+                        if(i==j)continue;
+                        if(rectsoverlap(myspider[i].position.x,myspider[i].position.y,myspider[i].width,myspider[i].height,myspider[j].position.x,myspider[j].position.y,myspider[j].width,myspider[j].height)==true) {
+                            myspider[i].state=IDLE;
+                            myspider[i].position = oldposition;
+                            break;
+                        }
+                    }
+                    // if spider position on player..
+                    if(rectsoverlap(myplayer.position.x,myplayer.position.y,myplayer.width,myplayer.height,myspider[i].position.x,myspider[i].position.y,myspider[i].width,myspider[i].height)==true){
+                        myspider[i].state=IDLE;
+                        myspider[i].position = oldposition;
+                    }                        
+                    // if spider reaches destination
+                    if((abs(myspider[i].target.x-myspider[i].position.x) + abs(myspider[i].target.y-myspider[i].position.y))<4)myspider[i].state=IDLE;
+                }
+            }
+            ///
+            //
             //
             // spider checks ahead and places new target (roam slow)
             if(myspider[i].state==SCOUTNEWPOSITION){
@@ -186,7 +277,7 @@ int main(void)
                     bool newspotisgood=true;
                     float x1=myspider[i].position.x;
                     float y1=myspider[i].position.y;
-                    int distance=GetRandomValue(50,150);
+                    int distance=GetRandomValue(10,150);
                     for(int j=0;j<distance;j++){
                         x1+=cos(myspider[i].angle);
                         y1+=sin(myspider[i].angle);
@@ -199,6 +290,15 @@ int main(void)
                             myspider[i].state=IDLE;                            
                             j=100;
                         }
+                        // if hit other spider than stop idle
+                        for(int j=0;j<MAX_SPIDERS;j++){
+                            if(i==j)continue;
+                            if(rectsoverlap(x1,y1,myspider[i].width,myspider[i].height,myspider[j].position.x,myspider[j].position.y,myspider[j].width,myspider[j].height)==true) {
+                                newspotisgood=false;
+                                myspider[i].state=IDLE;                            
+                                j=100;
+                            }
+                        }                        
                     }
                     if(newspotisgood){
                         myspider[i].target = (Vector2){x1,y1};
@@ -216,11 +316,22 @@ int main(void)
                 }
                 if(myspider[i].substate==FOUNDSPOT){
                     float angle = getangle(myspider[i].position.x,myspider[i].position.y,myspider[i].target.x,myspider[i].target.y);
+                    Vector2 oldposition = myspider[i].position;
                     myspider[i].position.x += cos(angle)*1;
                     myspider[i].position.y += sin(angle)*1;
+                    // if hit other spider than stop idle
+                    for(int j=0;j<MAX_SPIDERS;j++){
+                        if(i==j)continue;
+                        if(rectsoverlap(myspider[i].position.x,myspider[i].position.y,myspider[i].width,myspider[i].height,myspider[j].position.x,myspider[j].position.y,myspider[j].width,myspider[j].height)==true) {
+                            myspider[i].state=IDLE;
+                            myspider[i].position = oldposition;
+                            break;
+                        }
+                    }
                     // if spider position on player..
                     if(rectsoverlap(myplayer.position.x,myplayer.position.y,myplayer.width,myplayer.height,myspider[i].position.x-8,myspider[i].position.y-8,myspider[i].width+16,myspider[i].height+16)==true){
                         myspider[i].state=IDLE;
+                        myspider[i].position = oldposition;
                     }                        
                     // if spider reaches destination
                     if((abs(myspider[i].target.x-myspider[i].position.x) + abs(myspider[i].target.y-myspider[i].position.y))<10)myspider[i].state=IDLE;
@@ -1263,4 +1374,9 @@ float angledifference(float angle1, float angle2){
     }
     return difference;
 
+}
+
+// Manhattan Distance (less precise)
+float getdistance(float x1,float y1,float x2,float y2){
+    return (float)abs(x2-x1)+abs(y2-y1);
 }
