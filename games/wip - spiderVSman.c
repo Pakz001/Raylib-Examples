@@ -1116,23 +1116,23 @@ int sprite_101[8][8] = { //eggsack empty
         for (int x=0;x<8; x++)
         {            
                 BeginTextureMode(spritespider1);    
-                if(sprite_spider1[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_spider1[x][7-y]]);
+                if(sprite_spider1[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_spider1[x][7-y]]);
                 EndTextureMode(); 
                 BeginTextureMode(spritespider2);    
-                if(sprite_spider2[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_spider2[x][7-y]]);
+                if(sprite_spider2[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_spider2[x][7-y]]);
                 EndTextureMode(); 
 
                 BeginTextureMode(spriteplayer);    
-                if(sprite_player[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_player[x][7-y]]);
+                if(sprite_player[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_player[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(myplayer.frame[0]);    
-                if(sprite_player[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_player[x][7-y]]);
+                if(sprite_player[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_player[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(myplayer.frame[1]);    
-                if(sprite_playerw1[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_playerw1[x][7-y]]);
+                if(sprite_playerw1[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_playerw1[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(myplayer.frame[2]);    
-                if(sprite_playerw2[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_playerw2[x][7-y]]);
+                if(sprite_playerw2[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_playerw2[x][7-y]]);
                 EndTextureMode();
                 
                 
@@ -1598,15 +1598,20 @@ void DrawRectangle2(int x,int y,int w,int h,Color col){
         DrawRectangle(x,y,4,4,col);
         for(int y1=0;y1<h;y1+=2){
         for(int x1=1;x1<w;x1+=3){
-            coldark.a = 100+GetRandomValue(0,100);
+            coldark.a = 100+GetRandomValue(0,100);            
             DrawRectangle(x1+x,y1+y,1,1,coldark);
-        }}
+        }}        
         for(int i=0;i<2;i++){
-            DrawRectangle(x+GetRandomValue(0,w),y+GetRandomValue(0,h),1,1,coldark);
+            DrawRectangle(x+GetRandomValue(0,w),y+GetRandomValue(0,h),1,1,coldark);                
         }
+        for(int i=0;i<1;i++){
+            if(GetRandomValue(0,5)<1)DrawRectangle(x+GetRandomValue(0,w),y+GetRandomValue(0,h),1,1,BLACK);                
+        }
+
         for(int i=0;i<2;i++){
             DrawRectangle(x+GetRandomValue(0,w),y+GetRandomValue(0,h),1,1,collight);
         }
+        
     }else{
         DrawRectangle(x,y,4,4,col);
     }
