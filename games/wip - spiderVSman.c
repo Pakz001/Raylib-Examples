@@ -6,10 +6,15 @@
 // Added - spiders! can roam and avoid the walls and stop if player gets near them.
 // Added - spiders will sprint towards player(attack!) when nearby.
 // Added - Eggsacks - spiders will hatch from spidereggs.
+// Added - GFX filter on the images on creation/ see processGfx true/false
 
 enum flag1{IDLE,QUICKDASH,SCOUTNEWPOSITION,SEEATTACKPLAYER};
 enum flag2{FINDSPOT,SPIDERTURN,FOUNDSPOT};
 enum flag3{EGGSACKFULL,EGGSACKEMPTY};
+
+#define fullScreenMode false
+#define processGfx true // a filter is aplied to the gfx at creation. disable for the regular pixel art.
+
 
 #define MAX_TILES 120
 #define MAX_SPIDERS 20
@@ -115,6 +120,7 @@ static float angledifference(float angle1, float angle2);
 static bool spidertilecollide(int index, int offsetx,int offsety);
 static bool recttilecollide(int x,int y,int w, int h);
 static float getdistance(float x1,float y1,float x2,float y2);
+static void DrawRectangle2(int x,int y,int w,int h,Color col);
 
 int main(void)
 {
@@ -122,9 +128,11 @@ int main(void)
     //--------------------------------------------------------------------------------------
     const int screenWidth = 800;
     const int screenHeight = 450;
+    
+    
 
     InitWindow(screenWidth, screenHeight, "raylib example.");
-    //ToggleFullscreen();
+    if(fullScreenMode)ToggleFullscreen();
     mapWidth = 20;
     mapHeight = 10;
     tileWidth = (float)screenWidth/mapWidth;
@@ -1130,124 +1138,125 @@ int sprite_101[8][8] = { //eggsack empty
                 
 
                 BeginTextureMode(arr_tileset[1].tile);    
-                if(sprite_1[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_1[x][7-y]]);                
+                if(sprite_1[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_1[x][7-y]]);                
                 EndTextureMode();                
                 BeginTextureMode(arr_tileset[2].tile);    
-                if(sprite_2[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_2[x][7-y]]);                
+                if(sprite_2[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_2[x][7-y]]);                
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[3].tile);    
-                if(sprite_3[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_3[x][7-y]]);
+                if(sprite_3[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_3[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[4].tile);    
-                if(sprite_4[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_4[x][7-y]]);
+                if(sprite_4[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_4[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[5].tile);    
-                if(sprite_5[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_5[x][7-y]]);
+                if(sprite_5[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_5[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[6].tile);    
-                if(sprite_6[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_6[x][7-y]]);
+                if(sprite_6[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_6[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[7].tile);    
-                if(sprite_7[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_7[x][7-y]]);
+                if(sprite_7[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_7[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[8].tile);    
-                if(sprite_8[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_8[x][7-y]]);
+                if(sprite_8[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_8[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[9].tile);    
-                if(sprite_9[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_9[x][7-y]]);
+                if(sprite_9[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_9[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[10].tile);    
-                if(sprite_10[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_10[x][7-y]]);
+                if(sprite_10[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_10[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[11].tile);    
-                DrawRectangle(x*4,y*4,4,4,db32color[sprite_11[x][7-y]]);
+                DrawRectangle2(x*4,y*4,4,4,db32color[sprite_11[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[12].tile);    
-                if(sprite_12[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_12[x][7-y]]);
+                if(sprite_12[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_12[x][7-y]]);                
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[20].tile);    
-                if(sprite_20[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_20[x][7-y]]);
+                if(sprite_20[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_20[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[21].tile);    
-                if(sprite_21[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_21[x][7-y]]);
+                //if(sprite_21[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_21[x][7-y]]);
+                if(sprite_21[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_21[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[22].tile);    
-                if(sprite_22[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_22[x][7-y]]);
+                if(sprite_22[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_22[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[23].tile);    
-                if(sprite_23[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_23[x][7-y]]);
+                if(sprite_23[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_23[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[24].tile);    
-                if(sprite_24[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_24[x][7-y]]);
+                if(sprite_24[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_24[x][7-y]]);
                 EndTextureMode();
 
 
                 BeginTextureMode(arr_tileset[26].tile);    
-                if(sprite_26[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_26[x][7-y]]);
+                if(sprite_26[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_26[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[27].tile);    
-                if(sprite_27[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_27[x][7-y]]);
+                if(sprite_27[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_27[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[28].tile);    
-                if(sprite_28[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_28[x][7-y]]);
+                if(sprite_28[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_28[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[30].tile);    
-                if(sprite_30[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_30[x][7-y]]);
+                if(sprite_30[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_30[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[31].tile);    
-                if(sprite_31[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_31[x][7-y]]);
+                if(sprite_31[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_31[x][7-y]]);
                 EndTextureMode();
 
                 BeginTextureMode(arr_tileset[40].tile);    
-                if(sprite_40[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_40[x][7-y]]);
+                if(sprite_40[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_40[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[41].tile);    
-                if(sprite_41[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_41[x][7-y]]);
+                if(sprite_41[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_41[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[42].tile);    
-                if(sprite_42[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_42[x][7-y]]);
+                if(sprite_42[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_42[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[43].tile);    
-                if(sprite_43[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_43[x][7-y]]);
+                if(sprite_43[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_43[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[44].tile);    
-                if(sprite_44[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_44[x][7-y]]);
+                if(sprite_44[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_44[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[45].tile);    
-                if(sprite_45[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_45[x][7-y]]);
+                if(sprite_45[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_45[x][7-y]]);
                 EndTextureMode();
 
                 BeginTextureMode(arr_tileset[47].tile);    
-                if(sprite_47[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_47[x][7-y]]);
+                if(sprite_47[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_47[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[48].tile);    
-                if(sprite_48[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_48[x][7-y]]);
+                if(sprite_48[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_48[x][7-y]]);
                 EndTextureMode();
 
                 BeginTextureMode(arr_tileset[60].tile);    
-                if(sprite_60[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_60[x][7-y]]);
+                if(sprite_60[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_60[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[61].tile);    
-                if(sprite_61[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_61[x][7-y]]);
+                if(sprite_61[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_61[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[62].tile);    
-                if(sprite_62[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_62[x][7-y]]);
+                if(sprite_62[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_62[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[63].tile);    
-                if(sprite_63[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_63[x][7-y]]);
+                if(sprite_63[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_63[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[64].tile);    
-                if(sprite_64[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_64[x][7-y]]);
+                if(sprite_64[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_64[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[65].tile);    
-                if(sprite_65[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_65[x][7-y]]);
+                if(sprite_65[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_65[x][7-y]]);
                 EndTextureMode();
 
                 BeginTextureMode(spriteeggsackfull);    
-                if(sprite_100[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_100[x][7-y]]);
+                if(sprite_100[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_100[x][7-y]]);
                 EndTextureMode();
                 BeginTextureMode(spriteeggsackempty);    
-                if(sprite_101[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_101[x][7-y]]);
+                if(sprite_101[x][7-y]!=21)DrawRectangle2(x*4,y*4,4,4,db32color[sprite_101[x][7-y]]);
                 EndTextureMode();
 
 
@@ -1573,4 +1582,32 @@ float angledifference(float angle1, float angle2){
 // Manhattan Distance (less precise)
 float getdistance(float x1,float y1,float x2,float y2){
     return (float)abs(x2-x1)+abs(y2-y1);
+}
+
+void DrawRectangle2(int x,int y,int w,int h,Color col){
+    if(processGfx){
+        Color coldark = col;
+        
+        Color collight = col;
+        collight.r*=1.1;
+        collight.g*=1.1;
+        collight.b*=1.1;
+        if(collight.r>255)collight.r=255;
+        if(collight.g>255)collight.g=255;
+        if(collight.b>255)collight.b=255;
+        DrawRectangle(x,y,4,4,col);
+        for(int y1=0;y1<h;y1+=2){
+        for(int x1=1;x1<w;x1+=3){
+            coldark.a = 100+GetRandomValue(0,100);
+            DrawRectangle(x1+x,y1+y,1,1,coldark);
+        }}
+        for(int i=0;i<2;i++){
+            DrawRectangle(x+GetRandomValue(0,w),y+GetRandomValue(0,h),1,1,coldark);
+        }
+        for(int i=0;i<2;i++){
+            DrawRectangle(x+GetRandomValue(0,w),y+GetRandomValue(0,h),1,1,collight);
+        }
+    }else{
+        DrawRectangle(x,y,4,4,col);
+    }
 }
