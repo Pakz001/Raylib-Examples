@@ -12,8 +12,8 @@ enum flag2{FINDSPOT,SPIDERTURN,FOUNDSPOT};
 enum flag3{EGGSACKFULL,EGGSACKEMPTY};
 
 #define MAX_TILES 120
-#define MAX_SPIDERS 50
-#define MAX_EGGSACKS 49 //currently eggsacks needs to be 1 less than max spiders!
+#define MAX_SPIDERS 20
+#define MAX_EGGSACKS 10 //currently eggsacks needs to be 1 less than max spiders!
 
 #include "raylib.h"
 #include <math.h>
@@ -28,6 +28,7 @@ static struct tileset arr_tileset[MAX_TILES];
 
 typedef struct eggsack{
     Vector2 position;
+    bool active;
     int state;
     int width;
     int height;
@@ -49,6 +50,7 @@ typedef struct spider{
     int substate;
     Vector2 target;
     float realangle;
+    float disttarget;
     float angle;
 }spider;
 
@@ -148,10 +150,11 @@ int main(void)
     
     // add eggsacks
     int cnt=0;
-    for(int y=1;y<10;y++){
-    for(int x=1;x<11;x++){
+    for(int y=1;y<10;y+=2){
+    for(int x=1;x<11;x+=2){
         if(map[y][x]==0){
             if(cnt<MAX_EGGSACKS){                
+                arr_eggsack[cnt].active=true;
                 arr_eggsack[cnt].position = (Vector2){x*tileWidth+tileWidth/2,y*tileHeight+tileHeight/2};
                 arr_eggsack[cnt].width = tileWidth/2;
                 arr_eggsack[cnt].height = tileHeight/2;
@@ -198,7 +201,8 @@ int main(void)
         //
         //eggsack logic        
         bool egghat=false;
-        for(int i=0;i<MAX_EGGSACKS;i++){            
+        for(int i=0;i<MAX_EGGSACKS;i++){
+            if(arr_eggsack[i].active==false)continue;
             if(GetRandomValue(0,4300)==1){                
                 if(arr_eggsack[i].state==EGGSACKFULL){
                     arr_eggsack[i].state=EGGSACKEMPTY;
@@ -209,13 +213,13 @@ int main(void)
                                 if(k==j)continue;
                                 if(myspider[k].active==false)continue;                                
                                 if(egghat==false){
-                                    if(rectsoverlap(arr_eggsack[i].position.x,arr_eggsack[i].position.y,myspider[0].width,myspider[0].height,myspider[k].position.x,myspider[k].position.y,myspider[k].width,myspider[k].height)==false){
+                                    if(rectsoverlap(arr_eggsack[i].position.x-12,arr_eggsack[i].position.y-12,myspider[0].width+24,myspider[0].height+24,myspider[k].position.x-12,myspider[k].position.y-12,myspider[k].width+24,myspider[k].height+24)==false){
                                         myspider[j].active=true;
                                         myspider[j].turndirection=-2;
                                         if(GetRandomValue(0,10)<5)myspider[j].turndirection=2;
                                         myspider[j].width = tileWidth/2;
                                         myspider[j].height = tileHeight/2;
-                                        myspider[j].position = (Vector2){arr_eggsack[i].position.x,arr_eggsack[i].position.y};
+                                        myspider[j].position = (Vector2){arr_eggsack[i].position.x-8,arr_eggsack[i].position.y};
                                         myspider[j].state = 0;
                                         egghat=true;
                                     }             
@@ -230,11 +234,44 @@ int main(void)
         }
 
 
+
+
         //spider logic
         
-        // IDLE SPIDER
-        for(int i=0;i<MAX_SPIDERS;i++){
+        
+        for(int i=0;i<MAX_SPIDERS;i++){                        
             if(myspider[i].active==false)continue;
+            
+            // Keep spiders apart from each other;
+            for(int j=0;j<MAX_SPIDERS;j++){
+                if(j==i)continue;
+                if(myspider[j].active==false)continue;
+                if(rectsoverlap(    myspider[i].position.x-2,myspider[i].position.y-2,myspider[i].width+4,myspider[i].height+4,
+                                    myspider[j].position.x-2,myspider[j].position.y-2,myspider[j].width+4,myspider[j].height+4)==true){
+                    float pushangle=getangle(myspider[i].position.x,myspider[i].position.y,myspider[j].position.x,myspider[j].position.y);
+                    Vector2 oldpos = myspider[i].position;
+                    myspider[i].position.x -= cos(pushangle);
+                    myspider[i].position.y -= sin(pushangle);
+                    if(spidertilecollide(i,0,0)==true){
+                        myspider[i].position = oldpos;
+                    }
+                }
+                if(recttilecollide(myspider[i].position.x-4,myspider[i].position.y-4,myspider[i].width+8,myspider[i].height+8)){
+                    for(int z=0;z<6;z++){
+                        if(recttilecollide(myspider[i].position.x-4,myspider[i].position.y-4,myspider[i].width+8,myspider[i].height+8)){
+                        Vector2 oldpos=myspider[i].position;
+                        myspider[i].position.x+=GetRandomValue(-12,12);
+                        myspider[i].position.y+=GetRandomValue(-12,12);
+                        if(recttilecollide(myspider[i].position.x-2,myspider[i].position.y-2,myspider[i].width+4,myspider[i].height+4)==true){
+                            myspider[i].position = oldpos;
+                        }
+                        }
+                    }
+                }
+            }
+            
+            // Idle logic
+            //
             if(myspider[i].state==IDLE){
                 myspider[i].angle+=myspider[i].turndirection;            
                 myspider[i].time++;
@@ -244,6 +281,7 @@ int main(void)
                 }
                 if(GetRandomValue(0,200)==1){
                     if(myspider[i].turndirection=GetRandomValue(-2,2));
+                    if(GetRandomValue(0,10)<5)myspider[i].turndirection=0;
                 }
                 
                 if(myspider[i].frame>2)myspider[i].frame=1;
@@ -281,6 +319,7 @@ int main(void)
                     myspider[i].target.y = myplayer.position.y+myplayer.height/2;
                     float angle = getangle(myspider[i].position.x,myspider[i].position.y,myspider[i].target.x,myspider[i].target.y);
                     int distance=getdistance(myspider[i].position.x,myspider[i].position.y,myspider[i].target.x,myspider[i].target.y);    
+                    myspider[i].disttarget = distance;
                     if(distance>150){
                         newspotisgood=false;
                         myspider[i].state=IDLE;
@@ -293,6 +332,7 @@ int main(void)
                         if(recttilecollide(x1,y1,myspider[i].width,myspider[i].height)==true)
                             {
                             newspotisgood=false;
+                            myspider[i].substate=-1;
                             myspider[i].state=IDLE;                            
                             j=100;
                         }
@@ -301,6 +341,7 @@ int main(void)
                             if(i==j)continue;
                             if(rectsoverlap(x1,y1,myspider[i].width,myspider[i].height,myspider[j].position.x,myspider[j].position.y,myspider[j].width,myspider[j].height)==true) {
                                 newspotisgood=false;
+                                myspider[i].substate=-1;
                                 myspider[i].state=IDLE;                            
                                 j=100;
                             }
@@ -316,10 +357,12 @@ int main(void)
                     float angle = getangle(myspider[i].position.x,myspider[i].position.y,myspider[i].target.x,myspider[i].target.y);
                     // turn towards target                
                     float difference = angledifference((myspider[i].angle-90)/180*PI,angle);
-                    debug=difference;
+                    //debug=difference;
                     if(difference<0)myspider[i].angle-=6;
                     if(difference>0)myspider[i].angle+=6;
-                    if(difference>3)myspider[i].substate=FOUNDSPOT;
+                    if(difference>2.9)myspider[i].substate=FOUNDSPOT;
+                    if(difference==0)myspider[i].substate=FOUNDSPOT;
+                    debug = difference;
                 }
                 if(myspider[i].substate==FOUNDSPOT){
                     float angle = getangle(myspider[i].position.x,myspider[i].position.y,myspider[i].target.x,myspider[i].target.y);
@@ -329,11 +372,17 @@ int main(void)
                     // if hit other spider than stop idle
                     for(int j=0;j<MAX_SPIDERS;j++){
                         if(i==j)continue;
-                        if(rectsoverlap(myspider[i].position.x,myspider[i].position.y,myspider[i].width,myspider[i].height,myspider[j].position.x,myspider[j].position.y,myspider[j].width,myspider[j].height)==true) {
+                        if(myspider[j].active==false)continue;
+                        if(rectsoverlap(myspider[i].position.x-4,myspider[i].position.y-4,myspider[i].width+8,myspider[i].height+8,myspider[j].position.x,myspider[j].position.y,myspider[j].width,myspider[j].height)==true) {
                             myspider[i].state=IDLE;
                             myspider[i].position = oldposition;
-                            break;
+                            
                         }
+                    }
+                    if(spidertilecollide(i,0,0)==true){
+                            myspider[i].state=IDLE;
+                            myspider[i].substate=-1;
+                            myspider[i].position = oldposition;                    
                     }
                     // if spider position on player..
                     //if(rectsoverlap(myplayer.position.x,myplayer.position.y,myplayer.width,myplayer.height,myspider[i].position.x,myspider[i].position.y,myspider[i].width,myspider[i].height)==true){
@@ -361,12 +410,13 @@ int main(void)
                     float x1=myspider[i].position.x;
                     float y1=myspider[i].position.y;
                     int distance=GetRandomValue(10,150);
+                    if(GetRandomValue(0,10)<7)distance=GetRandomValue(5,20);
                     for(int j=0;j<distance;j++){
                         x1+=cos(myspider[i].angle);
                         y1+=sin(myspider[i].angle);
                         //int mx=x1/tileWidth;
                         //int my=y1/tileHeight;
-                        if(recttilecollide(x1-8,y1-8,myspider[i].width+16,myspider[i].height+16)==true ||
+                        if(recttilecollide(x1,y1,myspider[i].width,myspider[i].height)==true ||
                            rectsoverlap(myplayer.position.x,myplayer.position.y,myplayer.width,myplayer.height,x1-8,y1-8,myspider[i].width+16,myspider[i].height+16)==true) 
                             {
                             newspotisgood=false;
@@ -375,7 +425,8 @@ int main(void)
                         // if hit other spider than stop idle
                         for(int j=0;j<MAX_SPIDERS;j++){
                             if(i==j)continue;
-                            if(rectsoverlap(x1,y1,myspider[i].width,myspider[i].height,myspider[j].position.x,myspider[j].position.y,myspider[j].width,myspider[j].height)==true) {
+                            if(myspider[i].active==false)continue;
+                            if(rectsoverlap(x1-4,y1-4,myspider[i].width+8,myspider[i].height+8,myspider[j].position.x-4,myspider[j].position.y-4,myspider[j].width+8,myspider[j].height)+8==true) {
                                 newspotisgood=false;
                                 myspider[i].state=IDLE;                                                            
                             }
@@ -403,10 +454,12 @@ int main(void)
                     // if hit other spider than stop idle
                     for(int j=0;j<MAX_SPIDERS;j++){
                         if(i==j)continue;
-                        if(rectsoverlap(myspider[i].position.x,myspider[i].position.y,myspider[i].width,myspider[i].height,myspider[j].position.x,myspider[j].position.y,myspider[j].width,myspider[j].height)==true) {
+                        if(myspider[j].active==false)continue;
+                        if(rectsoverlap(myspider[i].position.x-4,myspider[i].position.y-4,myspider[i].width+8,myspider[i].height+8,myspider[j].position.x-6,myspider[j].position.y-6,myspider[j].width+12,myspider[j].height+12)==true) {
                             myspider[i].state=IDLE;
+                            myspider[i].substate=-1;
                             myspider[i].position = oldposition;
-                            break;
+                            
                         }
                     }
                     // if spider position on player..
@@ -415,7 +468,7 @@ int main(void)
                         myspider[i].position = oldposition;
                     }                        
                     // if spider reaches destination
-                    if((abs(myspider[i].target.x-myspider[i].position.x) + abs(myspider[i].target.y-myspider[i].position.y))<10)myspider[i].state=IDLE;
+                    if((abs(myspider[i].target.x-myspider[i].position.x) + abs(myspider[i].target.y-myspider[i].position.y))<2)myspider[i].state=IDLE;
                 }
             }
             
@@ -562,7 +615,13 @@ int main(void)
                                                                                 myplayer.width,myplayer.height},
                                                                                 (Vector2){0,0},0,WHITE);                  
 
-            //DrawText(FormatText("hello: %02.02f",debug),10,10,20,WHITE);
+            //if(myspider[0].active){
+            //    DrawText(FormatText("hello: %i",myspider[0].state),10,0,20,WHITE);
+            //    DrawText(FormatText("hello: %i",myspider[0].substate),10,15,20,WHITE);
+             //   DrawText(FormatText("hello: %f",myspider[0].disttarget),10,30,20,WHITE);
+            //    DrawText(FormatText("hello: %f",debug),10,45,20,WHITE);
+            //    DrawRectangle(myspider[0].target.x,myspider[0].target.y,5,5,RED);
+           // }
 
         EndDrawing();
         //----------------------------------------------------------------------------------
