@@ -122,6 +122,7 @@ int main(void)
     const int screenHeight = 450;
 
     InitWindow(screenWidth, screenHeight, "raylib example.");
+    ToggleFullscreen();
     mapWidth = 20;
     mapHeight = 10;
     tileWidth = (float)screenWidth/mapWidth;
@@ -150,7 +151,7 @@ int main(void)
     for(int y=0;y<2;y++){
     for(int x=0;x<10;x++){
         if(map[y][x]==0){
-            if(cnt<MAX_EGGSACKS){
+            if(cnt<MAX_EGGSACKS){                
                 arr_eggsack[cnt].position = (Vector2){x*tileWidth+tileWidth/2,y*tileHeight+tileHeight/2};
                 arr_eggsack[cnt].width = tileWidth/2;
                 arr_eggsack[cnt].height = tileHeight/2;
@@ -196,9 +197,9 @@ int main(void)
         //
         //
         //eggsack logic        
+        bool egghat=false;
         for(int i=0;i<MAX_EGGSACKS;i++){            
-            if(GetRandomValue(0,3400)==1){
-                bool egghat=false;
+            if(GetRandomValue(0,4300)==1){                
                 if(arr_eggsack[i].state==EGGSACKFULL){
                     arr_eggsack[i].state=EGGSACKEMPTY;
                     for(int j=0;j<MAX_SPIDERS;j++){
@@ -206,7 +207,7 @@ int main(void)
                             // first check if there is no spider on this spot.
                             for(int k=0;k<MAX_SPIDERS;k++){
                                 if(k==j)continue;
-                                if(myspider[k].active==false)continue;
+                                if(myspider[k].active==false)continue;                                
                                 if(egghat==false){
                                     if(rectsoverlap(arr_eggsack[i].position.x,arr_eggsack[i].position.y,myspider[0].width,myspider[0].height,myspider[k].position.x,myspider[k].position.y,myspider[k].width,myspider[k].height)==false){
                                         myspider[j].active=true;
@@ -217,8 +218,8 @@ int main(void)
                                         myspider[j].position = (Vector2){arr_eggsack[i].position.x,arr_eggsack[i].position.y};
                                         myspider[j].state = 0;
                                         egghat=true;
-                                    }
-                                }
+                                    }             
+                                }                                    
                             }
                             
                         }
@@ -369,15 +370,13 @@ int main(void)
                             {
                             newspotisgood=false;
                             myspider[i].state=IDLE;                            
-                            j=100;
                         }
                         // if hit other spider than stop idle
                         for(int j=0;j<MAX_SPIDERS;j++){
                             if(i==j)continue;
                             if(rectsoverlap(x1,y1,myspider[i].width,myspider[i].height,myspider[j].position.x,myspider[j].position.y,myspider[j].width,myspider[j].height)==true) {
                                 newspotisgood=false;
-                                myspider[i].state=IDLE;                            
-                                j=100;
+                                myspider[i].state=IDLE;                                                            
                             }
                         }                        
                     }
@@ -539,6 +538,8 @@ int main(void)
             //             
             // DRAW SPIDERS
             for(int i=0;i<MAX_SPIDERS;i++){
+                if(myspider[i].active==false)continue;
+                
                 if(myspider[i].frame==1){
                 DrawTexturePro(spritespider1.texture,    (Rectangle){0,0,spritespider1.texture.width,spritespider1.texture.height},
                                                         (Rectangle){myspider[i].position.x,myspider[i].position.y,
@@ -596,7 +597,7 @@ int sprite_spider1[8][8] = {
 {21,0,0,0,8,0,21,0},
 {21,0,0,0,0,21,0,21},
 {0,21,0,21,21,0,21,21},
-{0,21,21,0,21,21,0,21}};
+{0,21,+21,0,21,21,0,21}};
 
 int sprite_spider2[8][8] = {
 {21,0,21,21,0,21,21,21},
@@ -1068,10 +1069,10 @@ int sprite_101[8][8] = { //eggsack empty
                 
 
                 BeginTextureMode(arr_tileset[1].tile);    
-                if(sprite_1[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_1[x][7-y]]);
+                if(sprite_1[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_1[x][7-y]]);                
                 EndTextureMode();                
                 BeginTextureMode(arr_tileset[2].tile);    
-                if(sprite_2[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_2[x][7-y]]);
+                if(sprite_2[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_2[x][7-y]]);                
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[3].tile);    
                 if(sprite_3[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_3[x][7-y]]);
@@ -1269,6 +1270,7 @@ bool spidertilecollide(int index, int offsetx,int offsety){
 
 //Unit collide with solid blocks true/false
 bool recttilecollide(int x,int y,int w, int h){
+    if(x<0 || x+w>GetScreenWidth() || y<0 || y+h>GetScreenHeight())return true;
     int cx = (x)/tileWidth;
     int cy = (y)/tileHeight;
     for(int y2=cy-2; y2<cy+3;y2++){//Note that the - and + are to be set differently with differently sized players
