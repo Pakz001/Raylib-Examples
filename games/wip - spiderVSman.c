@@ -256,18 +256,18 @@ int main(void)
                         myspider[i].position = oldpos;
                     }
                 }
-                if(recttilecollide(myspider[i].position.x-4,myspider[i].position.y-4,myspider[i].width+8,myspider[i].height+8)){
-                    for(int z=0;z<6;z++){
-                        if(recttilecollide(myspider[i].position.x-4,myspider[i].position.y-4,myspider[i].width+8,myspider[i].height+8)){
-                        Vector2 oldpos=myspider[i].position;
-                        myspider[i].position.x+=GetRandomValue(-12,12);
-                        myspider[i].position.y+=GetRandomValue(-12,12);
-                        if(recttilecollide(myspider[i].position.x-2,myspider[i].position.y-2,myspider[i].width+4,myspider[i].height+4)==true){
-                            myspider[i].position = oldpos;
-                        }
-                        }
-                    }
-                }
+//                if(recttilecollide(myspider[i].position.x-1,myspider[i].position.y-1,myspider[i].width,myspider[i].height-2)){
+//                    for(int z=0;z<6;z++){
+//                       if(recttilecollide(myspider[i].position.x-1,myspider[i].position.y-1,myspider[i].width,myspider[i].height-2)){
+//                        Vector2 oldpos=myspider[i].position;
+//                        myspider[i].position.x+=GetRandomValue(-4,4);
+//                        myspider[i].position.y+=GetRandomValue(-4,4);
+ //                       if(recttilecollide(myspider[i].position.x-1,myspider[i].position.y-1,myspider[i].width,myspider[i].height-2)==true){
+//                            myspider[i].position = oldpos;
+//                        }
+//                        }
+//                    }
+//                }
             }
             
             // Idle logic
@@ -410,13 +410,13 @@ int main(void)
                     float x1=myspider[i].position.x;
                     float y1=myspider[i].position.y;
                     int distance=GetRandomValue(10,150);
-                    if(GetRandomValue(0,10)<7)distance=GetRandomValue(5,20);
+                    if(GetRandomValue(0,10)<2)distance=GetRandomValue(5,20);
                     for(int j=0;j<distance;j++){
                         x1+=cos(myspider[i].angle);
                         y1+=sin(myspider[i].angle);
                         //int mx=x1/tileWidth;
                         //int my=y1/tileHeight;
-                        if(recttilecollide(x1,y1,myspider[i].width,myspider[i].height)==true ||
+                        if(recttilecollide(x1-10,y1-10,myspider[i].width+5,myspider[i].height+5)==true ||
                            rectsoverlap(myplayer.position.x,myplayer.position.y,myplayer.width,myplayer.height,x1-8,y1-8,myspider[i].width+16,myspider[i].height+16)==true) 
                             {
                             newspotisgood=false;
