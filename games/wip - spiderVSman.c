@@ -445,6 +445,7 @@ int main(void)
                     if(difference<0)myspider[i].angle-=6;
                     if(difference>0)myspider[i].angle+=6;
                     if(difference>3)myspider[i].substate=FOUNDSPOT;
+                    if(difference==0)myspider[i].substate=FOUNDSPOT;
                 }
                 if(myspider[i].substate==FOUNDSPOT){
                     float angle = getangle(myspider[i].position.x,myspider[i].position.y,myspider[i].target.x,myspider[i].target.y);
