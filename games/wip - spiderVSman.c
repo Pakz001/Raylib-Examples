@@ -5,15 +5,19 @@
 // Added - spider turns towards and move to target(press mouse on screen to see this..)
 // Added - spiders! can roam and avoid the walls and stop if player gets near them.
 // Added - spiders will sprint towards player(attack!) when nearby.
+// Added - Eggsacks - spiders will hatch from spidereggs.
 
 enum flag1{IDLE,QUICKDASH,SCOUTNEWPOSITION,SEEATTACKPLAYER};
 enum flag2{FINDSPOT,SPIDERTURN,FOUNDSPOT};
+enum flag3{EGGSACKFULL,EGGSACKEMPTY};
 
-#define MAX_TILES 100
+#define MAX_TILES 120
 #define MAX_SPIDERS 12
+#define MAX_EGGSACKS 10
 
 #include "raylib.h"
 #include <math.h>
+
 
 typedef struct tileset{
     int frame;
@@ -22,12 +26,23 @@ typedef struct tileset{
 
 static struct tileset arr_tileset[MAX_TILES];
 
+typedef struct eggsack{
+    Vector2 position;
+    int state;
+    int width;
+    int height;
+}eggsack;
+
+static struct eggsack arr_eggsack[MAX_EGGSACKS];
+
 typedef struct spider{
+    bool active;
     Vector2 position;
     int frame;
     int time;
     float width;
-    float height;  
+    float height; 
+    float turndirection;
                 // state 0 IDLE = turn around(idle)
     int state;  // state 99 QUICKDASH = Quick turn to target and sprint towards target
                 // state 199 FINDSPOT = check ahead and see if new destination can be found (roam slowly)
@@ -81,6 +96,8 @@ static	Color db32color[32];// ' our colors
 static RenderTexture2D spritespider1; 
 static RenderTexture2D spritespider2; 
 static RenderTexture2D spriteplayer; 
+static RenderTexture2D spriteeggsackfull; 
+static RenderTexture2D spriteeggsackempty; 
 
 
 static void inidb32colors(void);		
@@ -112,6 +129,8 @@ int main(void)
     spritespider1=LoadRenderTexture(32,32); 
     spritespider2=LoadRenderTexture(32,32); 
     spriteplayer=LoadRenderTexture(32,32); 
+    spriteeggsackempty=LoadRenderTexture(32,32); 
+    spriteeggsackfull=LoadRenderTexture(32,32); 
     myplayer.frame[0] = LoadRenderTexture(32,32); 
     myplayer.frame[1] = LoadRenderTexture(32,32); 
     myplayer.frame[2] = LoadRenderTexture(32,32); 
@@ -126,6 +145,21 @@ int main(void)
 
     maketilemap();
     
+    // add eggsacks
+    int cnt=0;
+    for(int y=0;y<2;y++){
+    for(int x=0;x<10;x++){
+        if(map[y][x]==0){
+            if(cnt<MAX_EGGSACKS){
+                arr_eggsack[cnt].position = (Vector2){x*tileWidth+tileWidth/2,y*tileHeight+tileHeight/2};
+                arr_eggsack[cnt].width = tileWidth/2;
+                arr_eggsack[cnt].height = tileHeight/2;
+                arr_eggsack[cnt].state = EGGSACKFULL;
+            }
+            cnt++;
+        }
+    }}
+    
     // Our player setup
     myplayer.position = (Vector2){352,140};
     myplayer.width = tileWidth/2;
@@ -136,7 +170,10 @@ int main(void)
     myplayer.framewalkend = 2;
     myplayer.framewalkdelay = 5;
     myplayer.idle = true;
-    for(int i=0;i<MAX_SPIDERS;i++){
+    for(int i=0;i<MAX_SPIDERS-MAX_EGGSACKS;i++){
+        myspider[i].active=true;
+        myspider[i].turndirection=-2;
+        if(GetRandomValue(0,10)<5)myspider[i].turndirection=2;
         myspider[i].width = tileWidth/2;
         myspider[i].height = tileHeight/2;
         myspider[i].position = (Vector2){220+tileWidth/2+i*32,180};
@@ -155,19 +192,62 @@ int main(void)
     {
         // Update
         //----------------------------------------------------------------------------------
-        
+
+        //
+        //
+        //eggsack logic        
+        for(int i=0;i<MAX_EGGSACKS;i++){            
+            if(GetRandomValue(0,3400)==1){
+                bool egghat=false;
+                if(arr_eggsack[i].state==EGGSACKFULL){
+                    arr_eggsack[i].state=EGGSACKEMPTY;
+                    for(int j=0;j<MAX_SPIDERS;j++){
+                        if(myspider[j].active==false){
+                            // first check if there is no spider on this spot.
+                            for(int k=0;k<MAX_SPIDERS;k++){
+                                if(k==j)continue;
+                                if(myspider[k].active==false)continue;
+                                if(egghat==false){
+                                    if(rectsoverlap(arr_eggsack[i].position.x,arr_eggsack[i].position.y,myspider[0].width,myspider[0].height,myspider[k].position.x,myspider[k].position.y,myspider[k].width,myspider[k].height)==false){
+                                        myspider[j].active=true;
+                                        myspider[j].turndirection=-2;
+                                        if(GetRandomValue(0,10)<5)myspider[j].turndirection=2;
+                                        myspider[j].width = tileWidth/2;
+                                        myspider[j].height = tileHeight/2;
+                                        myspider[j].position = (Vector2){arr_eggsack[i].position.x,arr_eggsack[i].position.y};
+                                        myspider[j].state = 0;
+                                        egghat=true;
+                                    }
+                                }
+                            }
+                            
+                        }
+                            
+                    }
+                }
+            }
+        }
+
 
         //spider logic
+        
+        // IDLE SPIDER
         for(int i=0;i<MAX_SPIDERS;i++){
+            if(myspider[i].active==false)continue;
             if(myspider[i].state==IDLE){
-                myspider[i].angle+=2;            
+                myspider[i].angle+=myspider[i].turndirection;            
                 myspider[i].time++;
                 if(myspider[i].time>20){
                     myspider[i].frame++;
                     myspider[i].time=0;
                 }
+                if(GetRandomValue(0,200)==1){
+                    if(myspider[i].turndirection=GetRandomValue(-2,2));
+                }
+                
                 if(myspider[i].frame>2)myspider[i].frame=1;
                 if(myspider[i].angle>360)myspider[i].angle=0;
+                if(myspider[i].angle<0)myspider[i].angle=359;
                 
                 if(GetRandomValue(0,50)==1){
                     myspider[i].state=SCOUTNEWPOSITION;
@@ -438,7 +518,26 @@ int main(void)
 
 
                 }
-            }            
+            }
+            // DRAW EGGSACKS
+            for(int i=0;i<MAX_EGGSACKS;i++){
+                if(arr_eggsack[i].state==EGGSACKFULL){
+                    DrawTexturePro(spriteeggsackfull.texture,       (Rectangle){0,0,spriteeggsackfull.texture.width,spriteeggsackfull.texture.height},
+                                                                    (Rectangle){arr_eggsack[i].position.x,arr_eggsack[i].position.y,
+                                                                    arr_eggsack[i].width,arr_eggsack[i].height},
+                                                                    (Vector2){arr_eggsack[i].width/2,arr_eggsack[i].height/1.5},0,WHITE);                  
+
+                }
+                if(arr_eggsack[i].state==EGGSACKEMPTY){
+                    DrawTexturePro(spriteeggsackempty.texture,       (Rectangle){0,0,spriteeggsackempty.texture.width,spriteeggsackempty.texture.height},
+                                                                    (Rectangle){arr_eggsack[i].position.x,arr_eggsack[i].position.y,
+                                                                    arr_eggsack[i].width,arr_eggsack[i].height},
+                                                                    (Vector2){arr_eggsack[i].width/2,arr_eggsack[i].height/1.5},0,WHITE);                  
+
+                }
+            }
+            //             
+            // DRAW SPIDERS
             for(int i=0;i<MAX_SPIDERS;i++){
                 if(myspider[i].frame==1){
                 DrawTexturePro(spritespider1.texture,    (Rectangle){0,0,spritespider1.texture.width,spritespider1.texture.height},
@@ -453,14 +552,15 @@ int main(void)
                                                         (Vector2){myspider[i].width/2,myspider[i].height/1.5},myspider[i].angle,WHITE);                  
                 }
             }
+            
             int zztop = myplayer.frame[myplayer.frameposition].texture.width;
             if(myplayer.hdirection==-1)zztop=-zztop;
-            DrawTexturePro(myplayer.frame[myplayer.frameposition].texture,    (Rectangle){0,0,zztop,myplayer.frame[0].texture.height},
-                                                    (Rectangle){myplayer.position.x,myplayer.position.y,
-                                                    myplayer.width,myplayer.height},
-                                                    (Vector2){0,0},0,WHITE);                  
+            DrawTexturePro(myplayer.frame[myplayer.frameposition].texture,      (Rectangle){0,0,zztop,myplayer.frame[0].texture.height},
+                                                                                (Rectangle){myplayer.position.x,myplayer.position.y,
+                                                                                myplayer.width,myplayer.height},
+                                                                                (Vector2){0,0},0,WHITE);                  
 
-            DrawText(FormatText("hello: %02.02f",debug),10,10,20,WHITE);
+            //DrawText(FormatText("hello: %02.02f",debug),10,10,20,WHITE);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -471,6 +571,8 @@ int main(void)
     UnloadRenderTexture(spritespider1); 
     UnloadRenderTexture(spritespider2); 
     UnloadRenderTexture(spriteplayer); 
+    UnloadRenderTexture(spriteeggsackempty);
+    UnloadRenderTexture(spriteeggsackfull);
     for(int i=0;i<MAX_TILES;i++){
         UnloadRenderTexture(arr_tileset[i].tile); 
     }
@@ -909,6 +1011,27 @@ int sprite_65[8][8] = {
 {1,1,1,1,1,1,1,0},
 {0,0,0,0,0,0,0,0}};
 
+int sprite_100[8][8] = { //eggsack full
+{14,14,14,0,0,3,0,14},
+{14,14,0,3,4,4,3,0},
+{14,0,4,4,6,6,4,0},
+{4,4,3,4,7,6,6,0},
+{7,7,4,6,6,4,6,3},
+{14,4,7,6,4,6,6,4},
+{14,14,0,7,7,7,7,0},
+{14,14,14,0,6,6,0,14}};
+
+
+int sprite_101[8][8] = { //eggsack empty
+{14,14,14,14,0,3,0,14},
+{14,14,14,14,0,4,3,0},
+{14,14,14,14,14,0,4,0},
+{14,14,14,14,14,0,6,0},
+{14,14,14,14,14,0,6,3},
+{14,14,14,14,14,0,6,4},
+{14,14,14,14,0,7,7,0},
+{14,14,14,14,0,0,0,14}};
+
 
     for(int i=0;i<MAX_TILES;i++){
         BeginTextureMode(arr_tileset[i].tile);    
@@ -1056,6 +1179,13 @@ int sprite_65[8][8] = {
                 EndTextureMode();
                 BeginTextureMode(arr_tileset[65].tile);    
                 if(sprite_65[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_65[x][7-y]]);
+                EndTextureMode();
+
+                BeginTextureMode(spriteeggsackfull);    
+                if(sprite_100[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_100[x][7-y]]);
+                EndTextureMode();
+                BeginTextureMode(spriteeggsackempty);    
+                if(sprite_101[x][7-y]!=21)DrawRectangle(x*4,y*4,4,4,db32color[sprite_101[x][7-y]]);
                 EndTextureMode();
 
 
@@ -1345,7 +1475,7 @@ static void maketilemap(void){
         }
     }
 
-
+ 
 }
 
 // Return the angle from - to in float
