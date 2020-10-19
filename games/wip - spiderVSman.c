@@ -12,8 +12,8 @@ enum flag2{FINDSPOT,SPIDERTURN,FOUNDSPOT};
 enum flag3{EGGSACKFULL,EGGSACKEMPTY};
 
 #define MAX_TILES 120
-#define MAX_SPIDERS 20
-#define MAX_EGGSACKS 10 //currently eggsacks needs to be 1 less than max spiders!
+#define MAX_SPIDERS 1
+#define MAX_EGGSACKS 0 //currently eggsacks needs to be 1 less than max spiders!
 
 #include "raylib.h"
 #include <math.h>
@@ -504,8 +504,8 @@ int main(void)
             }
         }
         if(IsMouseButtonPressed(0)){
-            myspider[0].target = GetMousePosition();
-            myspider[0].state = 99;
+            //myspider[0].target = GetMousePosition();
+            //myspider[0].state = 99;
         }
         
         myplayer.idle = true;
@@ -619,10 +619,10 @@ int main(void)
             //if(myspider[0].active){
             //    DrawText(FormatText("hello: %i",myspider[0].state),10,0,20,WHITE);
             //    DrawText(FormatText("hello: %i",myspider[0].substate),10,15,20,WHITE);
-             //   DrawText(FormatText("hello: %f",myspider[0].disttarget),10,30,20,WHITE);
+            //    DrawText(FormatText("hello: %f",myspider[0].disttarget),10,30,20,WHITE);
             //    DrawText(FormatText("hello: %f",debug),10,45,20,WHITE);
-            //    DrawRectangle(myspider[0].target.x,myspider[0].target.y,5,5,RED);
-           // }
+            //   DrawRectangle(myspider[0].target.x,myspider[0].target.y,5,5,RED);
+            //}
 
         EndDrawing();
         //----------------------------------------------------------------------------------
