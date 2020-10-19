@@ -12,8 +12,8 @@ enum flag2{FINDSPOT,SPIDERTURN,FOUNDSPOT};
 enum flag3{EGGSACKFULL,EGGSACKEMPTY};
 
 #define MAX_TILES 120
-#define MAX_SPIDERS 1
-#define MAX_EGGSACKS 0 //currently eggsacks needs to be 1 less than max spiders!
+#define MAX_SPIDERS 20
+#define MAX_EGGSACKS 15 //currently eggsacks needs to be 1 less than max spiders!
 
 #include "raylib.h"
 #include <math.h>
