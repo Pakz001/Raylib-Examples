@@ -283,8 +283,9 @@ int main(void)
                     int distance=getdistance(myspider[i].position.x,myspider[i].position.y,myspider[i].target.x,myspider[i].target.y);    
                     if(distance>150){
                         newspotisgood=false;
-                        myspider[i].state=IDLE;                            
-                        goto skipsap;
+                        myspider[i].state=IDLE;
+                        myspider[i].substate=-1;
+                        distance=0;
                     }
                     for(int j=0;j<distance;j++){
                         x1+=cos(angle);
@@ -305,7 +306,7 @@ int main(void)
                             }
                         }                        
                     }
-                    skipsap:
+                    
                     if(newspotisgood){
                         myspider[i].target = (Vector2){x1,y1};
                         myspider[i].substate = SPIDERTURN;
