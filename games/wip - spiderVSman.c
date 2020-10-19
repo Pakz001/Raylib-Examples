@@ -122,7 +122,7 @@ int main(void)
     const int screenHeight = 450;
 
     InitWindow(screenWidth, screenHeight, "raylib example.");
-    ToggleFullscreen();
+    //ToggleFullscreen();
     mapWidth = 20;
     mapHeight = 10;
     tileWidth = (float)screenWidth/mapWidth;
