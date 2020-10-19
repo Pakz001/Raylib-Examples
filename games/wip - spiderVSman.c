@@ -12,8 +12,8 @@ enum flag2{FINDSPOT,SPIDERTURN,FOUNDSPOT};
 enum flag3{EGGSACKFULL,EGGSACKEMPTY};
 
 #define MAX_TILES 120
-#define MAX_SPIDERS 12
-#define MAX_EGGSACKS 10
+#define MAX_SPIDERS 36
+#define MAX_EGGSACKS 35
 
 #include "raylib.h"
 #include <math.h>
@@ -148,8 +148,8 @@ int main(void)
     
     // add eggsacks
     int cnt=0;
-    for(int y=0;y<2;y++){
-    for(int x=0;x<10;x++){
+    for(int y=1;y<10;y++){
+    for(int x=1;x<11;x++){
         if(map[y][x]==0){
             if(cnt<MAX_EGGSACKS){                
                 arr_eggsack[cnt].position = (Vector2){x*tileWidth+tileWidth/2,y*tileHeight+tileHeight/2};
@@ -1271,7 +1271,7 @@ bool spidertilecollide(int index, int offsetx,int offsety){
 
 //Unit collide with solid blocks true/false
 bool recttilecollide(int x,int y,int w, int h){
-    if(x<0 || x+w>GetScreenWidth() || y<0 || y+h>GetScreenHeight())return true;
+    
     int cx = (x)/tileWidth;
     int cy = (y)/tileHeight;
     for(int y2=cy-2; y2<cy+3;y2++){//Note that the - and + are to be set differently with differently sized players
