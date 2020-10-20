@@ -7,7 +7,7 @@
 // Around the start position use a for loop(s) with x and y and grow the edges that touch with
 // walkable area. Each loop itteration we use a larger area to loop from(optimalisation!)
 //
-
+// We start at the start position and stop when we reach a end position - not a real flood fil here but more usefull for checking walkability.
 
 #include "raylib.h"
 #include <math.h>
