@@ -36,3 +36,5 @@ The pico8 inspired sprite and map editor in the spriteeditor folder exports the 
 
 <br><br>
 My other hobby : https://soundcloud.com/pakz001
+<br>
+https://pixelart001.blogspot.com/
