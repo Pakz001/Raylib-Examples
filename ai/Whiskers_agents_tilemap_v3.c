@@ -12,6 +12,9 @@
 // There now is a velocity for different speeds.
 // The alignment is not tweaked. I seem to keep forgetting if the circle is drawn center of left top ??
 
+//
+// I used a less efficient method to check collision. I need to create a line vs rectangle collision routine.
+
 #include "raylib.h"
 #include <math.h>
 
