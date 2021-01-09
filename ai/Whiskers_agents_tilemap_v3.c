@@ -19,7 +19,7 @@
 #include <math.h>
 
 #define MAX_CARS 20
-#define MAX_WHISKERS 8
+#define MAX_WHISKERS 16
 
    
 int myMap[10][11] =  {  {1,1,1,1,1,1,1,1,1,1,1},
