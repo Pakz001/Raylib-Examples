@@ -9,7 +9,8 @@
 //
 // This is the third version where I added a check to try to avoid other cars. Seems to get messy here.
 // 
-
+// There now is a velocity for different speeds.
+// The alignment is not tweaked. I seem to keep forgetting if the circle is drawn center of left top ??
 
 #include "raylib.h"
 #include <math.h>
@@ -83,6 +84,7 @@ int main(void)
             ny = GetRandomValue(50,screenHeight-50);
             if(pointtilecollide(nx,ny,0,0)==false)z=true;
         }
+        arr_car[i].velocity = GetRandomValue(1,3);
         arr_car[i].x = nx;
         arr_car[i].y = ny;
         arr_car[i].r = tileWidth/8;
@@ -149,8 +151,8 @@ int main(void)
                 }
                 if(arr_car[i].interest[num]==0){
                     if(pointtilecollide(arr_car[i].x,arr_car[i].y,cos(num*angleStep)*9,sin(num*angleStep)*9)==false){
-                        arr_car[i].x += cos(num*angleStep)*3;
-                        arr_car[i].y += sin(num*angleStep)*3;
+                        arr_car[i].x += cos(num*angleStep)*arr_car[i].velocity;
+                        arr_car[i].y += sin(num*angleStep)*arr_car[i].velocity;
                         arr_car[i].last = num;
                         chosen=true;
                     }else{
