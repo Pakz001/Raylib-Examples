@@ -8,8 +8,12 @@
 
 //
 // Here I addded a trail. somewhere in the trial I check if the whiskers touch this spot and block that whisker than
-// from being selected for a new direction. 
-//
+// from being selected for a new direction. The trail are two arrays of a x and y integer. The top position
+// is filled with the current ai's position. Before this is inserted the array is shifted down, this so the
+// path history is saved.
+// This current version is not tweaked into taking into account different movement speeds. This because if
+// the ai moves faster/slower it means the collision with the whiskers and the collision point would be
+// in a diffent spot(break)
 //
 
 //
