@@ -32,6 +32,16 @@ int mapHeight = 10;
 float tileWidth;
 float tileHeight;
 
+typedef struct player{
+    bool active;
+    Vector2 position;    
+    int direction; // -1 left, 2 - right
+    int w;
+    int h;
+}player;
+
+static player myplayer = {0};
+
 static struct slidelaser{
     bool active;
     int state;
@@ -71,14 +81,19 @@ int main(void)
     int time=0;
     Color collisionColor = GREEN;
     
-    arr_slidelaser[0].active = true;
+    arr_slidelaser[0].active = false;
     arr_slidelaser[0].state = 0;
     arr_slidelaser[0].position = (Vector2){160,530};
-    arr_slidelaser[0].w = 20;
+    arr_slidelaser[0].w = 16;
     arr_slidelaser[0].h = 10;
     arr_slidelaser[0].inc.x = 3;
     arr_slidelaser[0].incdec.x = 0.02;
     
+    myplayer.active = true;
+    myplayer.w = 16;
+    myplayer.h = 24;
+    myplayer.position = (Vector2){100,516};
+    myplayer.direction = 2;
     
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
@@ -103,13 +118,13 @@ int main(void)
             if(arr_slidelaser[i].active==false)continue;
             if(arr_slidelaser[i].state==0){
                 arr_slidelaser[i].inc.x-=arr_slidelaser[i].incdec.x;
-                if(arr_slidelaser[i].inc.x>-0.2 && arr_slidelaser[i].inc.x<0.2){
-                    arr_slidelaser[i].state = 2;
+                if((arr_slidelaser[i].inc.x>-0.2 && arr_slidelaser[i].inc.x<0.2) || recttilecollide(arr_slidelaser[i].position.x,arr_slidelaser[i].position.y,arr_slidelaser[i].w,arr_slidelaser[i].h,0,0)){
+                    arr_slidelaser[i].state = 1;
                     arr_slidelaser[i].inc.x = 0;                    
                     // find ceiling(top of the laser beam;)
                     int ceilingloc;
                     for(int y=arr_slidelaser[i].position.y;y>0;y--){
-                        if(recttilecollide(arr_slidelaser[i].position.x,y,1,1,0,0)){
+                        if(recttilecollide(arr_slidelaser[i].position.x+4,y,1,1,0,0)){
                             ceilingloc=y+1;
                             break;
                         }
@@ -122,6 +137,37 @@ int main(void)
             
         }
 
+
+        // Update the player..
+        if(myplayer.active==true){
+            Vector2 oldpos = myplayer.position;
+            int fast=1;
+            if(IsKeyDown(KEY_LEFT_SHIFT)){
+                fast++;
+            }
+            if(IsKeyDown(KEY_RIGHT)){
+                myplayer.position.x += fast;
+                myplayer.direction = 2;
+            }
+            if(IsKeyDown(KEY_LEFT)){
+                myplayer.position.x -= fast;
+                myplayer.direction = 1;
+            }
+            if(recttilecollide(myplayer.position.x,myplayer.position.y,myplayer.w,myplayer.h,0,0)){
+                myplayer.position = oldpos;
+            }
+            if(IsKeyPressed(KEY_Z) && arr_slidelaser[0].active==false){ // Slide the laser weapon
+                arr_slidelaser[0].active = true;
+                arr_slidelaser[0].state = 0;
+                arr_slidelaser[0].position.x = myplayer.position.x;
+                arr_slidelaser[0].position.y = myplayer.position.y+arr_slidelaser[0].h+4;
+                if(myplayer.direction==1){
+                    arr_slidelaser[0].inc.x = -2*fast;
+                }else{
+                    arr_slidelaser[0].inc.x = 1.5f*fast;
+                }
+            }
+        }
         
         //----------------------------------------------------------------------------------
         // Draw
@@ -143,15 +189,25 @@ int main(void)
             }
             
             DrawRectangle(position.x,position.y,tileWidth/2,tileHeight/2,collisionColor);
-            
+          
+
+            // draw the player
+            if(myplayer.active==true){
+                DrawRectangle(myplayer.position.x,myplayer.position.y,myplayer.w,myplayer.h,RED);
+            }
+          
             // Draw the slidelasers
             for(int i=0;i<MAX_SLIDEBOMBS;i++){
                 if(arr_slidelaser[i].active==false)continue;                
                 DrawRectangle(arr_slidelaser[i].position.x,arr_slidelaser[i].position.y,arr_slidelaser[i].w,arr_slidelaser[i].h,GRAY);
-                if(arr_slidelaser[i].state==2){
+                if(arr_slidelaser[i].state==1){
                     DrawRectangle(arr_slidelaser[i].position.x+3,arr_slidelaser[i].ceilingloc,arr_slidelaser[i].w-6,arr_slidelaser[i].position.y-arr_slidelaser[i].ceilingloc,YELLOW);
                 }
             }
+            
+            // some screen info
+            DrawText("Cursor Left and Right. Left Shift = Run. Z key is slide laser weapon.",2,2,22,BLACK);
+
 
         EndDrawing();
         //----------------------------------------------------------------------------------
