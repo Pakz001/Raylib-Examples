@@ -198,13 +198,14 @@ int main(void)
                 arr_effect[i].position.x += arr_effect[i].inc.x;
                 arr_effect[i].position.y += arr_effect[i].inc.y;
                 
-                if(recttilecollide(arr_effect[i].position.x,arr_effect[i].position.y,1,1,0,-1)){
+                if(recttilecollide(arr_effect[i].position.x,arr_effect[i].position.y,1,32,0,-1)){
                     arr_effect[i].inc.y=-arr_effect[i].inc.y/4;
                 }
-                if(recttilecollide(arr_effect[i].position.x,arr_effect[i].position.y,1,1,0,0)){
-                    arr_effect[i].inc.x=-arr_effect[i].inc.x/4;
+                if(recttilecollide(arr_effect[i].position.x,arr_effect[i].position.y,1,6,0,0)){
+                    arr_effect[i].inc.x/=2;
                     arr_effect[i].position = oldpos;
                 }
+                
 
             }
         }
@@ -278,7 +279,7 @@ int main(void)
             if(arr_slidelaser[i].state==1){
                 if(arr_slidelaser[i].active==true){
                     if(rectsoverlap(arr_slidelaser[i].position.x,0,arr_slidelaser[i].w,10,arr_ceilturret[0].position.x-arr_ceilturret[0].w,0,arr_ceilturret[0].w*2,10)){
-                    if(arr_ceilturret[0].active)createeffect(arr_ceilturret[i].position.x,arr_ceilturret[i].position.y+tileHeight/2);
+                    if(arr_ceilturret[0].active)createeffect(arr_ceilturret[i].position.x,arr_ceilturret[i].position.y+tileHeight/4);
                     arr_ceilturret[0].active=false;
                     
                     }
@@ -442,14 +443,18 @@ void createeffect(int posx, int posy){
         arr_effect[i].w = 16;
         arr_effect[i].h = 16;
         arr_effect[i].inc.x = GetRandomValue(-1,1);
-        arr_effect[i].inc.y = GetRandomValue(-10,-5);
-        arr_effect[i].incmod.x = (float)(GetRandomValue(0,100)/2500.0f);
-        arr_effect[i].incmod.y = (float)(GetRandomValue(0,100)/1000.0f)+0.2f;
+        arr_effect[i].inc.y = GetRandomValue(-5,-2);
+        arr_effect[i].incmod.x = (float)(GetRandomValue(0,100)/3500.0f);
+        arr_effect[i].incmod.y = (float)(GetRandomValue(0,100)/1000.0f)+0.1f;
         if(GetRandomValue(0,8)==1){
             arr_effect[i].incmod.x*=5;
             arr_effect[i].inc.y*=1.5;
         }
-        arr_effect[i].countdown = GetRandomValue(50,120);
+        if(GetRandomValue(0,8)==1){
+            arr_effect[i].incmod.x*=5;
+            arr_effect[i].inc.y/=2;
+        }
+        arr_effect[i].countdown = GetRandomValue(30,70);
         cnt++;
     }
 }
