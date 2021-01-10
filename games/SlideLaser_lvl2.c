@@ -16,6 +16,7 @@
 #define MAX_CEILTURRETS 10
 #define MAX_BULLETS 64   
 #define MAX_EFFECT 1000
+#define MAX_ELEVATORS 100
    
 int myMap[33][11] =  {  
                         {1,1,1,1,1,1,1,1,1,1,1},
@@ -36,14 +37,14 @@ int myMap[33][11] =  {
                         {1,0,1,0,0,0,1,1,1,1,1},
                         {1,0,0,0,0,0,1,1,1,1,1},
                         {1,0,0,0,0,0,0,0,0,0,1},
-                        {1,1,1,1,1,1,1,1,0,0,1},
+                        {1,3,1,1,1,1,1,1,0,0,1},
                         {1,1,1,1,1,1,1,1,0,0,1},
                         {1,1,1,0,2,0,0,1,0,0,1},
                         {1,1,1,0,0,0,0,1,0,0,1},
                         {1,1,1,0,0,0,0,1,0,0,1},
                         {1,1,1,0,0,0,0,1,0,0,1},
                         {1,0,0,0,0,0,0,0,0,0,1},
-                        {1,1,1,1,1,1,1,1,1,1,1},
+                        {1,1,1,1,1,1,1,1,3,3,1},
                         {1,1,1,1,1,1,1,1,1,1,1},
                         {1,1,1,1,1,1,1,1,1,1,1},
                         {1,1,1,1,1,1,1,1,1,1,1},
@@ -64,12 +65,25 @@ typedef struct player{
     bool active;
     Vector2 position;    
     int direction; // -1 left, 2 - right
+    int state; //state 1=elevator(freeze)
     int w;
     int h;
     int numslidelasers;
 }player;
 
 static player myplayer = {0};
+
+static struct elevator{
+    bool active;
+    int state;//0=nothing//1=goingup
+    Vector2 position;
+    int floorloc;
+    int ceilingloc;
+    int w;
+    int h;
+}elevator;
+
+static struct elevator arr_elevator[MAX_ELEVATORS];
 
 static struct effect2{
     bool active;
@@ -78,6 +92,7 @@ static struct effect2{
     int radius;
     int countdown;
 }effect2;
+
 static struct effect2 arr_effect2[MAX_EFFECT];
 
 static struct effect{
@@ -166,9 +181,10 @@ int main(void)
     myplayer.active = true;
     myplayer.w = 16;
     myplayer.h = 24;
-    myplayer.position = (Vector2){100,336};
+    myplayer.position = (Vector2){600,336};
     myplayer.direction = 2;
     
+    //create the ceiling turrets
     int ceilcount=0;
     for(int y=0;y<mapHeight;y++){
     for(int x=0;x<mapWidth;x++){
@@ -183,11 +199,90 @@ int main(void)
         }
     }}
     
+    // create the elevators
+    // design notes : find spot 3 on map and find width.
+    // find the ceiling
+    int numelevator=0;
+    for(int y=0;y<mapHeight;y++){
+    for(int x=0;x<mapWidth;x++){
+        
+        if(myMap[y][x]==3){//elevator here
+            //myMap[y][x]=1;
+            //find width            
+            int elevatorwidth=0;
+            int pos=x;
+            while(myMap[y][pos]==3){
+                myMap[y][pos]=1;
+                elevatorwidth++;
+                pos++;
+            }           
+            
+            // find ceiling
+            int ax = x;
+            int ay = y-1;
+            int top=0;
+            while(myMap[ay][ax]==0){
+                ay--;
+                top++;
+            }
+            top--;
+            arr_elevator[numelevator].ceilingloc=(y*tileHeight+mapy)-top*tileHeight;
+            arr_elevator[numelevator].active=true;
+            arr_elevator[numelevator].w = tileWidth*elevatorwidth;
+            arr_elevator[numelevator].h = tileHeight;
+            arr_elevator[numelevator].position.y = y*tileHeight+mapy;
+            arr_elevator[numelevator].floorloc = y*tileHeight+mapy;
+            arr_elevator[numelevator].position.x = x*tileWidth;
+            numelevator++;
+            //x+=elevatorwidth;
+        }
+    }}    
+    
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
+        
+        // update the elevators
+        for(int i=0;i<MAX_ELEVATORS;i++){
+            if(arr_elevator[i].active==false)continue;
+            // Elevator doing nothing
+            if(arr_elevator[i].state==0){
+                if(rectsoverlap(myplayer.position.x,myplayer.position.y,myplayer.w,myplayer.h+2,
+                                arr_elevator[i].position.x,arr_elevator[i].position.y,arr_elevator[i].w,arr_elevator[i].h)){
+                    if(IsKeyDown(KEY_SPACE) && arr_elevator[i].position.y!=arr_elevator[i].ceilingloc){
+                        myplayer.state=1;
+                        arr_elevator[i].state=1;
+                    }
+                    if(IsKeyDown(KEY_SPACE) && arr_elevator[i].position.y==arr_elevator[i].ceilingloc){
+                        myplayer.state=1;
+                        arr_elevator[i].state=2;
+                    }
+                }
+            }
+            // Elevator going up
+            if(arr_elevator[i].state==1){
+                arr_elevator[i].position.y-=2;
+                updateentities(0,2);
+                mapy+=2;
+                if(arr_elevator[i].position.y==arr_elevator[i].ceilingloc){
+                    arr_elevator[i].state=0;
+                    myplayer.state=0;
+                }
+            }
+            // Elevator going down
+            if(arr_elevator[i].state==2){
+                arr_elevator[i].position.y+=2;
+                updateentities(0,-2);
+                mapy-=2;
+                if(arr_elevator[i].position.y==arr_elevator[i].floorloc){
+                    arr_elevator[i].state=0;
+                    myplayer.state=0;
+                }
+            }
+
+        }
         
         // update the effect 2
         for(int i=0;i<MAX_EFFECT;i++){
@@ -314,7 +409,7 @@ int main(void)
 
 
         // Update the player..
-        if(myplayer.active==true){
+        if(myplayer.active==true && myplayer.state==0){
             Vector2 oldpos = myplayer.position;
             int fast=1;
             if(IsKeyDown(KEY_LEFT_SHIFT)){
@@ -418,6 +513,13 @@ int main(void)
                 }
             }
             
+            // Draw the elevators
+            for(int i=0;i<MAX_ELEVATORS;i++){
+                if(arr_elevator[i].active==false)continue;
+                DrawRectangle(arr_elevator[i].position.x,arr_elevator[i].position.y,arr_elevator[i].w,arr_elevator[i].h,DARKGRAY);
+            }
+            
+            
             // Draw the bullets
             for(int i=0;i<MAX_BULLETS;i++){
                 if(arr_bullet[i].active==false)continue;
@@ -479,6 +581,12 @@ void updateentities(int x, int y){
         if(arr_slidelaser[i].active==false)continue;
         arr_slidelaser[i].position.y+=y;
         arr_slidelaser[i].ceilingloc+=y;
+    }
+   for(int i=0;i<MAX_ELEVATORS;i++){
+        if(arr_elevator[i].active==false)continue;
+        arr_elevator[i].position.y+=y;
+        arr_elevator[i].ceilingloc+=y;
+        arr_elevator[i].floorloc+=y;
     }
 
 
