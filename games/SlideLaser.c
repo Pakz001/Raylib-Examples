@@ -445,7 +445,7 @@ void createeffect(int posx, int posy){
         arr_effect[i].inc.x = GetRandomValue(-1,1);
         arr_effect[i].inc.y = GetRandomValue(-5,-2);
         arr_effect[i].incmod.x = (float)(GetRandomValue(0,100)/3500.0f);
-        arr_effect[i].incmod.y = (float)(GetRandomValue(0,100)/1000.0f)+0.1f;
+        arr_effect[i].incmod.y = (float)(GetRandomValue(0,100)/1000.0f);//+0.1f;
         if(GetRandomValue(0,8)==1){
             arr_effect[i].incmod.x*=5;
             arr_effect[i].inc.y*=1.5;
