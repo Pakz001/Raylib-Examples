@@ -17,7 +17,13 @@
 #define MAX_BULLETS 64   
 #define MAX_EFFECT 1000
    
-int myMap[20][11] =  {  
+int myMap[26][11] =  {  
+                        {1,1,1,1,1,1,1,1,1,1,1},
+                        {1,1,1,1,1,1,1,1,1,1,1},
+                        {1,1,1,1,1,1,1,1,1,1,1},
+                        {1,1,1,1,1,1,1,1,1,1,1},
+                        {1,1,1,1,1,1,1,1,1,1,1},
+                        {1,1,1,1,1,1,1,1,1,1,1},
                         {1,1,1,1,1,1,1,1,1,1,1},
                         {1,1,1,1,0,0,0,2,0,0,1},
                         {1,1,1,1,0,0,0,0,0,0,1},
@@ -42,7 +48,7 @@ int myMap[20][11] =  {
 int mapy;
 int mapx;
 int mapWidth = 11;
-int mapHeight = 20;
+int mapHeight = 26;
 float tileWidth;
 float tileHeight;
 
@@ -133,8 +139,8 @@ int main(void)
     screenWidth = 800;
     screenHeight = 600;
     tileWidth = ceil((float)(float)screenWidth/(float)mapWidth);
-    tileHeight = ceil((float)screenHeight/(float)(mapHeight/2));
-    mapy=-tileHeight*10;
+    tileHeight = ceil((float)screenHeight/(float)(10));
+    mapy=-tileHeight*16;
     InitWindow(screenWidth, screenHeight, "raylib example.");
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
@@ -287,8 +293,8 @@ int main(void)
             // If the laser cuts into the first! ceiling turret then remove it.
             if(arr_slidelaser[i].state==1){
                 if(arr_slidelaser[i].active==true){
-                    for(int j=0;j<MAX_CEILTURRETS;j++){
-                        if(rectsoverlap(arr_slidelaser[i].position.x,0,arr_slidelaser[i].w,10,arr_ceilturret[j].position.x-arr_ceilturret[j].w,0,arr_ceilturret[j].w*2,10)){
+                    for(int j=0;j<MAX_CEILTURRETS;j++){                       //DrawRectangle(arr_slidelaser[i].position.x+3,arr_slidelaser[i].ceilingloc,arr_slidelaser[i].w-6,arr_slidelaser[i].position.y-arr_slidelaser[i].ceilingloc,YELLOW);
+                        if(rectsoverlap(arr_slidelaser[i].position.x,arr_slidelaser[i].ceilingloc,arr_slidelaser[i].w,arr_slidelaser[i].position.y-arr_slidelaser[i].ceilingloc,arr_ceilturret[j].position.x-arr_ceilturret[j].w,arr_ceilturret[j].position.y,arr_ceilturret[j].w*2,10)){
                             if(arr_ceilturret[j].active)createeffect(arr_ceilturret[j].position.x,arr_ceilturret[j].position.y+tileHeight/4);
                             arr_ceilturret[j].active=false;
                         }
@@ -464,7 +470,9 @@ void updateentities(int x, int y){
     for(int i=0;i<MAX_SLIDELASERS;i++){
         if(arr_slidelaser[i].active==false)continue;
         arr_slidelaser[i].position.y+=y;
+        arr_slidelaser[i].ceilingloc+=y;
     }
+
 
 }
 
