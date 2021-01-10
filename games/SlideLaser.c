@@ -11,10 +11,9 @@
 #include "raylib.h"
 #include <math.h>
 
-#define MAX_CARS 100
-#define MAX_WHISKERS 8
 
 #define MAX_SLIDEBOMBS 10
+#define MAX_CEILTURRETS 10
    
 int myMap[10][11] =  {  {1,1,1,1,1,1,1,1,1,1,1},
                         {1,1,1,1,1,1,1,1,1,1,1},
@@ -42,6 +41,15 @@ typedef struct player{
 }player;
 
 static player myplayer = {0};
+
+static struct ceilturret{
+    bool active;
+    Vector2 position;
+    int w;
+    int h;
+}aiceilturret;
+
+static struct ceilturret arr_ceilturret[MAX_CEILTURRETS];
 
 static struct slidelaser{
     bool active;
@@ -96,6 +104,12 @@ int main(void)
     myplayer.position = (Vector2){100,516};
     myplayer.direction = 2;
     
+    arr_ceilturret[0].active = true;
+    arr_ceilturret[0].position.x=tileWidth*5;
+    arr_ceilturret[0].position.y=tileHeight*4;
+    arr_ceilturret[0].w = tileWidth/2;
+    arr_ceilturret[0].h = tileHeight/2;
+    
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -134,6 +148,14 @@ int main(void)
 
                 }
                 arr_slidelaser[i].position.x+=arr_slidelaser[i].inc.x;
+            }
+            // If the laser cuts into the first! ceiling turret then remove it.
+            if(arr_slidelaser[i].state==1){
+                if(arr_slidelaser[i].active==true){
+                    if(rectsoverlap(arr_slidelaser[i].position.x,0,arr_slidelaser[i].w,10,arr_ceilturret[0].position.x,0,arr_ceilturret[0].w,10)){
+                    arr_ceilturret[0].active=false;
+                    }
+                }
             }
             
         }
@@ -183,7 +205,16 @@ int main(void)
         BeginDrawing();
 
             ClearBackground(LIGHTGRAY);
-            
+ 
+            // Draw the turrets
+            for(int i=0;i<MAX_CEILTURRETS;i++){
+                if(arr_ceilturret[i].active==false)continue;
+                DrawEllipse(arr_ceilturret[i].position.x,arr_ceilturret[i].position.y,arr_ceilturret[i].w,arr_ceilturret[i].h,WHITE);
+                DrawEllipse(arr_ceilturret[i].position.x+4,arr_ceilturret[i].position.y,arr_ceilturret[i].w-4,arr_ceilturret[i].h,BLACK);
+                DrawEllipse(arr_ceilturret[i].position.x+2,arr_ceilturret[i].position.y+2,arr_ceilturret[i].w-5,arr_ceilturret[i].h-4,YELLOW);
+                
+            }
+ 
             // Draw map
             for (int y = 0; y< mapHeight ; y++)
             {
