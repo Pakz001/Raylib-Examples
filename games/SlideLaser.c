@@ -15,6 +15,7 @@
 #define MAX_SLIDEBOMBS 10
 #define MAX_CEILTURRETS 10
 #define MAX_BULLETS 64   
+#define MAX_EFFECT 1000
    
 int myMap[10][11] =  {  {1,1,1,1,1,1,1,1,1,1,1},
                         {1,1,1,1,1,1,1,1,1,1,1},
@@ -42,6 +43,20 @@ typedef struct player{
 }player;
 
 static player myplayer = {0};
+
+
+static struct effect{
+    bool active;
+    Vector2 position;
+    Vector2 inc;
+    Vector2 incmod;
+    int w;
+    int h;
+    int countdown;
+}effect;
+
+static struct effect arr_effect[MAX_EFFECT];
+
 
 // design.
 // shoot x amount of rays into any direction to see if player is there.
@@ -83,13 +98,17 @@ static struct slidelaser arr_slidelaser[MAX_SLIDEBOMBS];
 bool recttilecollide(int x, int y, int w, int h, int offsetx,int offsety);
 // Our rectsoverlap function. Returns true/false.
 static bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2);
-                        
+void createeffect(int x, int y);                   
+
+int screenWidth;
+int screenHeight;
+
 int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 600;
+    screenWidth = 800;
+    screenHeight = 600;
     tileWidth = ceil((float)(float)screenWidth/(float)mapWidth);
     tileHeight = ceil((float)screenHeight/(float)mapHeight);
 
@@ -142,7 +161,36 @@ int main(void)
         }else{
             collisionColor = GREEN;
         }
+        // update the effect
+        for(int i=0;i<MAX_EFFECT;i++){
+            if(arr_effect[i].active==true){
+                // When exit the effect and disable
+                Vector2 oldpos = arr_effect[i].position;
+                arr_effect[i].countdown--;
+                if(arr_effect[i].countdown<0)arr_effect[i].active=false;
+                
+                arr_effect[i].inc.y += arr_effect[i].incmod.y;
+                
+                if(arr_effect[i].inc.x<0){
+                    arr_effect[i].inc.x-=arr_effect[i].incmod.x;
+                }else{
+                    arr_effect[i].inc.x+=arr_effect[i].incmod.x;;
+                }
+ 
+                arr_effect[i].position.x += arr_effect[i].inc.x;
+                arr_effect[i].position.y += arr_effect[i].inc.y;
+                
+                if(recttilecollide(arr_effect[i].position.x,arr_effect[i].position.y,1,1,0,-1)){
+                    arr_effect[i].inc.y=-arr_effect[i].inc.y/4;
+                }
+                if(recttilecollide(arr_effect[i].position.x,arr_effect[i].position.y,1,1,0,0)){
+                    arr_effect[i].inc.x=-arr_effect[i].inc.x/4;
+                    arr_effect[i].position = oldpos;
+                }
 
+            }
+        }
+        
         //Update the bullets
         for(int i=0;i<MAX_BULLETS;i++){
             if(arr_bullet[i].active==false)continue;
@@ -211,8 +259,10 @@ int main(void)
             // If the laser cuts into the first! ceiling turret then remove it.
             if(arr_slidelaser[i].state==1){
                 if(arr_slidelaser[i].active==true){
-                    if(rectsoverlap(arr_slidelaser[i].position.x,0,arr_slidelaser[i].w,10,arr_ceilturret[0].position.x,0,arr_ceilturret[0].w,10)){
+                    if(rectsoverlap(arr_slidelaser[i].position.x,0,arr_slidelaser[i].w,10,arr_ceilturret[0].position.x-arr_ceilturret[0].w,0,arr_ceilturret[0].w*2,10)){
+                    if(arr_ceilturret[0].active)createeffect(arr_ceilturret[i].position.x,arr_ceilturret[i].position.y+tileHeight/2);
                     arr_ceilturret[0].active=false;
+                    
                     }
                 }
             }
@@ -309,6 +359,11 @@ int main(void)
                 DrawCircle(arr_bullet[i].position.x,arr_bullet[i].position.y,6,RED);
             }
             
+            // draw the effect
+            for(int i=0;i<MAX_EFFECT;i++){
+                if(arr_effect[i].active==false)continue;
+                DrawRectangle(arr_effect[i].position.x,arr_effect[i].position.y,arr_effect[i].w,arr_effect[i].h,RED);
+            }            
             // some screen info
             DrawText("Cursor Left and Right. Left Shift = Run. Z key is slide laser weapon.",2,2,22,WHITE);
             DrawText(FormatText("SlideLasers : %02i",3-myplayer.numslidelasers),2,screenHeight-32,26,WHITE);
@@ -330,6 +385,37 @@ int main(void)
 }
 
 
+void createeffect(int posx, int posy){
+    //int posx = GetRandomValue(0,screenWidth);
+    //int posy = GetRandomValue(0,screenHeight);
+    int i=0;
+    int cnt=0;
+    while(cnt<32){
+        i++;
+        if(i>MAX_EFFECT){
+            continue;
+            cnt=51;
+        }
+        if(arr_effect[i].active==true){        
+            continue;
+        }
+        arr_effect[i].active = true;
+        arr_effect[i].position.x = posx;
+        arr_effect[i].position.y = posy;
+        arr_effect[i].w = 16;
+        arr_effect[i].h = 16;
+        arr_effect[i].inc.x = GetRandomValue(-1,1);
+        arr_effect[i].inc.y = GetRandomValue(-10,-5);
+        arr_effect[i].incmod.x = (float)(GetRandomValue(0,100)/2500.0f);
+        arr_effect[i].incmod.y = (float)(GetRandomValue(0,100)/1000.0f)+0.2f;
+        if(GetRandomValue(0,8)==1){
+            arr_effect[i].incmod.x*=5;
+            arr_effect[i].inc.y*=1.5;
+        }
+        arr_effect[i].countdown = GetRandomValue(50,120);
+        cnt++;
+    }
+}
 
 //Unit collide with solid blocks true/false
 bool recttilecollide(int x, int y,int w, int h, int offsetx,int offsety){
