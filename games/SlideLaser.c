@@ -14,6 +14,7 @@
 
 #define MAX_SLIDEBOMBS 10
 #define MAX_CEILTURRETS 10
+#define MAX_BULLETS 64   
    
 int myMap[10][11] =  {  {1,1,1,1,1,1,1,1,1,1,1},
                         {1,1,1,1,1,1,1,1,1,1,1},
@@ -42,11 +43,24 @@ typedef struct player{
 
 static player myplayer = {0};
 
+// design.
+// shoot x amount of rays into any direction to see if player is there.
+// if player is there than the bullet is shot.
+static struct bullet{
+    bool active;
+    Vector2 position;
+    Vector2 inc;
+    int radius;
+}bullet;
+
+static struct bullet arr_bullet[MAX_BULLETS];
+
 static struct ceilturret{
     bool active;
     Vector2 position;
     int w;
     int h;
+    int shootdelay;
 }aiceilturret;
 
 static struct ceilturret arr_ceilturret[MAX_CEILTURRETS];
@@ -110,6 +124,7 @@ int main(void)
     arr_ceilturret[0].w = tileWidth/2;
     arr_ceilturret[0].h = tileHeight/2;
     
+    
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -126,6 +141,50 @@ int main(void)
             collisionColor = RED;
         }else{
             collisionColor = GREEN;
+        }
+
+        //Update the bullets
+        for(int i=0;i<MAX_BULLETS;i++){
+            if(arr_bullet[i].active==false)continue;
+                for(int speed=0;speed<8;speed++){
+                    arr_bullet[i].position.x+=arr_bullet[i].inc.x;
+                    arr_bullet[i].position.y+=arr_bullet[i].inc.y;
+                    if(recttilecollide(arr_bullet[i].position.x,arr_bullet[i].position.y,6,6,0,0)){
+                        arr_bullet[i].active=false;
+                    }
+                }
+        }
+
+        // update the turrets
+        for(int i=0;i<MAX_CEILTURRETS;i++){
+            if(arr_ceilturret[i].active==false)continue;
+            arr_ceilturret[i].shootdelay-=1;
+            if(arr_ceilturret[i].shootdelay>0)continue;            
+            int touch;//if collided with map count
+            for(int a=0;a<10;a++){
+                float angle=(float)GetRandomValue(0,6200)/100;
+                Vector2 position = arr_ceilturret[i].position;
+                for(int b=0;b<screenHeight;b++){
+                    position.x += cos(angle)*2;
+                    position.y += sin(angle)*2;
+                    if(recttilecollide(position.x,position.y,6,6,0,0))b=999999;
+                    if(rectsoverlap(position.x,position.y,6,6,myplayer.position.x,myplayer.position.y,myplayer.w,myplayer.h)){                        
+                        for(int free=0;free<MAX_BULLETS;free++){
+                            if(arr_ceilturret[i].shootdelay<0 && arr_bullet[free].active==false){
+                                arr_bullet[free].active=true;
+                                arr_bullet[free].radius = 6;                                               
+                                arr_bullet[free].position = arr_ceilturret[i].position;
+                                arr_bullet[free].position.x+=GetRandomValue(0,10);
+                                arr_bullet[free].inc.x = cos(angle)*1;
+                                arr_bullet[free].inc.y = sin(angle)*1;
+                                arr_ceilturret[i].shootdelay = 20;                                
+                                
+                            }
+                        }
+                    }
+                }
+            }
+            
         }
 
         // Update the slidelasers
@@ -244,9 +303,17 @@ int main(void)
                 }
             }
             
+            // Draw the bullets
+            for(int i=0;i<MAX_BULLETS;i++){
+                if(arr_bullet[i].active==false)continue;
+                DrawCircle(arr_bullet[i].position.x,arr_bullet[i].position.y,6,RED);
+            }
+            
             // some screen info
             DrawText("Cursor Left and Right. Left Shift = Run. Z key is slide laser weapon.",2,2,22,WHITE);
             DrawText(FormatText("SlideLasers : %02i",3-myplayer.numslidelasers),2,screenHeight-32,26,WHITE);
+
+//DrawText(FormatText("SlideLasers : %f",PI*2.0f),312,screenHeight-32,26,WHITE);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
