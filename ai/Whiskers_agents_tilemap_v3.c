@@ -48,8 +48,8 @@ typedef struct car{
     Vector2 chosenDir;
     float velocity;
     float acceleration;
-    bool interest[8];
-    bool danger[8]  ;
+    bool interest[256]; // whiskers! - check here if bug if chance with amount of whiskers.
+    bool danger[256]  ;
 }car;
 
 static struct car arr_car[MAX_CARS];
