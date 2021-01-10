@@ -17,7 +17,7 @@
 #define MAX_BULLETS 64   
 #define MAX_EFFECT 1000
    
-int myMap[26][11] =  {  
+int myMap[33][11] =  {  
                         {1,1,1,1,1,1,1,1,1,1,1},
                         {1,1,1,1,1,1,1,1,1,1,1},
                         {1,1,1,1,1,1,1,1,1,1,1},
@@ -43,12 +43,20 @@ int myMap[26][11] =  {
                         {1,1,1,0,0,0,0,1,0,0,1},
                         {1,1,1,0,0,0,0,1,0,0,1},
                         {1,0,0,0,0,0,0,0,0,0,1},
+                        {1,1,1,1,1,1,1,1,1,1,1},
+                        {1,1,1,1,1,1,1,1,1,1,1},
+                        {1,1,1,1,1,1,1,1,1,1,1},
+                        {1,1,1,1,1,1,1,1,1,1,1},
+                        {1,1,1,1,1,1,1,1,1,1,1},
+                        {1,1,1,1,1,1,1,1,1,1,1},
+                        {1,1,1,1,1,1,1,1,1,1,1},
                         {1,1,1,1,1,1,1,1,1,1,1}
+
                     };  
 int mapy;
 int mapx;
 int mapWidth = 11;
-int mapHeight = 26;
+int mapHeight = 33;
 float tileWidth;
 float tileHeight;
 
@@ -140,7 +148,7 @@ int main(void)
     screenHeight = 600;
     tileWidth = ceil((float)(float)screenWidth/(float)mapWidth);
     tileHeight = ceil((float)screenHeight/(float)(10));
-    mapy=-tileHeight*16;
+    mapy=-tileHeight*19;
     InitWindow(screenWidth, screenHeight, "raylib example.");
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
@@ -158,7 +166,7 @@ int main(void)
     myplayer.active = true;
     myplayer.w = 16;
     myplayer.h = 24;
-    myplayer.position = (Vector2){100,516};
+    myplayer.position = (Vector2){100,336};
     myplayer.direction = 2;
     
     int ceilcount=0;
@@ -314,7 +322,7 @@ int main(void)
             }
             if(IsKeyDown(KEY_DOWN)){
                 for(int i=0;i<fast;i++){
-                    if(mapy>-tileHeight*10){
+                    if(mapy>-tileHeight*19){
                         mapy--;
                         updateentities(0,-1);
                     }
