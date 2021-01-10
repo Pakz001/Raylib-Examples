@@ -125,11 +125,6 @@ int main(void)
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
-    Vector2 position;
-    position.x = 100;
-    position.y = 100;
-    int time=0;
-    Color collisionColor = GREEN;
     
     arr_slidelaser[0].active = false;
     arr_slidelaser[0].state = 0;
@@ -157,18 +152,6 @@ int main(void)
     {
         // Update
         //----------------------------------------------------------------------------------
-        time++;
-        if(time>30){ // every time time is at 300
-            time=0;//reset time
-            position.x = GetRandomValue(32,screenWidth-32);
-            position.y = GetRandomValue(32,screenHeight-32);
-        }
-        
-        if(recttilecollide(position.x,position.y,tileWidth/2, tileHeight/2, 0,0)){
-            collisionColor = RED;
-        }else{
-            collisionColor = GREEN;
-        }
         
         // update the effect 2
         for(int i=0;i<MAX_EFFECT;i++){
@@ -355,7 +338,6 @@ int main(void)
                 }
             }
             
-            DrawRectangle(position.x,position.y,tileWidth/2,tileHeight/2,collisionColor);
           
 
             // draw the player
@@ -388,7 +370,7 @@ int main(void)
                 if(arr_effect2[i].active==false)continue;
                 arr_effect2[i].startdelay--;
                 if(arr_effect2[i].startdelay>0)continue;
-                DrawCircle(arr_effect2[i].position.x,arr_effect2[i].position.y,arr_effect2[i].radius,YELLOW);
+                DrawCircle(arr_effect2[i].position.x,arr_effect2[i].position.y,arr_effect2[i].radius,WHITE);
             }            
   
  // some screen info
