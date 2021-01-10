@@ -44,6 +44,14 @@ typedef struct player{
 
 static player myplayer = {0};
 
+static struct effect2{
+    bool active;
+    Vector2 position;
+    int startdelay;
+    int radius;
+    int countdown;
+}effect2;
+static struct effect2 arr_effect2[MAX_EFFECT];
 
 static struct effect{
     bool active;
@@ -161,6 +169,16 @@ int main(void)
         }else{
             collisionColor = GREEN;
         }
+        
+        // update the effect 2
+        for(int i=0;i<MAX_EFFECT;i++){
+            if(arr_effect2[i].active==false)continue;
+            arr_effect2[i].countdown--;
+            if(arr_effect2[i].countdown<0){
+                arr_effect2[i].active=false;                
+            }
+        }
+        
         // update the effect
         for(int i=0;i<MAX_EFFECT;i++){
             if(arr_effect[i].active==true){
@@ -364,14 +382,22 @@ int main(void)
                 if(arr_effect[i].active==false)continue;
                 DrawRectangle(arr_effect[i].position.x,arr_effect[i].position.y,arr_effect[i].w,arr_effect[i].h,RED);
             }            
-            // some screen info
+           // draw the effect2
+            for(int i=0;i<MAX_EFFECT;i++){
+                if(arr_effect2[i].active==false)continue;
+                arr_effect2[i].startdelay--;
+                if(arr_effect2[i].startdelay>0)continue;
+                DrawCircle(arr_effect2[i].position.x,arr_effect2[i].position.y,arr_effect2[i].radius,YELLOW);
+            }            
+  
+ // some screen info
             DrawText("Cursor Left and Right. Left Shift = Run. Z key is slide laser weapon.",2,2,22,WHITE);
             DrawText(FormatText("SlideLasers : %02i",3-myplayer.numslidelasers),2,screenHeight-32,26,WHITE);
 
 //DrawText(FormatText("SlideLasers : %f",PI*2.0f),312,screenHeight-32,26,WHITE);
 
         EndDrawing();
-        //----------------------------------------------------------------------------------
+        //------------------------------- --------------------------------------------------
     }
 
     // De-Initialization
@@ -388,6 +414,17 @@ int main(void)
 void createeffect(int posx, int posy){
     //int posx = GetRandomValue(0,screenWidth);
     //int posy = GetRandomValue(0,screenHeight);
+    
+    for(int i=0;i<5;i++){
+        if(arr_effect2[i].active==true)continue;
+        arr_effect2[i].active = true;
+        arr_effect2[i].position.x = posx+GetRandomValue(-32,32);
+        arr_effect2[i].position.y = posy+GetRandomValue(-32,32);        
+        arr_effect2[i].startdelay = GetRandomValue(0,60);
+        arr_effect2[i].countdown = 10+arr_effect2[i].startdelay;
+        arr_effect2[i].radius = GetRandomValue(tileWidth/4,tileWidth);
+    }
+    
     int i=0;
     int cnt=0;
     while(cnt<32){
