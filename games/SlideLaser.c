@@ -241,7 +241,11 @@ int main(void)
         for(int i=0;i<MAX_SLIDEBOMBS;i++){
             if(arr_slidelaser[i].active==false)continue;
             if(arr_slidelaser[i].state==0){
-                arr_slidelaser[i].inc.x-=arr_slidelaser[i].incdec.x;
+                if(arr_slidelaser[i].inc.x>0){
+                    arr_slidelaser[i].inc.x-=arr_slidelaser[i].incdec.x;
+                }else{
+                    arr_slidelaser[i].inc.x+=arr_slidelaser[i].incdec.x;
+                }
                 if((arr_slidelaser[i].inc.x>-0.2 && arr_slidelaser[i].inc.x<0.2) || recttilecollide(arr_slidelaser[i].position.x,arr_slidelaser[i].position.y,arr_slidelaser[i].w,arr_slidelaser[i].h,0,0)){
                     arr_slidelaser[i].state = 1;
                     arr_slidelaser[i].inc.x = 0;                    
@@ -301,9 +305,9 @@ int main(void)
                     arr_slidelaser[cl].position.x = myplayer.position.x;
                     arr_slidelaser[cl].position.y = myplayer.position.y+arr_slidelaser[0].h+4;
                     if(myplayer.direction==1){
-                        arr_slidelaser[cl].inc.x = -2*fast;
+                        arr_slidelaser[cl].inc.x = -1.5*fast;
                     }else{
-                        arr_slidelaser[cl].inc.x = 1.5f*fast;
+                        arr_slidelaser[cl].inc.x = 1.5*fast;
                     }
                     myplayer.numslidelasers++;
                 }
