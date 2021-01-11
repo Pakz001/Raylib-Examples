@@ -79,7 +79,11 @@ typedef struct bombdrone{
     bool active;
     Vector2 position;
     int w;
+    int traveledy;//for resetting the map(stores distance traveled)
     int h;
+    int state; // 1 is countdown
+    int countdown;
+    int countdowntime;
 }bombdrone;
 
 static bombdrone mybombdrone = {0};
@@ -440,6 +444,7 @@ int main(void)
 
                         if(mapy>-tileHeight*19){
                             mapy--;
+                            mybombdrone.traveledy--; // keep a variable that contains the distance traveled.
                             updateentities(0,-1,2);
                         }
                     }
@@ -453,6 +458,7 @@ int main(void)
                     if(recttilecollide(mybombdrone.position.x,mybombdrone.position.y,mybombdrone.w,mybombdrone.h,0,-1)==false){
                         if(mapy<0){
                             mapy++;
+                            mybombdrone.traveledy++;
                             updateentities(0,1,2);
                         }
                     }
@@ -472,11 +478,33 @@ int main(void)
                 mybombdrone.position = oldpos;
             }
 
+            // Explode the Drone
+            if(IsKeyPressed(KEY_Z)){
+                mybombdrone.state = 1;
+                mybombdrone.countdown = 3;
+                mybombdrone.countdowntime = 60*3;
+            }
+
             // Disable the drone.
             if(IsKeyPressed(KEY_D)){
                 if(rectsoverlap(mybombdrone.position.x,mybombdrone.position.y,mybombdrone.w,mybombdrone.h,myplayer.position.x-8,myplayer.position.y-8,myplayer.w+16,myplayer.h+16)==true){
                     myplayer.state = 0;
                     myplayer.keydelaycount=20;
+                }
+            }
+            
+            // drone explode!!
+            if(mybombdrone.state==1){
+                mybombdrone.countdowntime--;
+                if(mybombdrone.countdowntime<0){
+                    mybombdrone.countdown--;
+                    if(mybombdrone.countdown<0){//here it explodes!
+                        mybombdrone.state=0;
+                        myplayer.state=0;
+                        createeffect(mybombdrone.position.x,mybombdrone.position.y);
+                        updateentities(0,-mybombdrone.traveledy,2);
+                        mapy-=mybombdrone.traveledy;
+                    }
                 }
             }
 
