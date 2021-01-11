@@ -4,7 +4,7 @@
 // The idea here is to have a player slide a laser below a enemy or enemy weapon. When the laser
 // stops sliding a laser is shot upwards and it should destroy the threat.
 //
-// Working on the BOMBDRONE! (check myplayer.state to 0 to disable this drone)
+// Working on the BOMBDRONE!
 //
 //
 
@@ -69,6 +69,7 @@ typedef struct player{
     int w;
     int h;
     int numslidelasers;
+    int keydelaycount;
 }player;
 
 static player myplayer = {0};
@@ -194,7 +195,7 @@ int main(void)
     myplayer.h = 24;
     myplayer.position = (Vector2){100,336};
     myplayer.direction = 2;
-    myplayer.state = 2;
+    myplayer.state = 0;
     
     mybombdrone.active = true;
     mybombdrone.w = 16;
@@ -427,6 +428,7 @@ int main(void)
 
         // Update the bombdrone..
         if(mybombdrone.active==true && myplayer.state==2){
+            
             Vector2 oldpos = mybombdrone.position;
             int fast=1;
             if(IsKeyDown(KEY_LEFT_SHIFT)){
@@ -469,37 +471,47 @@ int main(void)
             if(recttilecollide(mybombdrone.position.x,mybombdrone.position.y,mybombdrone.w,mybombdrone.h,0,0)){
                 mybombdrone.position = oldpos;
             }
+
+            // Disable the drone.
+            if(IsKeyPressed(KEY_D)){
+                if(rectsoverlap(mybombdrone.position.x,mybombdrone.position.y,mybombdrone.w,mybombdrone.h,myplayer.position.x-8,myplayer.position.y-8,myplayer.w+16,myplayer.h+16)==true){
+                    myplayer.state = 0;
+                    myplayer.keydelaycount=20;
+                }
+            }
+
         }
 
         // Update the player..
         if(myplayer.active==true && myplayer.state==0){
+            if(myplayer.keydelaycount>0)myplayer.keydelaycount--;
             Vector2 oldpos = myplayer.position;
             int fast=1;
             if(IsKeyDown(KEY_LEFT_SHIFT)){
                 fast++;
             }
-            if(IsKeyDown(KEY_DOWN)){
-                for(int i=0;i<fast;i++){
-                    if(mapy>-tileHeight*19){
-                        mapy--;
-                        updateentities(0,-1,0);
-                    }
-                };
+//            if(IsKeyDown(KEY_DOWN)){
+//                for(int i=0;i<fast;i++){
+//                    if(mapy>-tileHeight*19){
+//                        mapy--;
+//                        updateentities(0,-1,0);
+//                    }
+//                };
                 //if(mapy<-tileHeight*10)mapy=-tileHeight*10;
                 //myplayer.position.y += fast;
                 //myplayer.direction = 2;
-            }
-            if(IsKeyDown(KEY_UP)){
-                for(int i=0;i<fast;i++){
-                    if(mapy<0){
-                        mapy++;
-                        updateentities(0,1,0);
-                    }
-                }
+//            }
+//            if(IsKeyDown(KEY_UP)){
+//                for(int i=0;i<fast;i++){
+//                    if(mapy<0){
+//                        mapy++;
+//                        updateentities(0,1,0);
+//                    }
+//                }
                 //if(mapy>0)mapy=0;
                 //myplayer.position.y += fast;
                 //myplayer.direction = 2;
-            }
+  //          }
 
             if(IsKeyDown(KEY_RIGHT)){
                 myplayer.position.x += fast;
@@ -511,6 +523,18 @@ int main(void)
             }
             if(recttilecollide(myplayer.position.x,myplayer.position.y,myplayer.w,myplayer.h,0,0)){
                 myplayer.position = oldpos;
+            }
+ 
+ 
+            // Enable the drone.
+            if(IsKeyPressed(KEY_D) && myplayer.keydelaycount==0){
+                myplayer.state = 2;
+                if(recttilecollide(myplayer.position.x+20,myplayer.position.y,mybombdrone.w,mybombdrone.h,0,0)==false){                
+                    mybombdrone.position.x = myplayer.position.x+16;
+                }else{
+                    mybombdrone.position.x = myplayer.position.x-16;
+                }
+                mybombdrone.position.y = myplayer.position.y;
             }
             if(IsKeyPressed(KEY_Z)){ // Slide the laser weapon
                 if(myplayer.numslidelasers<3){
@@ -610,13 +634,14 @@ int main(void)
   
  // some screen info
             if(myplayer.state==0){
-                DrawText("Cursor Left and Right. Left Shift = Run. Z key is slide laser weapon.",2,2,22,WHITE);
+                DrawText("Cursor Left/Right. Left Shift = Run. Z key = Slide laser. D = Drone",2,2,22,WHITE);
             }
             if(myplayer.state==2){
-                DrawText("Cursor Left/Right/Up/Down. Left Shift = Fast. Z key = Explode.",2,2,22,WHITE);
+                DrawText("Cursor L/R/U/D. Left Shift = Fast. Z key = Explode. D = Dock",2,2,22,WHITE);
             }
             DrawText(FormatText("SlideLasers : %02i",3-myplayer.numslidelasers),2,screenHeight-32,26,WHITE);
            
+            //DrawText(FormatText("mpx: %f mpy: %f - bdx:%f bdy: %f",myplayer.position.x,myplayer.position.y,mybombdrone.position.x,mybombdrone.position.y),100,200,22,WHITE);
            
 
 //DrawText(FormatText("SlideLasers : %f",PI*2.0f),312,screenHeight-32,26,WHITE);
