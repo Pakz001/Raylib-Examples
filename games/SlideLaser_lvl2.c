@@ -4,7 +4,7 @@
 // The idea here is to have a player slide a laser below a enemy or enemy weapon. When the laser
 // stops sliding a laser is shot upwards and it should destroy the threat.
 //
-// Going on a break.. Maybe I will expand and make it more playable later.
+// Working on the BOMBDRONE! (check myplayer.state to 0 to disable this drone)
 //
 //
 
@@ -65,13 +65,24 @@ typedef struct player{
     bool active;
     Vector2 position;    
     int direction; // -1 left, 2 - right
-    int state; //state 1=elevator(freeze)
+    int state; //state 1=elevator(freeze) 2=flying drone(freeze)
     int w;
     int h;
     int numslidelasers;
 }player;
 
 static player myplayer = {0};
+
+
+typedef struct bombdrone{
+    bool active;
+    Vector2 position;
+    int w;
+    int h;
+}bombdrone;
+
+static bombdrone mybombdrone = {0};
+
 
 static struct elevator{
     bool active;
@@ -150,7 +161,7 @@ bool recttilecollide(int x, int y, int w, int h, int offsetx,int offsety);
 // Our rectsoverlap function. Returns true/false.
 static bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2);
 void createeffect(int x, int y);                   
-void updateentities(int x,int y);
+void updateentities(int x,int y,int state); // state 2=drone
 
 int screenWidth;
 int screenHeight;
@@ -181,8 +192,14 @@ int main(void)
     myplayer.active = true;
     myplayer.w = 16;
     myplayer.h = 24;
-    myplayer.position = (Vector2){600,336};
+    myplayer.position = (Vector2){100,336};
     myplayer.direction = 2;
+    myplayer.state = 2;
+    
+    mybombdrone.active = true;
+    mybombdrone.w = 16;
+    mybombdrone.h = 16;
+    mybombdrone.position = (Vector2){120,336};
     
     //create the ceiling turrets
     int ceilcount=0;
@@ -264,7 +281,7 @@ int main(void)
             // Elevator going up
             if(arr_elevator[i].state==1){
                 arr_elevator[i].position.y-=2;
-                updateentities(0,2);
+                updateentities(0,2,0);
                 mapy+=2;
                 if(arr_elevator[i].position.y==arr_elevator[i].ceilingloc){
                     arr_elevator[i].state=0;
@@ -274,7 +291,7 @@ int main(void)
             // Elevator going down
             if(arr_elevator[i].state==2){
                 arr_elevator[i].position.y+=2;
-                updateentities(0,-2);
+                updateentities(0,-2,0);
                 mapy-=2;
                 if(arr_elevator[i].position.y==arr_elevator[i].floorloc){
                     arr_elevator[i].state=0;
@@ -408,6 +425,52 @@ int main(void)
         }
 
 
+        // Update the bombdrone..
+        if(mybombdrone.active==true && myplayer.state==2){
+            Vector2 oldpos = mybombdrone.position;
+            int fast=1;
+            if(IsKeyDown(KEY_LEFT_SHIFT)){
+                fast++;
+            }
+            if(IsKeyDown(KEY_DOWN)){
+                for(int i=0;i<fast;i++){
+                    if(recttilecollide(mybombdrone.position.x,mybombdrone.position.y,mybombdrone.w,mybombdrone.h,0,1)==false){
+
+                        if(mapy>-tileHeight*19){
+                            mapy--;
+                            updateentities(0,-1,2);
+                        }
+                    }
+                };
+                //if(mapy<-tileHeight*10)mapy=-tileHeight*10;
+                //myplayer.position.y += fast;
+                //myplayer.direction = 2;
+            }
+            if(IsKeyDown(KEY_UP)){
+                for(int i=0;i<fast;i++){
+                    if(recttilecollide(mybombdrone.position.x,mybombdrone.position.y,mybombdrone.w,mybombdrone.h,0,-1)==false){
+                        if(mapy<0){
+                            mapy++;
+                            updateentities(0,1,2);
+                        }
+                    }
+                }
+                //if(mapy>0)mapy=0;
+                //myplayer.position.y += fast;
+                //myplayer.direction = 2;
+            }
+
+            if(IsKeyDown(KEY_RIGHT)){
+                mybombdrone.position.x += fast;                
+            }
+            if(IsKeyDown(KEY_LEFT)){
+                mybombdrone.position.x -= fast;
+            }
+            if(recttilecollide(mybombdrone.position.x,mybombdrone.position.y,mybombdrone.w,mybombdrone.h,0,0)){
+                mybombdrone.position = oldpos;
+            }
+        }
+
         // Update the player..
         if(myplayer.active==true && myplayer.state==0){
             Vector2 oldpos = myplayer.position;
@@ -419,7 +482,7 @@ int main(void)
                 for(int i=0;i<fast;i++){
                     if(mapy>-tileHeight*19){
                         mapy--;
-                        updateentities(0,-1);
+                        updateentities(0,-1,0);
                     }
                 };
                 //if(mapy<-tileHeight*10)mapy=-tileHeight*10;
@@ -430,7 +493,7 @@ int main(void)
                 for(int i=0;i<fast;i++){
                     if(mapy<0){
                         mapy++;
-                        updateentities(0,1);
+                        updateentities(0,1,0);
                     }
                 }
                 //if(mapy>0)mapy=0;
@@ -503,7 +566,12 @@ int main(void)
             if(myplayer.active==true){
                 DrawRectangle(myplayer.position.x,myplayer.position.y,myplayer.w,myplayer.h,GREEN);
             }
-          
+ 
+            // draw the bombdrone
+            if(mybombdrone.active==true && myplayer.state==2){
+                DrawRectangle(mybombdrone.position.x,mybombdrone.position.y,mybombdrone.w,mybombdrone.h,RED);
+            }
+ 
             // Draw the slidelasers
             for(int i=0;i<MAX_SLIDELASERS;i++){
                 if(arr_slidelaser[i].active==false)continue;                
@@ -541,8 +609,15 @@ int main(void)
 
   
  // some screen info
-            DrawText("Cursor Left and Right. Left Shift = Run. Z key is slide laser weapon.",2,2,22,WHITE);
+            if(myplayer.state==0){
+                DrawText("Cursor Left and Right. Left Shift = Run. Z key is slide laser weapon.",2,2,22,WHITE);
+            }
+            if(myplayer.state==2){
+                DrawText("Cursor Left/Right/Up/Down. Left Shift = Fast. Z key = Explode.",2,2,22,WHITE);
+            }
             DrawText(FormatText("SlideLasers : %02i",3-myplayer.numslidelasers),2,screenHeight-32,26,WHITE);
+           
+           
 
 //DrawText(FormatText("SlideLasers : %f",PI*2.0f),312,screenHeight-32,26,WHITE);
 
@@ -560,7 +635,7 @@ int main(void)
 
 }
 
-void updateentities(int x, int y){
+void updateentities(int x, int y,int state){
     for(int i=0;i<MAX_CEILTURRETS;i++){
         if(arr_ceilturret[i].active==false)continue;
         arr_ceilturret[i].position.y+=y;
@@ -587,6 +662,11 @@ void updateentities(int x, int y){
         arr_elevator[i].position.y+=y;
         arr_elevator[i].ceilingloc+=y;
         arr_elevator[i].floorloc+=y;
+    }
+
+    if(state==2){
+        myplayer.position.x+=x;
+        myplayer.position.y+=y;
     }
 
 
