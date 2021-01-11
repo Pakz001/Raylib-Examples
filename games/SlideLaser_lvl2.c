@@ -482,7 +482,7 @@ int main(void)
             if(IsKeyPressed(KEY_Z)){
                 mybombdrone.state = 1;
                 mybombdrone.countdown = 3;
-                mybombdrone.countdowntime = 60*3;
+                mybombdrone.countdowntime = 60;
             }
 
             // Disable the drone.
@@ -497,8 +497,9 @@ int main(void)
             if(mybombdrone.state==1){
                 mybombdrone.countdowntime--;
                 if(mybombdrone.countdowntime<0){
-                    mybombdrone.countdown--;
-                    if(mybombdrone.countdown<0){//here it explodes!
+                    mybombdrone.countdowntime=60;
+                    mybombdrone.countdown-=1;
+                    if(mybombdrone.countdown==0){//here it explodes!
                         mybombdrone.state=0;
                         myplayer.state=0;
                         createeffect(mybombdrone.position.x,mybombdrone.position.y);
@@ -622,6 +623,10 @@ int main(void)
             // draw the bombdrone
             if(mybombdrone.active==true && myplayer.state==2){
                 DrawRectangle(mybombdrone.position.x,mybombdrone.position.y,mybombdrone.w,mybombdrone.h,RED);
+                if(mybombdrone.state==1){
+                    DrawRectangle(mybombdrone.position.x+2,mybombdrone.position.y+1,mybombdrone.w-4,mybombdrone.h-2,BLACK);
+                    DrawText(FormatText("%1i",mybombdrone.countdown),mybombdrone.position.x+3,mybombdrone.position.y+2,14,WHITE);
+                }
             }
  
             // Draw the slidelasers
