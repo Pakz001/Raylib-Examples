@@ -500,11 +500,25 @@ int main(void)
                     mybombdrone.countdowntime=60;
                     mybombdrone.countdown-=1;
                     if(mybombdrone.countdown==0){//here it explodes!
-                        mybombdrone.state=0;
+                        // Check(!) if it should destroy a ceiling turret
+                        for(int i=0;i<MAX_CEILTURRETS;i++){
+                            if(arr_ceilturret[i].active==false)continue;
+                            //arr_ceilturret[i].active=false;
+                            if(rectsoverlap(mybombdrone.position.x-tileWidth/2,mybombdrone.position.y-tileHeight/2,
+                                            tileWidth,tileHeight,
+                                            arr_ceilturret[i].position.x-50,arr_ceilturret[i].position.y-50,
+                                            100,100)){
+                                arr_ceilturret[i].active=false;
+                            }
+                        }
+                        
+                        //
+                        mybombdrone.state=0;                        
                         myplayer.state=0;
                         createeffect(mybombdrone.position.x,mybombdrone.position.y);
                         updateentities(0,-mybombdrone.traveledy,2);
                         mapy-=mybombdrone.traveledy;
+                        mybombdrone.traveledy=0;
                     }
                 }
             }
