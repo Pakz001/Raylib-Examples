@@ -28,7 +28,7 @@
 //
 // Create unit types with different att and def, more scoring with 1+units attacking at the same time.
 // add scoring in the execute script stage : units stay close to each other, direct path to target etc.
-
+// If move on enemy position (chance of being destroyed itself(.5) .25 if more units of own side are nearby)
 
 #include "raylib.h"
 #include <math.h>
