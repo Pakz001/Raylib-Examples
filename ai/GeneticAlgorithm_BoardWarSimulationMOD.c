@@ -29,6 +29,8 @@
 // Create unit types with different att and def, more scoring with 1+units attacking at the same time.
 // add scoring in the execute script stage : units stay close to each other, direct path to target etc.
 //
+// Crossbreeding - taking two from higher scorers and combining these into new.
+// Seeding the list at start with for instance steps into the right direction. 
 
 // IMPLEMENTED>>>If move on enemy position (chance of being destroyed itself(.5) <x if more units of own side are nearby)
 
