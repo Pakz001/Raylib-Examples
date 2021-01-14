@@ -401,7 +401,7 @@ int getscore(){
     //count aiplayer1 and distance to target
     float avdist=0;
     int nums=0;
-    int distanceunit[4]={0};
+    int distanceunit[114]={0};
     for(int y=0;y<10;y++){
     for(int x=0;x<10;x++){
         if(map[y][x]==AIPLAYER1){
