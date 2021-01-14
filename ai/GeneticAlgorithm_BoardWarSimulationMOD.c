@@ -35,7 +35,7 @@
 #include "raylib.h"
 #include <math.h>
 
-#define MAX_RUNS 200
+#define MAX_RUNS 250
 #define MAX_CODE 1200
 #define MAX_ARC 64
 
@@ -438,23 +438,24 @@ void executescript(){
                 //for(int x1=(int)p.x-1;(int)p.x+1;x1++){
                 //
                 //
-                if(map[(int)np.y][(int)np.x-1]==AIPLAYER1)neigh+=2;
-                if(map[(int)np.y][(int)np.x+1]==AIPLAYER1)neigh+=2;
-                if(map[(int)np.y-1][(int)np.x]==AIPLAYER1)neigh+=2;
-                if(map[(int)np.y+1][(int)np.x]==AIPLAYER1)neigh+=2;
-                if(map[(int)np.y+1][(int)np.x-1]==AIPLAYER1)neigh+=2;
-                if(map[(int)np.y-1][(int)np.x+1]==AIPLAYER1)neigh+=2;
-                if(map[(int)np.y-1][(int)np.x+1]==AIPLAYER1)neigh+=2;
-                if(map[(int)np.y+1][(int)np.x-1]==AIPLAYER1)neigh+=2;
+                
+                if(map[(int)np.y][(int)np.x-1]==AIPLAYER1)neigh+=1;
+                if(map[(int)np.y][(int)np.x+1]==AIPLAYER1)neigh+=1;
+                if(map[(int)np.y-1][(int)np.x]==AIPLAYER1)neigh+=1;
+                if(map[(int)np.y+1][(int)np.x]==AIPLAYER1)neigh+=1;
+                if(map[(int)np.y+1][(int)np.x-1]==AIPLAYER1)neigh+=1;
+                if(map[(int)np.y-1][(int)np.x+1]==AIPLAYER1)neigh+=1;
+                if(map[(int)np.y-1][(int)np.x+1]==AIPLAYER1)neigh+=1;
+                if(map[(int)np.y+1][(int)np.x-1]==AIPLAYER1)neigh+=1;
 
 
                 //}//}                
-                if(GetRandomValue(0,10-neigh<5)){
-                map[ (int)np.y ][ (int)np.x ] = AIPLAYER1;
-                map[ (int)p.y ][ (int)p.x ] = GROUND;
+                if(GetRandomValue(0,10-(neigh*2))<3){
+                    map[ (int)np.y ][ (int)np.x ] = AIPLAYER1;
+                    map[ (int)p.y ][ (int)p.x ] = GROUND;
                 }else{
-                //map[ (int)np.y ][ (int)np.x ] = AIPLAYER1;
-                map[ (int)p.y ][ (int)p.x ] = GROUND;
+                //map[ (int)np.y ][ (int)np.x ] = AIPLAYER2;
+                    map[ (int)p.y ][ (int)p.x ] = GROUND;                    
 
                 }
                 
