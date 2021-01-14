@@ -22,7 +22,10 @@
 //
 
 // Better scoring could be done by storing the amount of move taken to take out x enemy units and capturing target.
-
+//
+// Building on this you might change the amount of units for each side. maybe mod the amount of goals to be captured.
+// In a real game you might use this to simulate if a war for a ai player would be doable in a certain tested setting like this.
+//
 
 #include "raylib.h"
 #include <math.h>
