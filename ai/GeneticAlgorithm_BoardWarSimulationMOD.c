@@ -36,24 +36,26 @@
 #include "raylib.h"
 #include <math.h>
 
-#define MAX_RUNS 250
+#define MAX_RUNS 200
 #define MAX_CODE 1200
 #define MAX_ARC 64
 
 enum terrain{TREE=1,GROUND=0,AIPLAYER1=2,AIPLAYER2=3,GOAL=4,GOALREACHED=5};
 enum flag{UP,DOWN,LEFT,RIGHT,WAIT};
 
-
+//
+// You can set any number of 3 and 2 on the map. more 4's untested. keep the borders(1) intact(memory errors)
+//
 //1=border,2=ai unit,3=defensiveunit,4=objective
 int map1[10][10] = {    {1,1,1,1,1,1,1,1,1,1},
                         {1,0,0,0,0,0,0,0,0,1},
-                        {1,0,0,0,0,0,3,4,0,1},
-                        {1,0,0,3,0,0,0,0,0,1},
-                        {1,0,0,0,3,0,0,0,0,1},
+                        {1,0,0,0,3,0,0,4,0,1},
+                        {1,0,0,3,0,0,3,0,0,1},
+                        {1,0,0,0,0,0,0,0,0,1},
                         {1,2,0,0,0,0,0,3,0,1},
                         {1,0,2,0,0,0,0,0,0,1},
-                        {1,0,0,2,0,0,0,0,0,1},
-                        {1,0,0,2,0,0,0,0,0,1},
+                        {1,0,0,0,0,0,0,2,0,1},
+                        {1,0,0,0,0,0,0,2,0,1},
                         {1,1,1,1,1,1,1,1,1,1}
                         };  
 int map[10][10] = {0};
