@@ -26,6 +26,9 @@
 // Building on this you might change the amount of units for each side. maybe mod the amount of goals to be captured.
 // In a real game you might use this to simulate if a war for a ai player would be doable in a certain tested setting like this.
 //
+// Create unit types with different att and def, more scoring with 1+units attacking at the same time.
+
+
 
 #include "raylib.h"
 #include <math.h>
@@ -94,7 +97,7 @@ int main(void)
     
     InitWindow(screenWidth, screenHeight, "raylib example.");
  
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    SetTargetFPS(120);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     geneticalgorithm();
@@ -107,7 +110,7 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
         
-        if(IsKeyPressed(KEY_SPACE)){
+        if(IsKeyPressed(KEY_SPACE)|| playposition>MAX_CODE-2){
             geneticalgorithm();
             playposition=0;
         }
@@ -176,6 +179,7 @@ int main(void)
             }
             }
             DrawText("Press space for new simulation.",10,10,20,BLACK);
+            /*
             int c=0;
             for(int y=0;y<40;y++){
             for(int x=0;x<5;x++){
@@ -184,6 +188,7 @@ int main(void)
                 }
                 c++;
             }}
+            */
 
         EndDrawing();
         //----------------------------------------------------------------------------------
