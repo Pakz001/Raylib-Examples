@@ -27,7 +27,7 @@
 // In a real game you might use this to simulate if a war for a ai player would be doable in a certain tested setting like this.
 //
 // Create unit types with different att and def, more scoring with 1+units attacking at the same time.
-
+// add scoring in the execute script stage : units stay close to each other, direct path to target etc.
 
 
 #include "raylib.h"
