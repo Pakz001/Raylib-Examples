@@ -35,8 +35,8 @@
 #include "raylib.h"
 #include <math.h>
 
-#define MAX_RUNS 150
-#define MAX_CODE 2000
+#define MAX_RUNS 200
+#define MAX_CODE 1200
 #define MAX_ARC 64
 
 enum terrain{TREE=1,GROUND=0,AIPLAYER1=2,AIPLAYER2=3,GOAL=4,GOALREACHED=5};
