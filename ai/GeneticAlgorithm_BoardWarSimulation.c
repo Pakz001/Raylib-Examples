@@ -97,7 +97,7 @@ int main(void)
     
     InitWindow(screenWidth, screenHeight, "raylib example.");
  
-    SetTargetFPS(120);               // Set our game to run at 60 frames-per-second
+    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     geneticalgorithm();
