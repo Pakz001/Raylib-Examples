@@ -31,7 +31,6 @@
 //
 // Crossbreeding - taking two from higher scorers and combining these into new.
 // Seeding the list at start with for instance steps into the right direction. 
-
 // IMPLEMENTED>>>If move on enemy position (chance of being destroyed itself(.5) <x if more units of own side are nearby)
 
 #include "raylib.h"
@@ -50,11 +49,11 @@ int map1[10][10] = {    {1,1,1,1,1,1,1,1,1,1},
                         {1,0,0,0,0,0,0,0,0,1},
                         {1,0,0,0,0,0,3,4,0,1},
                         {1,0,0,3,0,0,0,0,0,1},
-                        {1,0,0,0,0,0,3,0,0,1},
+                        {1,0,0,0,3,0,0,0,0,1},
                         {1,2,0,0,0,0,0,3,0,1},
                         {1,0,2,0,0,0,0,0,0,1},
-                        {1,0,2,2,0,0,0,0,0,1},
-                        {1,0,0,0,0,0,0,0,0,1},
+                        {1,0,0,2,0,0,0,0,0,1},
+                        {1,0,0,2,0,0,0,0,0,1},
                         {1,1,1,1,1,1,1,1,1,1}
                         };  
 int map[10][10] = {0};
@@ -88,6 +87,8 @@ int screenWidth;
 int screenHeight;
 int tileWidth,tileHeight,mapWidth,mapHeight;
 
+
+
 int main(void)
 {
     // Initialization
@@ -101,7 +102,7 @@ int main(void)
     
     InitWindow(screenWidth, screenHeight, "raylib example.");
  
-    SetTargetFPS(120);               // Set our game to run at 60 frames-per-second
+    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     geneticalgorithm();
@@ -187,7 +188,7 @@ int main(void)
                     }
                     if(m==GOAL){
                         DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,WHITE);      
-                        DrawText("City",x*tileWidth+tileWidth/4,y*tileHeight+tileHeight/4,26,BLACK);                        
+                       DrawText("City",x*tileWidth+tileWidth/4,y*tileHeight+tileHeight/4,26,BLACK);                        
                     }
                     if(m==GOALREACHED){
                         DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,YELLOW);                        
@@ -199,6 +200,8 @@ int main(void)
             }
             DrawText("Press space for new simulation.(Autorun=on)",10,10,26,BLACK);
             DrawText("Press space for new simulation.(Autorun=on)",9,9,26,WHITE);
+            
+            
             /*
             int c=0;
             for(int y=0;y<40;y++){
@@ -226,6 +229,7 @@ int main(void)
 
 void geneticalgorithm(){
 
+    // First run
     for(int z=0;z<MAX_ARC;z++){
         //create random script
         for(int i=0;i<MAX_CODE;i++){
@@ -253,6 +257,7 @@ void geneticalgorithm(){
     //mutate 3..max-5
     //new random max-5 max
     //
+    // Run it and mutate picking winners
     for(int t=0;t<MAX_RUNS;t++){
         sortarc();
         mutateandnew();
@@ -266,6 +271,8 @@ void geneticalgorithm(){
             }}
             getscript(z);
             executescript();
+            
+            
             // SCORING!
             int score = getscore();
             arr_codearc[z].score = score;
@@ -273,15 +280,15 @@ void geneticalgorithm(){
             //storescript(z,score);
         }
     }
-
-    // Final set and display
+    //return;
+    // restore map and get the victor into the arr_code (our script)
     // restore map
     for(int y=0;y<10;y++){
     for(int x=0;x<10;x++){
         map[y][x]=map1[y][x];
     }}    
     getscript(0);
-    executescript();
+    //executescript();
 }
 
 void mutateandnew(){    
@@ -369,9 +376,11 @@ int getscore(){
     int score=0;
     //count enemies left
     int numenemiesleft=0;
+    int playersleft=0;
     for(int y=0;y<10;y++){
     for(int x=0;x<10;x++){
         if(map[y][x]==AIPLAYER2)numenemiesleft++;
+        if(map[y][x]==AIPLAYER1)playersleft++;
     }
     }
     //was the goal taken
@@ -401,20 +410,24 @@ int getscore(){
             nums++;
         }
     }}
-    avdist=avdist/(float)4;
+    avdist=avdist/(float)playersleft;
     
 
     score = (100-(numenemiesleft*25))*2;
-    score+=(50-(int)avdist);
-    if(objectivesuccess==true)score+=50;
+    
+    score+=(100-(int)avdist*5);
+    if(objectivesuccess==true)score+=75;
     // if every unit is close then extra score
     bool allclose=true;
-    for(int i=0;i<4;i++){
+    for(int i=0;i<playersleft;i++){
         if(distanceunit[i]>4)allclose=false;
     }
     if(allclose==true)score+=100;
+
+    
+
     //score=avdist;
-    if(score<0)score=9999;
+    //if(score<0)score=9999;
     
     return score;
 }
@@ -452,7 +465,7 @@ void executescript(){
 
 
                 //}//}                
-                if(GetRandomValue(0,10-(neigh*2))<3){
+                if(GetRandomValue(0,10-(neigh*2))<4){
                     map[ (int)np.y ][ (int)np.x ] = AIPLAYER1;
                     map[ (int)p.y ][ (int)p.x ] = GROUND;
                 }else{
