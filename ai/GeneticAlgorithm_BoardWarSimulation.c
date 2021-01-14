@@ -97,7 +97,7 @@ int main(void)
     
     InitWindow(screenWidth, screenHeight, "raylib example.");
  
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    SetTargetFPS(120);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     geneticalgorithm();
@@ -157,28 +157,44 @@ int main(void)
                 for(int x =0;x<10;x++){
                     int m=map[y][x];
                     if(m==TREE){
-                        DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,GREEN);                        
+                        
+                        DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,(Color){40,90,20,255});
+                        DrawCircle(x*tileWidth+tileWidth/1.5,y*tileHeight+tileHeight/1.5,tileWidth/5,(Color){20,50,20,255});
+                        DrawRectangle(x*tileWidth+tileWidth/2.2,y*tileHeight+tileHeight/2,tileWidth/8,tileHeight/3,BROWN);
+                        
+                        DrawCircle(x*tileWidth+tileWidth/2,y*tileHeight+tileHeight/3,tileWidth/4,(Color){120,250,20,255});
+                        DrawCircle(x*tileWidth+tileWidth/2.2,y*tileHeight+tileHeight/4,tileWidth/9,(Color){220,255,220,155});
                     }
                     if(m==GROUND){
                         DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,DARKGREEN);                        
+                        DrawRectangle(x*tileWidth+5,y*tileHeight+10,2,1,GREEN);                        
+                        DrawRectangle(x*tileWidth+tileWidth/6,y*tileHeight+tileHeight/6,2,1,GREEN);                        
+                        DrawRectangle(x*tileWidth+tileWidth/1.5,y*tileHeight+tileHeight/1.5,2,1,GREEN);                        
+                        DrawRectangle(x*tileWidth+tileWidth/2,y*tileHeight+tileHeight/2,2,1,GREEN);                        
+                        
                     }
                     if(m==AIPLAYER1){
                         DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,BLUE);                        
+                        DrawText("AI_Player",x*tileWidth,y*tileHeight+tileHeight/4,16,BLACK);                        
                     }
                     if(m==AIPLAYER2){
-                        DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,RED);                        
+                        DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,RED); 
+                        DrawText("F",x*tileWidth+tileWidth/3,y*tileHeight+tileHeight/4,40,WHITE);
                     }
                     if(m==GOAL){
-                        DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,WHITE);                        
+                        DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,WHITE);      
+                        DrawText("City",x*tileWidth+tileWidth/4,y*tileHeight+tileHeight/4,26,BLACK);                        
                     }
                     if(m==GOALREACHED){
                         DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,YELLOW);                        
+                        DrawText("Captured",x*tileWidth+4,y*tileHeight+tileHeight/4,16,BLACK);                        
                     }
 
 
             }
             }
-            DrawText("Press space for new simulation.",10,10,20,BLACK);
+            DrawText("Press space for new simulation.(Autorun=on)",10,10,26,BLACK);
+            DrawText("Press space for new simulation.(Autorun=on)",9,9,26,WHITE);
             /*
             int c=0;
             for(int y=0;y<40;y++){
