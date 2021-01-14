@@ -1,5 +1,5 @@
 //
-// Genetic Algorithm Example
+// Genetic Algorithm Example 
 
 // Strategy board game war. Units(2-blue) try to capture the target(4-white/yellow) objective
 // and eliminate the enemy units(3-red)
@@ -30,9 +30,9 @@
 #include "raylib.h"
 #include <math.h>
 
-#define MAX_RUNS 50
+#define MAX_RUNS 150
 #define MAX_CODE 1500
-#define MAX_ARC 32
+#define MAX_ARC 64
 
 enum terrain{TREE=1,GROUND=0,AIPLAYER1=2,AIPLAYER2=3,GOAL=4,GOALREACHED=5};
 enum flag{UP,DOWN,LEFT,RIGHT,WAIT};
@@ -176,14 +176,14 @@ int main(void)
             }
             }
             DrawText("Press space for new simulation.",10,10,20,BLACK);
-//            int c=0;
-//            for(int y=0;y<40;y++){
-//            for(int x=0;x<5;x++){
-//                if(c<MAX_ARC){
-//                    DrawText(FormatText("%i",arr_codearc[c].score),x*200,y*20,20,BLACK);
-//                }
-//                c++;
-//            }}
+            int c=0;
+            for(int y=0;y<40;y++){
+            for(int x=0;x<5;x++){
+                if(c<MAX_ARC){
+                    DrawText(FormatText("%i",arr_codearc[c].score),x*200,y*20,20,BLACK);
+                }
+                c++;
+            }}
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -263,7 +263,7 @@ void mutateandnew(){
     //mutate 3 to max-5
     // This is from a starting point from %10 to %50 to end
     for(int z=3;z<MAX_ARC-5;z++){
-        int start=GetRandomValue(0,MAX_CODE/2);
+        int start=GetRandomValue(MAX_CODE/4,MAX_CODE/1.5);
         for(int i=start;i<MAX_CODE;i++){
             arr_codearc[z].position[i]=(Vector2){GetRandomValue(0,10),GetRandomValue(0,10)};
             arr_codearc[z].move[i]=(Vector2){GetRandomValue(-1,1),GetRandomValue(-1,1)};
@@ -281,7 +281,7 @@ void mutateandnew(){
 
 void sortarc(){
     int top3[3] = {0};
-    int startval=2000;
+    int startval=800;
     int currentpos=0;
     // get top 3 in list top3
     while(startval>0 && currentpos<3){
@@ -365,19 +365,29 @@ int getscore(){
     //count aiplayer1 and distance to target
     float avdist=0;
     int nums=0;
+    int distanceunit[4]={0};
     for(int y=0;y<10;y++){
     for(int x=0;x<10;x++){
         if(map[y][x]==AIPLAYER1){
-            avdist+=edistance((float)goalposition.x,(float)goalposition.y,(float)x,(float)y)*2;
+            int d = 0;
+            d=edistance((float)goalposition.x,(float)goalposition.y,(float)x,(float)y)*2;
+            distanceunit[nums]=(int)d;
+            avdist+=d;
             nums++;
         }
     }}
     avdist=avdist/(float)4;
     
 
-    score = 100-(numenemiesleft*25);
+    score = (100-(numenemiesleft*25))*2;
     score+=(50-(int)avdist);
     if(objectivesuccess==true)score+=50;
+    // if every unit is close then extra score
+    bool allclose=true;
+    for(int i=0;i<4;i++){
+        if(distanceunit[i]>4)allclose=false;
+    }
+    if(allclose==true)score+=100;
     //score=avdist;
     if(score<0)score=9999;
     
