@@ -196,7 +196,7 @@ int main(void)
                         DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,YELLOW);                        
                         DrawText("Captured",x*tileWidth+4,y*tileHeight+tileHeight/4,16,BLACK);                        
                     }
-                    //DrawText(FormatText("%i",dijkstramap[y][x]),x*tileWidth+tileWidth/2-10,y*tileHeight+tileHeight/2-10,20,BLACK);
+                    DrawText(FormatText("%i",dijkstramap[y][x]),x*tileWidth+tileWidth/2-10,y*tileHeight+tileHeight/2-10,20,BLACK);
 
               }
             }
@@ -211,13 +211,13 @@ int main(void)
                 x,y,w,h,RED); 
                 DrawText(FormatText("Agent %i",i),x,y+h/8,h/8,WHITE);
                 // Draw our agents ray
-                /*
+                
                 Vector2 p1 = (Vector2){ arr_agent[i].position.x+arr_agent[i].size.x/2,
                                         arr_agent[i].position.y+arr_agent[i].size.y/2};
                 Vector2 p2 = (Vector2){ arr_agent[i].ray.x,
                                         arr_agent[i].ray.y};
                 DrawLineEx(p1,p2,4,GRAY);
-                */
+                
             }
   
  
@@ -237,14 +237,14 @@ int main(void)
 
 
             // Draw the unstuck path for ai agent 0
-            /*
+            
             for(int q=0;q<MAX_UNSTUCKPATH;q++){
                 //debug = arr_agent[0].unstuckpath[0].y;
                 int x=arr_agent[0].unstuckpath[q].x;
                 int y=arr_agent[0].unstuckpath[q].y;
                 DrawRectangle(x*tileWidth,y*tileHeight,tileWidth,tileHeight,(Color){255,0,255,128});
             }
-            */
+            
 /*
             DrawRectangle(0,0,800,50,BLACK);                        
 
