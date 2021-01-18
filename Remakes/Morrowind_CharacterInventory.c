@@ -45,7 +45,16 @@ int main(void)
     ClearBackground(BLANK); // Make the entire Sprite Transparent.
     EndTextureMode();   
     RenderTexture2D tex = LoadRenderTexture(MAPWIDTH, MAPHEIGHT);
-    BeginTextureMode(target);    
+    BeginTextureMode(tex);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode();  
+    
+    RenderTexture2D horline = LoadRenderTexture(MAPWIDTH, 4);
+    BeginTextureMode(horline);    
+    ClearBackground(BLANK); // Make the entire Sprite Transparent.
+    EndTextureMode();   
+    RenderTexture2D verline = LoadRenderTexture(4, MAPHEIGHT);
+    BeginTextureMode(verline);    
     ClearBackground(BLANK); // Make the entire Sprite Transparent.
     EndTextureMode();   
 
@@ -55,6 +64,38 @@ int main(void)
         texmap[x][y] = (Color){255,255,255,255};
     }}
     makebasetexture();
+    
+    // horizontal line texture
+    BeginTextureMode(horline);    
+    for(int y=0;y<4;y++){
+    for(int x=0;x<MAPWIDTH;x++){
+        Color l = texmap[x][y+32];
+        if(y==3 || y==0){
+            l.r/=2.0f;
+            l.g/=2.0f;
+            l.b/=2.0f;
+        }
+        DrawRectangle(x,y,1,1,l);
+        
+    }}
+    EndTextureMode();  
+    // vertical line texture
+    BeginTextureMode(verline);    
+    for(int y=0;y<MAPHEIGHT;y++){
+    for(int x=0;x<4;x++){
+        Color l = texmap[x+32][y];
+        if(x==3 || x==0){
+            l.r/=2.0f;
+            l.g/=2.0f;
+            l.b/=2.0f;
+        }
+        DrawRectangle(x,y,1,1,l);
+        
+    }}
+    EndTextureMode();  
+
+
+    //main texture
     BeginTextureMode(tex);    
     for(int y=0;y<MAPHEIGHT;y++){
     for(int x=0;x<MAPWIDTH;x++){
@@ -128,12 +169,29 @@ int main(void)
                                     (Rectangle){0,0,tex.texture.width,-tex.texture.height},
                                     (Rectangle){x,y,50,50},
                                     (Vector2){0,0},0,WHITE);
+
+
+
+
+            }}    
             DrawTexturePro(         target.texture,
                                     (Rectangle){0,0,target.texture.width,-target.texture.height},
                                     (Rectangle){0,0,screenWidth,screenHeight},
                                     (Vector2){0,0},0,WHITE);
 
-            }}    
+
+            // LINES
+            DrawTexturePro(         horline.texture,
+                                    //(Rectangle){0,0,horline.texture.width,-horline.texture.height},
+                                    (Rectangle){0,0,200,-horline.texture.height},
+                                    (Rectangle){50,50,200,4},
+                                    (Vector2){0,0},0,WHITE);
+            DrawTexturePro(         verline.texture,
+                                    //(Rectangle){0,0,horline.texture.width,-horline.texture.height},
+                                    (Rectangle){0,0,verline.texture.width,-200,},
+                                    (Rectangle){50,54,4,200},
+                                    (Vector2){0,0},0,WHITE);
+
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
@@ -142,7 +200,8 @@ int main(void)
     //--------------------------------------------------------------------------------------
     UnloadRenderTexture(target);    // Unload render texture  
     UnloadRenderTexture(tex);    // Unload render texture  
-
+    UnloadRenderTexture(horline);    // Unload render texture  
+    UnloadRenderTexture(verline);    // Unload render texture  
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
