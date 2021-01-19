@@ -2,6 +2,11 @@
 // Morrowind Player Inventory Remake Project...
 //
 // Work in progress
+//
+//The is a texture cwhich is created in a  vector2 array.
+//at the moment I create line textures for drawing lines.
+// I think I must add lines with highlights and shades for the
+// ui.
 
 
 #include "raylib.h"
