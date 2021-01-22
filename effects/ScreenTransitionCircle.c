@@ -88,7 +88,7 @@ void circletransition(int radius, int screenWidth, int screenHeight,Color col){
         DrawLine(0,a,screenWidth,a,col);
     }        
     circleBres(cx,cy, radius,screenWidth,screenHeight,BLACK);
-    for(int a=cy+radius;a<screenHeight;a++){
+    for(int a=cy+radius;a<=screenHeight;a++){
         DrawLine(0,a,screenWidth,a,col);
     }
 
