@@ -72,7 +72,7 @@ void c64rectangle(int x, int y, int w, int h,int thick){
     DrawRectangle(x,y+h-thick,w,thick,col6);
     DrawRectangle(x+w-thick,y+thick,thick,h-thick,col6);
     // inside black 
-    Color col7 = (Color){58,58,258,255};
+    Color col7 = (Color){58,58,58,255};
     DrawRectangle(x+thick*2,y+thick*2,w-thick*4,thick,col6);
     DrawRectangle(x+thick*2,y+thick*2,thick,h-thick*4,col6);
     DrawRectangle(x+w-thick*2,y+thick*1,thick,thick,col7);
