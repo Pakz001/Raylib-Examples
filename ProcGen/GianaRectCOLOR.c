@@ -18,13 +18,17 @@ int main(void)
  
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
-
+    int scrollx=0;
+    int scrolly=0;
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        
+        scrollx+=1;
+        if(scrollx>64)scrollx=0;
+        scrolly+=1;
+        if(scrolly>64)scrolly=0;
         
         //----------------------------------------------------------------------------------
         // Draw
@@ -32,9 +36,9 @@ int main(void)
         BeginDrawing();
 
             ClearBackground(RAYWHITE);
-            for(int y=0;y<screenHeight;y+=64){
-            for(int x=0;x<screenWidth;x+=64){
-                c64rectangle(x,y,64,64,4,BLUE); 
+            for(int y=-64;y<screenHeight;y+=64){
+            for(int x=-64;x<screenWidth;x+=64){
+                c64rectangle(x+scrollx,y+scrolly,64,64,4,BLUE); 
             }}            
 
             for(int y=128;y<screenHeight-128;y+=32){
