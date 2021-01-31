@@ -8,7 +8,7 @@ int map[MAP_SIZE][MAP_SIZE];
 int heightmap[MAP_SIZE][MAP_SIZE];
 
 void mapline(int x1, int y1, int x2, int y2);
-void scanlinebufferfill(int x, int y, int value);
+void floodfill(int x, int y, int value);
 
 int main(void)
 {
@@ -91,7 +91,7 @@ int main(void)
             y2 = MAP_SIZE-1;
         }
         mapline(x1,y1,x2,y2);
-        scanlinebufferfill(GetRandomValue(0,MAP_SIZE-1),GetRandomValue(0,MAP_SIZE-1),1);
+        floodfill(GetRandomValue(0,MAP_SIZE-1),GetRandomValue(0,MAP_SIZE-1),1);
         
         for(int y=0;y<MAP_SIZE;y++){
         for(int x=0;x<MAP_SIZE;x++){
@@ -197,7 +197,7 @@ void mapline(int x1, int y1, int x2, int y2){
 
 
 
-void scanlinebufferfill(int x, int y, int value){
+void floodfill(int x, int y, int value){
     Vector2 list[MAP_SIZE*MAP_SIZE] = {(Vector2){-1,-1}};
     int listsize=0;
     list[listsize] = (Vector2){x,y};
