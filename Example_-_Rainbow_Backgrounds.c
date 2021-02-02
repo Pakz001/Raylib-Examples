@@ -34,10 +34,12 @@ int main(void)
             col2 = (Color){GetRandomValue(0,255),GetRandomValue(0,255),GetRandomValue(0,255),255};
             size = GetRandomValue(1,32);
         }
-        
+        // Find the step value between the colors so it flows from color to color.
+        // We divide it by the screenheight. screenheight is divided by the bar size of each color.
         float stepr = abs(col1.r-col2.r)/(float)(screenHeight/size);
         float stepg = abs(col1.g-col2.g)/(float)(screenHeight/size);
         float stepb = abs(col1.b-col2.b)/(float)(screenHeight/size);
+        // Make sure the color goes from one value to another(negatives/positives and step values.)
         if(col1.r>col2.r)stepr=-stepr;
         if(col1.g>col2.g)stepg=-stepg;
         if(col1.b>col2.b)stepb=-stepb;
@@ -50,13 +52,16 @@ int main(void)
 
             ClearBackground(RAYWHITE);
             
+            // Here we draw the rainbow...
             Color col=col1;
             float r=col.r;
             float g=col.g;
             float b=col.b;
             int cnt=0;
             for(int i=0;i<screenHeight;i++){
+                // Draw a line.
                 DrawLine(0,i,screenWidth,i,col);
+                // This is for the bar height...
                 if(cnt>=size){
                     r+=stepr;
                     g+=stepg;
