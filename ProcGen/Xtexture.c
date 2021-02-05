@@ -8,8 +8,8 @@ void createXtexture();
 
 RenderTexture2D target;
 
-int tw = 320;
-int th = 240;
+int tw = 640;
+int th = 480;
 
 int main(void)
 {
@@ -20,7 +20,7 @@ int main(void)
     //tw=screenWidth;
     //th=screenHeight;
     InitWindow(screenWidth, screenHeight, "raylib example.");
- 
+    //ToggleFullscreen();
     createXtexture();
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -35,10 +35,10 @@ int main(void)
     {
         // Update
         //----------------------------------------------------------------------------------
-        an+=.01;
-        x2 = x1+cos(an)*64;
-        y2 = y1+sin(an)*64;
-        if(an>PI*2.0f)an=0;
+        //an+=.01;
+        //x2 = x1+cos(an)*64;
+        //y2 = y1+sin(an)*64;
+        //if(an>PI*2.0f)an=0;
         
         val++;
         if(val>200){
@@ -58,10 +58,10 @@ int main(void)
             DrawTexturePro(target.texture,  (Rectangle){ 0, 0,tw,-th },
                                             (Rectangle){ 0,0,screenWidth,screenHeight}, (Vector2){ 0,0 },0, WHITE);
 
-            float n = direction(cos(an),sin(an));//getangledeg(x1,y1,x2,y2); //*(180/PI));//direction(0.0f,0.0f); 
+            //float n = direction(cos(an),sin(an));//getangledeg(x1,y1,x2,y2); //*(180/PI));//direction(0.0f,0.0f); 
             //float n = direction(0,-1);
-            DrawText(FormatText("%f",n),10,10,20,RED);
-            DrawLine(x1,y1,x2,y2,RED);
+            //DrawText(FormatText("%f",n),10,10,20,RED);
+            //DrawLine(x1,y1,x2,y2,RED);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -161,10 +161,11 @@ void createXtexture(){
     for(int y=0;y<th;y++){
     for(int x=0;x<tw;x++){
         // This is the noise
-        if(GetRandomValue(0,10)<5){
+        if(GetRandomValue(0,10)<9){
             Color tc;
-            int val = GetRandomValue(-50,40);
-            if(GetRandomValue(0,10)<8)val/=4;
+            int val = GetRandomValue(-50,50);
+            if(GetRandomValue(0,10)<5)val/=2;
+            if(GetRandomValue(0,10)<9)val=GetRandomValue(-5,5);
             tc.r = back.r+val;
             tc.g = back.g+val;
             tc.b = back.b+val;
@@ -196,28 +197,35 @@ void createXtexture(){
         float x=GetRandomValue(0,tw);
         float y=GetRandomValue(0,th);    
         for(int i=0 ;i<len;i++){
-            DrawPixel(x,y,BLACK);
-            if(GetRandomValue(0,10)<5)DrawPixel(x,y,low);
+            int val=GetRandomValue(-20,20);
+            Color high2 = (Color){high.r-val,high.g-val,high.b-val,255};
+            int val2=GetRandomValue(0,20);
+            Color low2 = (Color){low.r+val2,low.g+val2,low.b+val2,255};
+            int val3=GetRandomValue(0,20);
+            Color BLACK2 = (Color){val3,val3,val3,255};
+            
+            DrawPixel(x,y,BLACK2);
+            if(GetRandomValue(0,10)<5)DrawPixel(x,y,low2);
             int d=direction(cos(angle),sin(angle));
             if(d==0)// || d==3 || d==4 || d==5 || d==7)
-                if(GetRandomValue(0,10)<2)DrawPixel(x,y+1,high);
+                if(GetRandomValue(0,10)<2)DrawPixel(x,y+1,high2);
             if(d==1)
-                if(GetRandomValue(0,10)<2)DrawPixel(x+1,y,high);
+                if(GetRandomValue(0,10)<2)DrawPixel(x+1,y,high2);
             if(d==2)
-                DrawPixel(x+1,y,high);
+                DrawPixel(x+1,y,high2);
             if(d==3)
-                DrawPixel(x+1,y,high);
+                DrawPixel(x+1,y,high2);
                 
             if(d==4)
-                DrawPixel(x,y+1,high);
-                if(GetRandomValue(0,10)<2)DrawPixel(x,y-1,BLACK);
+                DrawPixel(x,y+1,high2);
+                if(GetRandomValue(0,10)<2)DrawPixel(x,y-1,BLACK2);
 
             //if(d==5)
             //    DrawPixel(x,y,YELLOW);
             if(d==6)
-                DrawPixel(x+1,y,high);
+                DrawPixel(x+1,y,high2);
             if(d==7)
-                DrawPixel(x,y+1,high);
+                DrawPixel(x,y+1,high2);
             x+=cos(angle)*1;
             y+=sin(angle)*1;
             if(GetRandomValue(0,20)<2)
