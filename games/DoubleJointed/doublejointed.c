@@ -18,7 +18,7 @@ int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 1200;
+    const int screenWidth = 1400;
     const int screenHeight = 768;
 
     InitWindow(screenWidth, screenHeight, "raylib [texture] example - texture rectangle");
