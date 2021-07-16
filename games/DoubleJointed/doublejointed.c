@@ -160,7 +160,7 @@ int main(void)
 
             //DrawTextureRec(scarfy, frameRec, position, WHITE);  // Draw part of the texture
             DrawTextureRec(scarfy, frameRec, (Vector2){position.x+96,position.y}, WHITE);  // Draw part of the texture
-            DrawTexturePro(scarfy,  (Rectangle){frameRec.x,frameRec.y,-96,96},
+            DrawTexturePro(scarfy,  (Rectangle){frameRec.x,frameRec.y,-96,96},// the -96 (-)means mirror on x axis
                                             (Rectangle){position.x,position.y,96,96},
                                             (Vector2){0,0},0,WHITE);
             DrawText("(c) Scarfy sprite by Eiden Marsal", screenWidth - 200, screenHeight - 20, 10, GRAY);
