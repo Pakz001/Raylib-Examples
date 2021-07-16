@@ -90,12 +90,32 @@ int main(void)
     //setanimation(animKick);
     setanimation(animFlying);
 
+    //other sprites - 
+    int mod=0;
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
         framesCounter++;
+
+        // Switch between characters 
+        if(GetRandomValue(0,100)==1){
+            setanimation(GetRandomValue(1,7));
+            switch(GetRandomValue(0,2)){
+                case 0:
+                mod=0;
+                break;
+                case 1:
+                mod=5;
+                break;
+                case 2:
+                mod = 9;
+                break;
+            }
+        }
+
+        
 
         if (framesCounter >= (60/framesSpeed))
         {
@@ -107,7 +127,7 @@ int main(void)
             int ypos = currentFrame/15;
             frameRec.y = (float)(currentFrame/15)*(float)96;
 
-            frameRec.x = (float)(currentFrame-ypos*15)*(float)96;
+            frameRec.x = (float)((currentFrame+mod)-ypos*15)*(float)96;
             
         }
 
@@ -138,8 +158,11 @@ int main(void)
                 DrawRectangleLines(250 + 21*i, 205, 20, 20, MAROON);
             }
 
-            DrawTextureRec(scarfy, frameRec, position, WHITE);  // Draw part of the texture
-
+            //DrawTextureRec(scarfy, frameRec, position, WHITE);  // Draw part of the texture
+            DrawTextureRec(scarfy, frameRec, (Vector2){position.x+96,position.y}, WHITE);  // Draw part of the texture
+            DrawTexturePro(scarfy,  (Rectangle){frameRec.x,frameRec.y,-96,96},
+                                            (Rectangle){position.x,position.y,96,96},
+                                            (Vector2){0,0},0,WHITE);
             DrawText("(c) Scarfy sprite by Eiden Marsal", screenWidth - 200, screenHeight - 20, 10, GRAY);
 
         EndDrawing();
