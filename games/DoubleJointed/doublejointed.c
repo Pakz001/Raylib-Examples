@@ -34,6 +34,7 @@ bool FIRE2;
 
 // currentframe hold the current position of the cells (typewriter style)
 int currentFrame;
+int framesSpeed = 8;            // Number of spritesheet frames shown by second
 
 int frame_start = 0;
 int frame_end = 3;
@@ -82,7 +83,6 @@ int main(void)
     //int currentFrame = frame_kickstart;
 
     int framesCounter = 0;
-    int framesSpeed = 8;            // Number of spritesheet frames shown by second
 
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -130,12 +130,12 @@ int main(void)
             frameRec.x = (float)((currentFrame+mod)-ypos*15)*(float)96;
             
         }
+        // temp controls
+        if (IsKeyDown(KEY_RIGHT)) position.x+=2;
+        else if (IsKeyDown(KEY_LEFT)) position.x-=2;
+        if (IsKeyDown(KEY_DOWN)) position.y+=2;
+        else if (IsKeyDown(KEY_UP)) position.y-=2;
 
-        if (IsKeyPressed(KEY_RIGHT)) framesSpeed++;
-        else if (IsKeyPressed(KEY_LEFT)) framesSpeed--;
-
-        if (framesSpeed > MAX_FRAME_SPEED) framesSpeed = MAX_FRAME_SPEED;
-        else if (framesSpeed < MIN_FRAME_SPEED) framesSpeed = MIN_FRAME_SPEED;
         //----------------------------------------------------------------------------------
 
         // Draw
