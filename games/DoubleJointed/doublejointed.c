@@ -16,9 +16,21 @@
 
 
 #define animKick  1
-#define animHit 2
+#define animHit1 2
 #define animUcut 3
+#define animHit2 4
+#define animWalk 5
+#define animDamage 6
+#define animFlying 7
 
+
+// controls for player (true/false) ,,add function to read keyboard/joypad/touchscreen
+bool LEFT;
+bool RIGHT;
+bool UP;
+bool DOWN;
+bool FIRE1;
+bool FIRE2;
 
 // currentframe hold the current position of the cells (typewriter style)
 int currentFrame;
@@ -29,11 +41,24 @@ int frame_end = 3;
 int frame_kickstart = 1;
 int frame_kickend = 3;
 
-int frame_hitstart = 16;
-int frame_hitend = 18;
+int frame_hit1start = 16;
+int frame_hit1end = 18;
 
 int frame_ucutstart = 31;
 int frame_ucutend = 33;
+
+int frame_hit2start = 46;
+int frame_hit2end = 47;
+
+int frame_walkstart = 61;
+int frame_walkend = 62;
+
+int frame_damagestart = 76;
+int frame_damageend = 77;
+
+int frame_flyingstart = 92;
+int frame_flyingend = 93;
+
 
 
 // this sets the frame to start and sets start and end position(loop)
@@ -63,7 +88,7 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
     //setanimation(animKick);
-    setanimation(animUcut);
+    setanimation(animFlying);
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
@@ -133,20 +158,38 @@ int main(void)
 
 void setanimation(int anim){
     switch(anim){
-            case 1:
+            case animKick:
             frame_start = frame_kickstart;
             frame_end = frame_kickend;
             
             break;
-            case 2:
-            frame_start = frame_hitstart;
-            frame_end = frame_hitend;
+            case animHit1:
+            frame_start = frame_hit1start;
+            frame_end = frame_hit1end;
             break;
 
-            case 3:
+            case animUcut:
             frame_start = frame_ucutstart;
             frame_end = frame_ucutend;
             break;
+
+            case animHit2:
+            frame_start = frame_hit2start;
+            frame_end = frame_hit2end;
+            break;
+            case animWalk:
+            frame_start = frame_walkstart;
+            frame_end = frame_walkend;
+            break;
+            case animDamage:
+            frame_start = frame_damagestart;
+            frame_end = frame_damageend;
+            break;
+            case animFlying:
+            frame_start = frame_flyingstart;
+            frame_end = frame_flyingend;
+            break;
+
 
     }
     currentFrame = frame_start;
