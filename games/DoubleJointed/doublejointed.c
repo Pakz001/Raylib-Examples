@@ -14,6 +14,31 @@
 #define MAX_FRAME_SPEED     15
 #define MIN_FRAME_SPEED      1
 
+
+#define animKick  1
+#define animHit 2
+#define animUcut 3
+
+
+// currentframe hold the current position of the cells (typewriter style)
+int currentFrame;
+
+int frame_start = 0;
+int frame_end = 3;
+
+int frame_kickstart = 1;
+int frame_kickend = 3;
+
+int frame_hitstart = 16;
+int frame_hitend = 18;
+
+int frame_ucutstart = 31;
+int frame_ucutend = 33;
+
+
+// this sets the frame to start and sets start and end position(loop)
+void setanimation(int anim);
+
 int main(void)
 {
     // Initialization
@@ -29,13 +54,16 @@ int main(void)
 
     Vector2 position = { 350.0f, 480.0f };
     Rectangle frameRec = { 0.0f, 0.0f, (float)96, (float)96 };
-    int currentFrame = 0;
+    //int currentFrame = frame_kickstart;
 
     int framesCounter = 0;
     int framesSpeed = 8;            // Number of spritesheet frames shown by second
 
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
+
+    //setanimation(animKick);
+    setanimation(animUcut);
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
@@ -49,9 +77,13 @@ int main(void)
             framesCounter = 0;
             currentFrame++;
 
-            if (currentFrame > 3) currentFrame = 1;
+            if (currentFrame > frame_end) currentFrame = frame_start;
 
-            frameRec.x = (float)currentFrame*(float)96;
+            int ypos = currentFrame/15;
+            frameRec.y = (float)(currentFrame/15)*(float)96;
+
+            frameRec.x = (float)(currentFrame-ypos*15)*(float)96;
+            
         }
 
         if (IsKeyPressed(KEY_RIGHT)) framesSpeed++;
@@ -97,4 +129,25 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
     return 0;
+}
+
+void setanimation(int anim){
+    switch(anim){
+            case 1:
+            frame_start = frame_kickstart;
+            frame_end = frame_kickend;
+            
+            break;
+            case 2:
+            frame_start = frame_hitstart;
+            frame_end = frame_hitend;
+            break;
+
+            case 3:
+            frame_start = frame_ucutstart;
+            frame_end = frame_ucutend;
+            break;
+
+    }
+    currentFrame = frame_start;
 }
