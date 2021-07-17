@@ -14,6 +14,11 @@
 #define MAX_FRAME_SPEED     15
 #define MIN_FRAME_SPEED      1
 
+#define stateFlee 1
+#define stateAttack 2
+#define stateChase 3
+#define stateIdle 4
+#define stateSawplayer 5
 
 #define animIdle 0
 #define animKick  1
@@ -54,6 +59,8 @@ typedef struct entity{
     bool flying; // for when nocked flying
     float flyingincx;
     float flyingincy;
+    Vector2 target;
+    int state;
     float shadey;//shadow coordinate for when physics. bottom of sprites last/start position
     int frameSpeed;
     int damagedelay;
@@ -78,6 +85,8 @@ typedef struct player{
     Vector2 position;
     int w;
     int h;
+    int enemyattheright; // only 1 enemy at every side (integer of entity number)
+    int enemyattheleft;
     int hitcombo;
     int score;
     int health;
@@ -151,7 +160,7 @@ void drawitems();
 void updateitems();
 // Our rectsoverlap function. Returns true/false.
 static bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2);
-
+float distance(float x1,float y1,float x2,float y2);
 
 Texture2D scarfy;
 Texture2D backg;
@@ -185,6 +194,7 @@ int main(void)
     it[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
     it[1].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
 
+    e[0].state = stateChase;
     e[0].frameSpeed = 8;
     e[0].health = 10;
     e[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
@@ -193,6 +203,7 @@ int main(void)
     e[0].position.x = 320;
     e[0].mod = 5;
     setentityanimation(0,animIdle);
+    e[1].state = stateChase;
     e[1].frameSpeed = 8;
     e[1].health = 10;
     e[1].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
@@ -200,12 +211,16 @@ int main(void)
     e[1].position.y = 270;
     e[1].position.x = 320;
     e[1].mod = 5;
+
     setentityanimation(1,animIdle);
     
     
     p[0].facing=1;
     p[0].position.y = 370;
     p[0].position.x = 320;
+    p[0].enemyattheleft=-1;
+    p[0].enemyattheright=-1;
+
     setplayeranimation(0,animIdle);
 
     //other sprites - 
@@ -539,6 +554,39 @@ void updateentity(int entity){
         }
         
         
+        // states
+        if(e[entity].state==stateChase){
+            //
+            if(e[entity].position.x<p[0].position.x && p[0].enemyattheleft==-1 && p[0].enemyattheright!=entity){
+                e[entity].target.x=p[0].position.x-48;
+                e[entity].target.y=p[0].position.y;
+                p[0].enemyattheleft = entity;
+                //e[entity].state = stateChase;
+            }
+            if(e[entity].position.x>p[0].position.x && p[0].enemyattheright==-1 && p[0].enemyattheleft!=entity){
+                e[entity].target.x=p[0].position.x+48;
+                e[entity].target.y=p[0].position.y;
+                p[0].enemyattheright = entity;
+                //e[entity].state = stateChase;
+            }
+        
+            if(p[0].enemyattheleft==entity || p[0].enemyattheright==entity){
+                if(e[entity].position.x>e[entity].target.x)e[entity].position.x--;
+                if(e[entity].position.x<e[entity].target.x)e[entity].position.x++;
+                if(e[entity].position.y>e[entity].target.y)e[entity].position.y--;
+                if(e[entity].position.y<e[entity].target.y)e[entity].position.y++;
+            }
+            
+            if(rectsoverlap(p[0].position.x-48,p[0].position.y-48,96,96,e[entity].position.x-48,e[entity].position.y-48,96,96)==false){
+                
+                if(p[0].enemyattheleft==entity)p[0].enemyattheleft=-1;
+                if(p[0].enemyattheright==entity)p[0].enemyattheright=-1;
+                //e[entity].state=stateIdle;
+            }
+        }
+
+        
+        
 }
 
 
@@ -753,4 +801,8 @@ bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2){
     if(x1 >= (x2 + w2) || (x1 + w1) <= x2) return false;
     if(y1 >= (y2 + h2) || (y1 + h1) <= y2) return false;
     return true;
+}
+// Manhattan Distance (less precise)
+float distance(float x1,float y1,float x2,float y2){
+    return (float)abs(x2-x1)+abs(y2-y1);
 }
