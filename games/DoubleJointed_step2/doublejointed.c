@@ -48,7 +48,8 @@ typedef struct entity{
     Vector2 position;
     int w;
     int h;
-    int health;
+    float health;
+    int damagedelay;
     int currentFrame;
     int currentAnim; // which animation is currenty active
     int lastAnim;
@@ -151,8 +152,8 @@ int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 1400;
-    const int screenHeight = 768;
+    const int screenWidth = 940;
+    const int screenHeight = 720;
 
     InitWindow(screenWidth, screenHeight, "raylib [texture] example - texture rectangle");
 
@@ -175,6 +176,7 @@ int main(void)
     //setanimation(animFlying);
     it[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
 
+    e[0].health = 10;
     e[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
     e[0].facing=1;
     e[0].position.y = 470;
@@ -577,28 +579,42 @@ void updateplayer(int player){
             
         }
  
+        //
+        // Player hits a enemy!
+        //
+        // Is he nearby
+        if(e[0].damagedelay>0)e[0].damagedelay-=1;
         if(rectsoverlap(p[player].position.x,p[player].position.y,70,60,e[0].position.x,e[0].position.y+10,60,40)){
-        
-        if(p[0].currentFrame == frame_hit1end || p[0].currentFrame == frame_hit2end || p[0].currentFrame == frame_kickend){
-         
-            bool goahead=false;
-            if(p[player].facing==-1 && e[0].position.x<p[player].position.x){
-                goahead=true;
+            // Are we on the final damaging frame.        
+            if(p[0].currentFrame == frame_hit1end || p[0].currentFrame == frame_hit2end || p[0].currentFrame == frame_kickend){
+                // Are we faced into the right direction
+                bool goahead=false;
+                if(p[player].facing==-1 && e[0].position.x<p[player].position.x){
+                    goahead=true;
+                }
+                if(p[player].facing==1 && e[0].position.x>p[player].position.x){
+                    goahead=true;
+                }
+                
+                // We have hit 'em
+                if(goahead && e[0].damagedelay==0){
+                    //
+                    e[0].damagedelay=10;
+                    if(e[0].health>0)e[0].health-=2;
+                    if(e[0].health<4 && e[0].health>0){
+                        e[0].health=0;
+                        e[0].mod = 9;
+                        setentityanimation(0,animDamage);
+                        //
+                        it[0].incx=5;
+                        it[0].incy=-5;
+                        it[0].position = e[0].position;
+                        if(p[0].position.x>e[0].position.x)it[0].incx=-it[0].incx;
+                    }else{
+                        setentityanimation(0,animDamage);
+                    }
+                }
             }
-            if(p[player].facing==1 && e[0].position.x>p[player].position.x){
-                goahead=true;
-            }
-
-            if(goahead){
-                e[0].mod = 9;
-                setentityanimation(0,animDamage);
-                //
-                it[0].incx=5;
-                it[0].incy=-5;
-                it[0].position = e[0].position;
-                if(p[0].position.x>e[0].position.x)it[0].incx=-it[0].incx;
-            }
-        }
         
         }
 
