@@ -123,6 +123,8 @@ void playercontrols(int player);
 void drawentities();
 void setentityanimation(int entity, int anim);
 void updateentity(int entity);
+// Our rectsoverlap function. Returns true/false.
+static bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2);
 
 
 Texture2D scarfy;
@@ -234,6 +236,13 @@ int main(void)
 
             drawplayers();
             drawentities();
+
+            // spceial case if player is near enemy check if he is below than draw infront.
+            if(rectsoverlap(p[0].position.x,p[0].position.y,96,96,e[0].position.x,e[0].position.y,96,96)){
+                if(p[0].position.y>e[0].position.y){
+                    drawplayers();
+                }
+            }
             
             /*
             DrawRectangleLines(15, 40, scarfy.width, scarfy.height, LIME);
@@ -266,6 +275,7 @@ int main(void)
     // De-Initialization
     //--------------------------------------------------------------------------------------
     UnloadTexture(scarfy);       // Texture unloading
+    UnloadTexture(backg);
 
     CloseWindow();                // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
@@ -333,6 +343,7 @@ void drawplayers(){
                                     (Vector2){0,0},0,WHITE);
     }
     
+
 }
 
 
@@ -607,4 +618,13 @@ void playercontrols(int player){
             p[player].keynothingtime = 0;
         }
     
+}
+
+
+
+// Rectangles overlap
+bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2){
+    if(x1 >= (x2 + w2) || (x1 + w1) <= x2) return false;
+    if(y1 >= (y2 + h2) || (y1 + h1) <= y2) return false;
+    return true;
 }
