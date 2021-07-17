@@ -26,6 +26,21 @@
 
 #define MAX_PLAYERS 1 
 #define MAX_ENTITIES 1 
+#define MAX_ITEMS 1
+
+typedef struct item{
+    bool active;
+    float facing;
+    Vector2 position;
+    int currentFrame;
+    Rectangle frameRec;
+    float angle;
+    float incx;
+    float incy;
+}item;
+
+static struct item it[MAX_ITEMS];
+
 
 typedef struct entity{
     bool active;
@@ -123,6 +138,7 @@ void playercontrols(int player);
 void drawentities();
 void setentityanimation(int entity, int anim);
 void updateentity(int entity);
+void drawitems();
 // Our rectsoverlap function. Returns true/false.
 static bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2);
 
@@ -156,6 +172,8 @@ int main(void)
 
     //setanimation(animKick);
     //setanimation(animFlying);
+    it[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
+
     e[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
     e[0].facing=1;
     e[0].position.y = 470;
@@ -236,6 +254,7 @@ int main(void)
 
             drawplayers();
             drawentities();
+            drawitems();
 
             // spceial case if player is near enemy check if he is below than draw infront.
             if(rectsoverlap(p[0].position.x,p[0].position.y,96,96,e[0].position.x,e[0].position.y,96,96)){
@@ -322,6 +341,14 @@ void setanimation(int anim){
     currentFrame = frame_start;
 }
 
+void drawitems(){
+    // get the head cell
+    it[0].frameRec.y = 0;
+
+    it[0].frameRec.x = 96*4;
+
+    DrawTextureRec(scarfy, it[0].frameRec, (Vector2){it[0].position.x,it[0].position.y}, WHITE);  // Draw part of the texture
+}
 
 void drawentities(){
     if(e[0].facing==1){
@@ -537,7 +564,10 @@ void updateplayer(int player){
                 goahead=true;
             }
 
-            if(goahead)setentityanimation(0,animDamage);
+            if(goahead){
+                e[0].mod = 9;
+                setentityanimation(0,animDamage);
+            }
         }
         
         }
