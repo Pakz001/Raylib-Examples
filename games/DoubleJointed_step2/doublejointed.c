@@ -25,8 +25,8 @@
 #define animFlying 7
 
 #define MAX_PLAYERS 1 
-#define MAX_ENTITIES 1 
-#define MAX_ITEMS 1
+#define MAX_ENTITIES 2
+#define MAX_ITEMS 2
 
 typedef struct item{
     bool active;
@@ -176,6 +176,7 @@ int main(void)
     //setanimation(animKick);
     //setanimation(animFlying);
     it[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
+    it[1].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
 
     e[0].health = 10;
     e[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
@@ -184,6 +185,13 @@ int main(void)
     e[0].position.x = 320;
     e[0].mod = 5;
     setentityanimation(0,animIdle);
+    e[1].health = 10;
+    e[1].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
+    e[1].facing=1;
+    e[1].position.y = 270;
+    e[1].position.x = 320;
+    e[1].mod = 5;
+    setentityanimation(1,animIdle);
     
     
     p[0].facing=1;
@@ -200,6 +208,7 @@ int main(void)
         playercontrols(0);
         updateplayer(0);
         updateentity(0);
+        updateentity(1);
         updateitems();
 
         /*
@@ -348,24 +357,28 @@ void setanimation(int anim){
 }
 
 void drawitems(){
-    // get the head cell
-    it[0].frameRec.y = 0;
+    for(int i=0;i<MAX_ITEMS;i++){
+        // get the head cell
+        it[i].frameRec.y = 0;
 
-    it[0].frameRec.x = 96*4;
+        it[i].frameRec.x = 96*4;
 
-    //DrawTextureRec(scarfy, it[0].frameRec, (Vector2){it[0].position.x,it[0].position.y}, WHITE);  // Draw part of the texture
-    DrawTexturePro(scarfy,  (Rectangle){it[0].frameRec.x,it[0].frameRec.y,-96,96},// the -96 (-)means mirror on x axis
-                                    (Rectangle){it[0].position.x+48,it[0].position.y+48,96,96},
-                                    (Vector2){96/2,96/2},it[0].angle,WHITE);    
+        //DrawTextureRec(scarfy, it[0].frameRec, (Vector2){it[0].position.x,it[0].position.y}, WHITE);  // Draw part of the texture
+        DrawTexturePro(scarfy,  (Rectangle){it[i].frameRec.x,it[i].frameRec.y,-96,96},// the -96 (-)means mirror on x axis
+                                        (Rectangle){it[i].position.x+48,it[i].position.y+48,96,96},
+                                        (Vector2){96/2,96/2},it[i].angle,WHITE);    
+    }
 }
 
 void drawentities(){
-    if(e[0].facing==1){
-    DrawTextureRec(scarfy, e[0].frameRec, (Vector2){e[0].position.x,e[0].position.y}, WHITE);  // Draw part of the texture
-    }else{
-    DrawTexturePro(scarfy,  (Rectangle){e[0].frameRec.x,e[0].frameRec.y,-96,96},// the -96 (-)means mirror on x axis
-                                    (Rectangle){e[0].position.x,e[0].position.y,96,96},
-                                    (Vector2){0,0},0,WHITE);
+    for(int i=0;i<MAX_ENTITIES;i++){
+        if(e[i].facing==1){
+        DrawTextureRec(scarfy, e[i].frameRec, (Vector2){e[i].position.x,e[i].position.y}, WHITE);  // Draw part of the texture
+        }else{
+        DrawTexturePro(scarfy,  (Rectangle){e[i].frameRec.x,e[i].frameRec.y,-96,96},// the -96 (-)means mirror on x axis
+                                        (Rectangle){e[i].position.x,e[i].position.y,96,96},
+                                        (Vector2){0,0},0,WHITE);
+        }
     }
     
 }
@@ -494,22 +507,24 @@ void setplayeranimation(int player, int anim){
 }
 
 void updateitems(){
-    if(it[0].incx!=0){
-        
-        if(it[0].incx>0){
-            it[0].incx-=.05;
-            it[0].angle+=10;
+    for(int i=0;i<MAX_ITEMS;i++){
+        if(it[i].incx!=0){
+            
+            if(it[i].incx>0){
+                it[i].incx-=.05;
+                it[i].angle+=10;
+            }
+            if(it[i].incx<0){
+                it[i].incx+=.05;
+                it[i].angle-=10;
+            }
+            if(it[i].incx>-0.1 && it[i].incx<0.1){
+                it[i].incx=0;
+            }
+            it[i].incy+=.42;
+            it[i].position.x+=it[i].incx;
+            if(it[i].incy<8)it[i].position.y+=it[i].incy;
         }
-        if(it[0].incx<0){
-            it[0].incx+=.05;
-            it[0].angle-=10;
-        }
-        if(it[0].incx>-0.1 && it[0].incx<0.1){
-            it[0].incx=0;
-        }
-        it[0].incy+=.42;
-        it[0].position.x+=it[0].incx;
-        if(it[0].incy<8)it[0].position.y+=it[0].incy;
     }
 }
 
@@ -520,17 +535,17 @@ void updateentity(int entity){
 
         
 
-        if (e[0].framesCounter >= (60/framesSpeed))
+        if (e[entity].framesCounter >= (60/framesSpeed))
         {
-            e[0].framesCounter = 0;
-            e[0].currentFrame++;
+            e[entity].framesCounter = 0;
+            e[entity].currentFrame++;
 
-            if (e[0].currentFrame > e[0].frame_end) e[0].currentFrame = e[0].frame_start;
+            if (e[entity].currentFrame > e[entity].frame_end) e[entity].currentFrame = e[entity].frame_start;
 
-            int ypos = e[0].currentFrame/15;
-            e[entity].frameRec.y = (float)(e[0].currentFrame/15)*(float)96;
+            int ypos = e[entity].currentFrame/15;
+            e[entity].frameRec.y = (float)(e[entity].currentFrame/15)*(float)96;
 
-            e[entity].frameRec.x = (float)((e[0].currentFrame)-ypos*15)*(float)96;
+            e[entity].frameRec.x = (float)((e[entity].currentFrame)-ypos*15)*(float)96;
             
         }
  
@@ -585,48 +600,49 @@ void updateplayer(int player){
         // Player hits a enemy!
         //
         // Is he nearby
-        if(e[0].damagedelay>0)e[0].damagedelay-=1;
-        if(rectsoverlap(p[player].position.x,p[player].position.y,70,60,e[0].position.x,e[0].position.y+10,60,40)){
-            // Are we on the final damaging frame.        
-            if(p[0].currentFrame == frame_hit1end || p[0].currentFrame == frame_hit2end || p[0].currentFrame == frame_kickend || p[0].currentFrame == frame_ucutend){
-                // Are we faced into the right direction
-                bool goahead=false;
-                if(p[player].facing==-1 && e[0].position.x<p[player].position.x){
-                    goahead=true;
-                }
-                if(p[player].facing==1 && e[0].position.x>p[player].position.x){
-                    goahead=true;
-                }
-                
-                // We have hit 'em
-                if(goahead && e[0].damagedelay==0){
-                    //
+        for(int entity=0;entity<MAX_ENTITIES;entity++){
+            if(e[entity].damagedelay>0)e[entity].damagedelay-=1;
+            if(rectsoverlap(p[player].position.x,p[player].position.y,70,60,e[entity].position.x,e[entity].position.y+10,60,40)){
+                // Are we on the final damaging frame.        
+                if(p[0].currentFrame == frame_hit1end || p[0].currentFrame == frame_hit2end || p[0].currentFrame == frame_kickend || p[0].currentFrame == frame_ucutend){
+                    // Are we faced into the right direction
+                    bool goahead=false;
+                    if(p[player].facing==-1 && e[entity].position.x<p[player].position.x){
+                        goahead=true;
+                    }
+                    if(p[player].facing==1 && e[entity].position.x>p[player].position.x){
+                        goahead=true;
+                    }
                     
-                    e[0].damagedelay=10;
-                    //if(e[0].health>0)e[0].health-=2;
-                    //if(e[0].health<4 && e[0].health>0 && p[player].hitcombo==4){
-                    if(p[player].hitcombo==4){
-                        p[player].hitcombo=0;
-                        e[0].health=0;
-                        setentityanimation(0,animDamage);
+                    // We have hit 'em
+                    if(goahead && e[entity].damagedelay==0){
                         //
-                        if(e[0].mod==5){
-                            e[0].mod = 9;
-                            it[0].incx=5;
-                            it[0].incy=-5;
-                            it[0].position = e[0].position;
-                            if(p[0].position.x>e[0].position.x)it[0].incx=-it[0].incx;
+                        
+                        e[entity].damagedelay=10;
+                        //if(e[0].health>0)e[0].health-=2;
+                        //if(e[0].health<4 && e[0].health>0 && p[player].hitcombo==4){
+                        if(p[player].hitcombo==4){
+                            p[player].hitcombo=0;
+                            e[entity].health=0;
+                            setentityanimation(entity,animDamage);
+                            //
+                            if(e[entity].mod==5){
+                                e[entity].mod = 9;
+                                it[entity].incx=5;
+                                it[entity].incy=-5;
+                                it[entity].position = e[entity].position;
+                                if(p[0].position.x>e[entity].position.x)it[entity].incx=-it[entity].incx;
+                            }
+                        }else{
+                            if(p[player].hitcombo==4)p[player].hitcombo=0;
+                            setentityanimation(entity,animDamage);
+                            p[player].hitcombo++;
                         }
-                    }else{
-                        if(p[player].hitcombo==4)p[player].hitcombo=0;
-                        setentityanimation(0,animDamage);
-                        p[player].hitcombo++;
                     }
                 }
+            
             }
-        
         }
-
 
         // player movement
         if(p[player].currentAnim == animWalk && p[player].keynothingtime>1){
