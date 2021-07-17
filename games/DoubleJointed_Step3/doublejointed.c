@@ -243,10 +243,12 @@ int main(void)
             drawitems();
 
             // spceial case if player is near enemy check if he is below than draw infront.
-            if(rectsoverlap(p[0].position.x,p[0].position.y,96,96,e[0].position.x,e[0].position.y,96,96)){
-                if(p[0].position.y>e[0].position.y){
+            for(int i=0;i<MAX_ENTITIES;i++){
+            if(rectsoverlap(p[0].position.x,p[0].position.y,96,96,e[i].position.x,e[i].position.y,96,96)){
+                if(p[0].position.y>e[i].position.y){
                     drawplayers(false);
                 }
+            }
             }
             
             DrawRectangle(0,2,screenWidth,23,WHITE);
