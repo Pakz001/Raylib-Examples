@@ -20,6 +20,7 @@
 #define stateChase 3
 #define stateIdle 4
 #define stateSawplayer 5
+#define stateDead 6
 
 #define animIdle 0
 #define animKick  1
@@ -555,7 +556,7 @@ void updateentity(int entity){
         
         
         // states
-        
+        if(e[entity].state==stateDead)return;
         if(e[entity].state==stateIdle && GetRandomValue(0,60)==1){
             e[entity].state=stateChase;
         }
@@ -595,15 +596,20 @@ void updateentity(int entity){
                 if(e[entity].position.x<e[entity].target.x)e[entity].position.x++;
                 if(e[entity].position.y>e[entity].target.y)e[entity].position.y--;
                 if(e[entity].position.y<e[entity].target.y)e[entity].position.y++;
+                if(distance(e[entity].position.x,e[entity].position.y,p[0].position.x,p[0].position.y)<20){
+                    if(p[0].position.x<e[entity].position.x)e[entity].facing=-1;
+                    if(p[0].position.x>e[entity].position.x)e[entity].facing=1;
+                    
+                }
                 //
                 for(int i=0;i<MAX_ENTITIES;i++){
                     if(i==entity)continue;
                     if(e[i].state!=stateChase)continue;
                     if(distance(e[i].position.x,e[i].position.y,e[entity].position.x,e[entity].position.y)<48){
-                        //if(e[i].position.x>e[entity].position.x)e[i].position.x+=2;
-                        //if(e[i].position.x<e[entity].position.x)e[i].position.x-=2;
-                        //if(e[i].position.y>e[entity].position.y)e[i].position.y+=2;
-                        //if(e[i].position.y<e[entity].position.y)e[i].position.y-=2;
+                        if(e[i].position.x>e[entity].position.x)e[i].position.x+=2;
+                        if(e[i].position.x<e[entity].position.x)e[i].position.x-=2;
+                        if(e[i].position.y>e[entity].position.y)e[i].position.y+=2;
+                        if(e[i].position.y<e[entity].position.y)e[i].position.y-=2;
                         if(p[0].enemyattheleft==entity)p[0].enemyattheleft=-1;
                         if(p[0].enemyattheright==entity)p[0].enemyattheright=-1;
                         e[entity].state = stateIdle;
@@ -687,6 +693,7 @@ void updateplayer(int player){
                                 e[entity].flyingincx = 5;
                                 e[entity].flyingincy = -5;
                                 setentityanimation(entity,animFlying);
+                                e[entity].state = stateDead;
                                 e[entity].shadey = e[entity].position.y;
                                 if(p[0].position.x>e[entity].position.x)e[entity].flyingincx=-e[entity].flyingincx;
 
