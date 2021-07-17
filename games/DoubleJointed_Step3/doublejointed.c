@@ -51,10 +51,10 @@ typedef struct entity{
     int w;
     int h;
     float health;
-    bool flying;
+    bool flying; // for when nocked flying
     float flyingincx;
     float flyingincy;
-    float shadey;
+    float shadey;//shadow coordinate for when physics. bottom of sprites last/start position
     int frameSpeed;
     int damagedelay;
     int currentFrame;
