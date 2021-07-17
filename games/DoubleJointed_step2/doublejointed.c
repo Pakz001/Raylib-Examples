@@ -25,6 +25,29 @@
 #define animFlying 7
 
 #define MAX_PLAYERS 1 
+#define MAX_ENTITIES 1 
+
+typedef struct entity{
+    bool active;
+    float facing; //-1 left, 1 right
+    Vector2 position;
+    int w;
+    int h;
+    int health;
+    int currentFrame;
+    int currentAnim; // which animation is currenty active
+    int lastAnim;
+    int framesCounter;
+    int frame_start;
+    int frame_end;
+    int lastFiretime;
+    int lastFireAnim;
+    Rectangle frameRec;
+    int mod; //collumn of sprites (+5 = enemy1 +9 = enemy headless)
+}entity;
+
+static struct entity e[MAX_ENTITIES];
+
 
 typedef struct player{
     bool active;
@@ -97,6 +120,10 @@ void drawplayers();
 void updateplayer(int player);
 void setplayeranimation(int player, int anim);
 void playercontrols(int player);
+void drawentities();
+void setentityanimation(int entity, int anim);
+void updateentity(int entity);
+
 
 Texture2D scarfy;
 Texture2D backg;
@@ -127,6 +154,13 @@ int main(void)
 
     //setanimation(animKick);
     //setanimation(animFlying);
+    e[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
+    e[0].facing=1;
+    e[0].position.y = 470;
+    e[0].position.x = 320;
+    e[0].mod = 5;
+    setentityanimation(0,animIdle);
+    
     
     p[0].facing=1;
     p[0].position.y = 370;
@@ -141,6 +175,7 @@ int main(void)
         
         playercontrols(0);
         updateplayer(0);
+        updateentity(0);
 
         /*
         // Update
@@ -198,6 +233,7 @@ int main(void)
 
 
             drawplayers();
+            drawentities();
             
             /*
             DrawRectangleLines(15, 40, scarfy.width, scarfy.height, LIME);
@@ -276,6 +312,18 @@ void setanimation(int anim){
     currentFrame = frame_start;
 }
 
+
+void drawentities(){
+    if(e[0].facing==1){
+    DrawTextureRec(scarfy, e[0].frameRec, (Vector2){e[0].position.x,e[0].position.y}, WHITE);  // Draw part of the texture
+    }else{
+    DrawTexturePro(scarfy,  (Rectangle){e[0].frameRec.x,e[0].frameRec.y,-96,96},// the -96 (-)means mirror on x axis
+                                    (Rectangle){e[0].position.x,e[0].position.y,96,96},
+                                    (Vector2){0,0},0,WHITE);
+    }
+    
+}
+
 void drawplayers(){
     if(p[0].facing==1){
     DrawTextureRec(scarfy, frameRec, (Vector2){p[0].position.x,p[0].position.y}, WHITE);  // Draw part of the texture
@@ -285,6 +333,62 @@ void drawplayers(){
                                     (Vector2){0,0},0,WHITE);
     }
     
+}
+
+
+void setentityanimation(int entity, int anim){
+    e[entity].lastAnim = anim;
+    switch(anim){
+            case animIdle:
+            e[entity].frame_start = frame_idlestart+e[entity].mod;
+            e[entity].frame_end = frame_idleend+e[entity].mod;
+            e[entity].currentFrame = e[entity].frame_start;    
+            break;
+
+            case animKick:
+            e[entity].frame_start = frame_kickstart+e[entity].mod;
+            e[entity].frame_end = frame_kickend+e[entity].mod;
+            e[entity].currentFrame = e[entity].frame_start;
+            break;
+            case animHit1:
+            e[entity].frame_start = frame_hit1start+e[entity].mod;
+            e[entity].frame_end = frame_hit1end+e[entity].mod;
+            e[entity].currentFrame = e[entity].frame_start;
+            break;
+
+            case animUcut:
+            e[entity].frame_start = frame_ucutstart+e[entity].mod;
+            e[entity].frame_end = frame_ucutend+e[entity].mod;
+            e[entity].currentFrame = e[entity].frame_start;
+            break;
+
+            case animHit2:
+            e[entity].frame_start = frame_hit2start+e[entity].mod;
+            e[entity].frame_end = frame_hit2end+e[entity].mod;
+            e[entity].currentFrame = e[entity].frame_start;
+            break;
+            case animWalk:
+            if(p[0].currentAnim!=animWalk){
+            e[entity].frame_start = frame_walkstart+e[entity].mod;
+            e[entity].frame_end = frame_walkend+e[entity].mod;
+            e[entity].currentFrame = e[entity].frame_start;            
+            }
+            break;
+            case animDamage:
+            e[entity].frame_start = frame_damagestart+e[entity].mod;
+            e[entity].frame_end = frame_damageend+e[entity].mod;
+            e[entity].currentFrame = e[entity].frame_start;
+            break;
+            case animFlying:
+            e[entity].frame_start = frame_flyingstart+e[entity].mod;
+            e[entity].frame_end = frame_flyingend+e[entity].mod;
+            e[entity].currentFrame = e[entity].frame_start;
+            
+            break;
+
+    
+    }
+    e[entity].currentAnim = anim;
 }
 
 void setplayeranimation(int player, int anim){
@@ -341,6 +445,49 @@ void setplayeranimation(int player, int anim){
     }
     p[player].currentAnim = anim;
 }
+
+void updateentity(int entity){
+        // animation
+        e[entity].lastFiretime++;
+        e[entity].framesCounter++;
+
+        
+
+        if (e[0].framesCounter >= (60/framesSpeed))
+        {
+            e[0].framesCounter = 0;
+            e[0].currentFrame++;
+
+            if (e[0].currentFrame > e[0].frame_end) e[0].currentFrame = e[0].frame_start;
+
+            int ypos = e[0].currentFrame/15;
+            e[entity].frameRec.y = (float)(e[0].currentFrame/15)*(float)96;
+
+            e[entity].frameRec.x = (float)((e[0].currentFrame)-ypos*15)*(float)96;
+            
+        }
+ 
+
+        // player movement
+        if(e[entity].currentAnim == animWalk){
+            setentityanimation(entity,animIdle);
+        }
+        if(e[entity].currentAnim == animHit1){
+            
+            setentityanimation(entity,animIdle);
+        }
+        if(e[entity].currentAnim == animHit2){
+            setentityanimation(entity,animIdle);
+            
+        }
+
+        if(e[entity].currentAnim == animKick){
+            setentityanimation(entity,animIdle);
+        }
+        
+        
+}
+
 
 void updateplayer(int player){
         // animation
