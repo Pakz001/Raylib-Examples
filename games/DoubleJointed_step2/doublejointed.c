@@ -1,11 +1,11 @@
 /*******************************************************************************************
 *
-*   raylib [textures] example - Texture loading and drawing a part defined by a rectangle
+*   Double Jointed - Double Dragon parody.
+*   
+*   
+*   
 *
-*   This example has been created using raylib 1.3 (www.raylib.com)
-*   raylib is licensed under an unmodified zlib/libpng license (View raylib.h for details)
-*
-*   Copyright (c) 2014 Ramon Santamaria (@raysan5)
+*   
 *
 ********************************************************************************************/
 
@@ -71,6 +71,7 @@ typedef struct player{
     Vector2 position;
     int w;
     int h;
+    int hitcombo;
     int score;
     int health;
     int currentFrame;
@@ -290,6 +291,7 @@ int main(void)
             */
             DrawRectangle(0,2,screenWidth,23,WHITE);
             DrawText("Cursor LEFT/RIGHT/UP/DOWN Z(FIRE1)/X(FIRE2)", 0, 0, 30, BLACK);
+            DrawText(FormatText("hitcombo %i",p[0].hitcombo), 0, 20, 30, BLACK);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -586,7 +588,7 @@ void updateplayer(int player){
         if(e[0].damagedelay>0)e[0].damagedelay-=1;
         if(rectsoverlap(p[player].position.x,p[player].position.y,70,60,e[0].position.x,e[0].position.y+10,60,40)){
             // Are we on the final damaging frame.        
-            if(p[0].currentFrame == frame_hit1end || p[0].currentFrame == frame_hit2end || p[0].currentFrame == frame_kickend){
+            if(p[0].currentFrame == frame_hit1end || p[0].currentFrame == frame_hit2end || p[0].currentFrame == frame_kickend || p[0].currentFrame == frame_ucutend){
                 // Are we faced into the right direction
                 bool goahead=false;
                 if(p[player].facing==-1 && e[0].position.x<p[player].position.x){
@@ -599,19 +601,26 @@ void updateplayer(int player){
                 // We have hit 'em
                 if(goahead && e[0].damagedelay==0){
                     //
+                    
                     e[0].damagedelay=10;
-                    if(e[0].health>0)e[0].health-=2;
-                    if(e[0].health<4 && e[0].health>0){
+                    //if(e[0].health>0)e[0].health-=2;
+                    //if(e[0].health<4 && e[0].health>0 && p[player].hitcombo==4){
+                    if(p[player].hitcombo==4){
+                        p[player].hitcombo=0;
                         e[0].health=0;
-                        e[0].mod = 9;
                         setentityanimation(0,animDamage);
                         //
-                        it[0].incx=5;
-                        it[0].incy=-5;
-                        it[0].position = e[0].position;
-                        if(p[0].position.x>e[0].position.x)it[0].incx=-it[0].incx;
+                        if(e[0].mod==5){
+                            e[0].mod = 9;
+                            it[0].incx=5;
+                            it[0].incy=-5;
+                            it[0].position = e[0].position;
+                            if(p[0].position.x>e[0].position.x)it[0].incx=-it[0].incx;
+                        }
                     }else{
+                        if(p[player].hitcombo==4)p[player].hitcombo=0;
                         setentityanimation(0,animDamage);
+                        p[player].hitcombo++;
                     }
                 }
             }
@@ -631,6 +640,10 @@ void updateplayer(int player){
             setplayeranimation(player,animIdle);
             
         }
+        if(p[player].currentAnim == animUcut && p[player].keynothingtime>15){
+            setplayeranimation(player,animIdle);
+            
+        }
 
         if(p[player].currentAnim == animKick && p[player].keynothingtime>15){
             setplayeranimation(player,animIdle);
@@ -639,6 +652,16 @@ void updateplayer(int player){
         
         
         if(LEFT==false && RIGHT==false && UP==false && DOWN==false && FIRE1){
+            bool cont=true;
+            if(p[player].lastFireAnim == animHit1 || p[player].lastFireAnim == animHit2){
+                if(p[player].hitcombo==4){
+                    //p[player].hitcombo=0;
+                    setplayeranimation(player,animUcut);                    
+                    p[player].lastFireAnim=animUcut;
+                    cont=false;
+                }
+            }
+            if(cont){
             if(p[player].lastFireAnim==animHit2){
                 setplayeranimation(player,animHit1);
                 p[player].lastFireAnim=animHit1;
@@ -646,13 +669,16 @@ void updateplayer(int player){
                 setplayeranimation(player,animHit2);
                 p[player].lastFireAnim=animHit2;
             }
+            }
             FIRE1=false;
         }
         if(LEFT==false && RIGHT==false && UP==false && DOWN==false && FIRE2){
+            p[player].hitcombo=0;
             setplayeranimation(player,animKick);
             FIRE2=false;
         }
         if (RIGHT){
+            p[player].hitcombo=0;
             p[player].lastFiretime=50;
             p[0].facing = 1;
             p[0].position.x+=2;
@@ -660,6 +686,7 @@ void updateplayer(int player){
             setplayeranimation(player,animWalk);
         }
         else if (LEFT){
+            p[player].hitcombo=0;
             p[player].lastFiretime=50;
             p[0].facing=-1;
             p[0].position.x-=2;
@@ -667,12 +694,14 @@ void updateplayer(int player){
             setplayeranimation(player,animWalk);
         }
         if (DOWN){
+            p[player].hitcombo=0;
             p[player].lastFiretime=50;
             p[0].position.y+=2;
             DOWN=false;
             setplayeranimation(player,animWalk);
         }
         else if (UP){
+            p[player].hitcombo=0;
             p[player].lastFiretime=50;
             p[0].position.y-=2;
             UP=false;
