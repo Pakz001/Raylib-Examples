@@ -194,7 +194,7 @@ int main(void)
 
             ClearBackground(RAYWHITE);
             DrawTexture(backg, 0, 0, WHITE);
-            DrawTexture(scarfy, 15, 40, WHITE);
+            //DrawTexture(scarfy, 15, 40, WHITE);
 
 
             drawplayers();
@@ -398,7 +398,6 @@ void updateplayer(int player){
             setplayeranimation(player,animKick);
             FIRE2=false;
         }
-
         if (RIGHT){
             p[player].lastFiretime=50;
             p[0].facing = 1;
@@ -425,7 +424,6 @@ void updateplayer(int player){
             UP=false;
             setplayeranimation(player,animWalk);
         }
-    
 }
 
 void playercontrols(int player){
@@ -440,6 +438,7 @@ void playercontrols(int player){
             p[player].keynothingtime = 0;
         }
         
+        if(p[player].lastFiretime<20)return; //WATCH this return!!
         if (IsKeyDown(KEY_RIGHT)){
             RIGHT = true;
             LEFT = false;
