@@ -139,6 +139,7 @@ void drawentities();
 void setentityanimation(int entity, int anim);
 void updateentity(int entity);
 void drawitems();
+void updateitems();
 // Our rectsoverlap function. Returns true/false.
 static bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2);
 
@@ -196,6 +197,7 @@ int main(void)
         playercontrols(0);
         updateplayer(0);
         updateentity(0);
+        updateitems();
 
         /*
         // Update
@@ -347,7 +349,10 @@ void drawitems(){
 
     it[0].frameRec.x = 96*4;
 
-    DrawTextureRec(scarfy, it[0].frameRec, (Vector2){it[0].position.x,it[0].position.y}, WHITE);  // Draw part of the texture
+    //DrawTextureRec(scarfy, it[0].frameRec, (Vector2){it[0].position.x,it[0].position.y}, WHITE);  // Draw part of the texture
+    DrawTexturePro(scarfy,  (Rectangle){it[0].frameRec.x,it[0].frameRec.y,-96,96},// the -96 (-)means mirror on x axis
+                                    (Rectangle){it[0].position.x+48,it[0].position.y+48,96,96},
+                                    (Vector2){96/2,96/2},it[0].angle,WHITE);    
 }
 
 void drawentities(){
@@ -484,6 +489,26 @@ void setplayeranimation(int player, int anim){
     p[player].currentAnim = anim;
 }
 
+void updateitems(){
+    if(it[0].incx!=0){
+        
+        if(it[0].incx>0){
+            it[0].incx-=.05;
+            it[0].angle+=10;
+        }
+        if(it[0].incx<0){
+            it[0].incx+=.05;
+            it[0].angle-=10;
+        }
+        if(it[0].incx>-0.1 && it[0].incx<0.1){
+            it[0].incx=0;
+        }
+        it[0].incy+=.42;
+        it[0].position.x+=it[0].incx;
+        if(it[0].incy<8)it[0].position.y+=it[0].incy;
+    }
+}
+
 void updateentity(int entity){
         // animation
         e[entity].lastFiretime++;
@@ -567,6 +592,11 @@ void updateplayer(int player){
             if(goahead){
                 e[0].mod = 9;
                 setentityanimation(0,animDamage);
+                //
+                it[0].incx=5;
+                it[0].incy=-5;
+                it[0].position = e[0].position;
+                if(p[0].position.x>e[0].position.x)it[0].incx=-it[0].incx;
             }
         }
         
