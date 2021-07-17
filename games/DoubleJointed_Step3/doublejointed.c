@@ -10,6 +10,7 @@
 ********************************************************************************************/
 
 #include "raylib.h"
+#include "math.h"
 
 #define MAX_FRAME_SPEED     15
 #define MIN_FRAME_SPEED      1
@@ -384,11 +385,10 @@ void setentityanimation(int entity, int anim){
             e[entity].currentFrame = e[entity].frame_start;
             break;
             case animWalk:
-            if(p[entity].currentAnim!=animWalk){
+            e[entity].framesCounter = 8;
             e[entity].frame_start = frame_walkstart+e[entity].mod;
             e[entity].frame_end = frame_walkend+e[entity].mod;
             e[entity].currentFrame = e[entity].frame_start;            
-            }
             break;
             case animDamage:
             e[entity].frame_start = frame_damagestart+e[entity].mod;
@@ -540,7 +540,7 @@ void updateentity(int entity){
             setentityanimation(entity,animIdle);
         }    
         if(e[entity].currentAnim == animWalk){
-            setentityanimation(entity,animIdle);
+            //setentityanimation(entity,animIdle);
         }
         if(e[entity].currentAnim == animHit1){
             
@@ -555,18 +555,38 @@ void updateentity(int entity){
         
         
         // states
-        if(e[entity].state==stateChase){
+        
+        if(e[entity].state==stateIdle && GetRandomValue(0,60)==1){
+            e[entity].state=stateChase;
+        }
+
+        Vector2 oldpos=e[entity].position;
+        if(p[0].enemyattheleft==entity && e[entity].currentAnim==animFlying)p[0].enemyattheleft=-1;
+        if(p[0].enemyattheleft==entity && e[entity].mod==9)p[0].enemyattheleft=-1;
+        if(p[0].enemyattheright==entity && e[entity].currentAnim==animFlying)p[0].enemyattheright=-1;
+        if(p[0].enemyattheright==entity && e[entity].mod==9)p[0].enemyattheright=-1;
+        
+        if(e[entity].state==stateChase && e[entity].mod==5 && e[entity].currentAnim!=animFlying){
+            //
+            
             //
             if(e[entity].position.x<p[0].position.x && p[0].enemyattheleft==-1 && p[0].enemyattheright!=entity){
+                if(e[entity].target.x<e[entity].position.x)e[entity].facing=-1;
+                if(e[entity].target.x>e[entity].position.x)e[entity].facing=1;
                 e[entity].target.x=p[0].position.x-48;
                 e[entity].target.y=p[0].position.y;
                 p[0].enemyattheleft = entity;
+                //if(e[entity].currentAnim!=animWalk)setentityanimation(entity,animWalk);
                 //e[entity].state = stateChase;
             }
             if(e[entity].position.x>p[0].position.x && p[0].enemyattheright==-1 && p[0].enemyattheleft!=entity){
+                if(e[entity].target.x<e[entity].position.x)e[entity].facing=-1;
+                if(e[entity].target.x>e[entity].position.x)e[entity].facing=1;
+                
                 e[entity].target.x=p[0].position.x+48;
                 e[entity].target.y=p[0].position.y;
                 p[0].enemyattheright = entity;
+                
                 //e[entity].state = stateChase;
             }
         
@@ -575,14 +595,36 @@ void updateentity(int entity){
                 if(e[entity].position.x<e[entity].target.x)e[entity].position.x++;
                 if(e[entity].position.y>e[entity].target.y)e[entity].position.y--;
                 if(e[entity].position.y<e[entity].target.y)e[entity].position.y++;
+                //
+                for(int i=0;i<MAX_ENTITIES;i++){
+                    if(i==entity)continue;
+                    if(e[i].state!=stateChase)continue;
+                    if(distance(e[i].position.x,e[i].position.y,e[entity].position.x,e[entity].position.y)<48){
+                        //if(e[i].position.x>e[entity].position.x)e[i].position.x+=2;
+                        //if(e[i].position.x<e[entity].position.x)e[i].position.x-=2;
+                        //if(e[i].position.y>e[entity].position.y)e[i].position.y+=2;
+                        //if(e[i].position.y<e[entity].position.y)e[i].position.y-=2;
+                        if(p[0].enemyattheleft==entity)p[0].enemyattheleft=-1;
+                        if(p[0].enemyattheright==entity)p[0].enemyattheright=-1;
+                        e[entity].state = stateIdle;
+
+                    }
+                    
+                      
+                }
+                //
+                if(e[entity].currentAnim!=animWalk)setentityanimation(entity,animWalk);
             }
             
-            if(rectsoverlap(p[0].position.x-48,p[0].position.y-48,96,96,e[entity].position.x-48,e[entity].position.y-48,96,96)==false){
+            if(rectsoverlap(p[0].position.x,p[0].position.y,96,96,e[entity].position.x,e[entity].position.y,48,48)==false){
                 
                 if(p[0].enemyattheleft==entity)p[0].enemyattheleft=-1;
                 if(p[0].enemyattheright==entity)p[0].enemyattheright=-1;
                 //e[entity].state=stateIdle;
             }
+        }
+        if(e[entity].position.x==oldpos.x && e[entity].position.y==oldpos.y){
+            setentityanimation(entity,animIdle);
         }
 
         
