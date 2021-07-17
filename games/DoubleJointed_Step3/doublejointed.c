@@ -23,6 +23,7 @@
 #define animWalk 5
 #define animDamage 6
 #define animFlying 7
+#define animNothing 8
 
 #define MAX_PLAYERS 1 
 #define MAX_ENTITIES 2
@@ -50,6 +51,11 @@ typedef struct entity{
     int w;
     int h;
     float health;
+    bool flying;
+    float flyingincx;
+    float flyingincy;
+    float shadey;
+    int frameSpeed;
     int damagedelay;
     int currentFrame;
     int currentAnim; // which animation is currenty active
@@ -125,7 +131,7 @@ int frame_walkend = 62;
 int frame_damagestart = 76;
 int frame_damageend = 77;
 
-int frame_flyingstart = 92;
+int frame_flyingstart = 91;
 int frame_flyingend = 93;
 
 int frame_idlestart = 1;
@@ -179,6 +185,7 @@ int main(void)
     it[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
     it[1].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
 
+    e[0].frameSpeed = 8;
     e[0].health = 10;
     e[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
     e[0].facing=1;
@@ -186,6 +193,7 @@ int main(void)
     e[0].position.x = 320;
     e[0].mod = 5;
     setentityanimation(0,animIdle);
+    e[1].frameSpeed = 8;
     e[1].health = 10;
     e[1].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
     e[1].facing=1;
@@ -243,8 +251,8 @@ int main(void)
             
             DrawRectangle(0,2,screenWidth,23,WHITE);
             DrawText("Cursor LEFT/RIGHT/UP/DOWN Z(FIRE1)/X(FIRE2)", 0, 0, 30, BLACK);
-            DrawText(FormatText("hitcombo %i",p[0].hitcombo), 0, 20, 30, BLACK);
-
+            //DrawText(FormatText("hitcombo %i",p[0].hitcombo), 0, 20, 30, BLACK);
+            if(e[0].currentAnim==animNothing)DrawText("0",0,40,30,RED);
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
@@ -281,10 +289,22 @@ void drawentities(bool shade){
     for(int i=0;i<MAX_ENTITIES;i++){
         
         if(e[i].facing==1){
-        if(shade)DrawEllipse(e[i].position.x+40,e[i].position.y+96,20,10,(Color){0,0,0,96});
+        if(shade){
+            if(e[i].currentAnim!=animFlying){
+                DrawEllipse(e[i].position.x+40,e[i].position.y+96,20,10,(Color){0,0,0,96});
+            }else{
+                DrawEllipse(e[i].position.x+40,e[i].shadey+96,20,10,(Color){0,0,0,96});
+            }
+        }
         DrawTextureRec(scarfy, e[i].frameRec, (Vector2){e[i].position.x,e[i].position.y}, WHITE);  // Draw part of the texture
         }else{
-        if(shade)DrawEllipse(e[i].position.x+48,e[i].position.y+96,20,10,(Color){0,0,0,96});
+        if(shade){
+            if(e[i].currentAnim!=animFlying){
+                DrawEllipse(e[i].position.x+48,e[i].position.y+96,20,10,(Color){0,0,0,96});
+            }else{
+                DrawEllipse(e[i].position.x+48,e[i].shadey+96,20,10,(Color){0,0,0,96});
+            }
+        }
         DrawTexturePro(scarfy,  (Rectangle){e[i].frameRec.x,e[i].frameRec.y,-96,96},// the -96 (-)means mirror on x axis
                                         (Rectangle){e[i].position.x,e[i].position.y,96,96},
                                         (Vector2){0,0},0,WHITE);
@@ -309,8 +329,15 @@ void drawplayers(bool shade){
 
 
 void setentityanimation(int entity, int anim){
-    e[entity].lastAnim = anim;
+    //e[entity].lastAnim = anim;
+    
     switch(anim){
+            case animNothing:
+            //e[entity].frame_start = frame_idlestart+e[entity].mod;
+            //e[entity].frame_end = frame_idleend+e[entity].mod;
+            //e[entity].currentFrame = frame_flyingend;    
+            break;
+
             case animIdle:
             e[entity].frame_start = frame_idlestart+e[entity].mod;
             e[entity].frame_end = frame_idleend+e[entity].mod;
@@ -340,7 +367,7 @@ void setentityanimation(int entity, int anim){
             e[entity].currentFrame = e[entity].frame_start;
             break;
             case animWalk:
-            if(p[0].currentAnim!=animWalk){
+            if(p[entity].currentAnim!=animWalk){
             e[entity].frame_start = frame_walkstart+e[entity].mod;
             e[entity].frame_end = frame_walkend+e[entity].mod;
             e[entity].currentFrame = e[entity].frame_start;            
@@ -352,6 +379,7 @@ void setentityanimation(int entity, int anim){
             e[entity].currentFrame = e[entity].frame_start;
             break;
             case animFlying:
+            e[entity].framesCounter = 100;
             e[entity].frame_start = frame_flyingstart+e[entity].mod;
             e[entity].frame_end = frame_flyingend+e[entity].mod;
             e[entity].currentFrame = e[entity].frame_start;
@@ -442,18 +470,44 @@ void updateitems(){
 
 void updateentity(int entity){
         // animation
+        if(e[entity].currentAnim==animNothing)return;
+        
         e[entity].lastFiretime++;
         e[entity].framesCounter++;
+        ;
+        
+        if(e[entity].flying){
+            if(e[entity].flyingincx!=0){
+                
+                if(e[entity].flyingincx>0){
+                    e[entity].flyingincx-=.05;
+                }
+                if(e[entity].flyingincx<0){
+                    e[entity].flyingincx+=.05;
+                }
+                if(e[entity].flyingincx>-0.1 && e[entity].flyingincx<0.1){
+                    e[entity].flyingincx=0;
+                }
+                e[entity].flyingincy+=.42;
+                e[entity].position.x+=e[entity].flyingincx;
+                if(e[entity].flyingincy<8)e[entity].position.y+=e[entity].flyingincy;
+            }   
+        }
 
         
 
-        if (e[entity].framesCounter >= (60/framesSpeed))
+        if (e[entity].framesCounter >= (60/e[entity].frameSpeed))
         {
             e[entity].framesCounter = 0;
             e[entity].currentFrame++;
 
-            if (e[entity].currentFrame > e[entity].frame_end) e[entity].currentFrame = e[entity].frame_start;
-
+            if (e[entity].currentFrame > e[entity].frame_end){
+                e[entity].currentFrame = e[entity].frame_start;
+                if(e[entity].currentAnim==animFlying){
+                    e[entity].currentFrame = e[entity].frame_end;
+                    //e[entity].currentAnim = animNothing;
+                }
+            }
             int ypos = e[entity].currentFrame/15;
             e[entity].frameRec.y = (float)(e[entity].currentFrame/15)*(float)96;
 
@@ -461,11 +515,13 @@ void updateentity(int entity){
             
         }
  
-
+        
+        if(e[entity].currentAnim == animFlying){
+            //setentityanimation(entity,animNothing);
+        }    
         if(e[entity].currentAnim == animDamage){
             setentityanimation(entity,animIdle);
-        }
-    
+        }    
         if(e[entity].currentAnim == animWalk){
             setentityanimation(entity,animIdle);
         }
@@ -474,10 +530,8 @@ void updateentity(int entity){
             setentityanimation(entity,animIdle);
         }
         if(e[entity].currentAnim == animHit2){
-            setentityanimation(entity,animIdle);
-            
+            setentityanimation(entity,animIdle);            
         }
-
         if(e[entity].currentAnim == animKick){
             setentityanimation(entity,animIdle);
         }
@@ -534,18 +588,31 @@ void updateplayer(int player){
                         //if(e[0].health>0)e[0].health-=2;
                         //if(e[0].health<4 && e[0].health>0 && p[player].hitcombo==4){
                         if(p[player].hitcombo==4){
-                            p[player].hitcombo=0;
-                            e[entity].health=0;
-                            setentityanimation(entity,animDamage);
-                            //
-                            if(e[entity].mod==5){
-                                e[entity].mod = 9;
-                                it[entity].active=true;
-                                it[entity].shadey=e[entity].position.y;
-                                it[entity].incx=5;
-                                it[entity].incy=-5;
-                                it[entity].position = e[entity].position;
-                                if(p[0].position.x>e[entity].position.x)it[entity].incx=-it[entity].incx;
+                            if(GetRandomValue(0,10)>5 || e[entity].mod==9){
+                                p[player].hitcombo=0;
+                                e[entity].frameSpeed = 2;
+                                e[entity].flying = true;
+                                e[entity].flyingincx = 5;
+                                e[entity].flyingincy = -5;
+                                setentityanimation(entity,animFlying);
+                                e[entity].shadey = e[entity].position.y;
+                                if(p[0].position.x>e[entity].position.x)e[entity].flyingincx=-e[entity].flyingincx;
+
+                            }else{
+                                p[player].hitcombo=0;
+                                e[entity].health=0;
+                                setentityanimation(entity,animDamage);
+                                //
+                                if(e[entity].mod==5){
+                                    e[entity].mod = 9;
+                                    it[entity].active=true;
+                                    it[entity].shadey=e[entity].position.y;
+                                    it[entity].incx=5;
+                                    it[entity].incy=-5;
+                                    it[entity].position = e[entity].position;
+                                    if(p[0].position.x>e[entity].position.x)it[entity].incx=-it[entity].incx;
+                                }                                
+
                             }
                         }else{
                             if(p[player].hitcombo==4)p[player].hitcombo=0;
