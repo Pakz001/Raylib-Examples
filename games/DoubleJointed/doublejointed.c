@@ -15,6 +15,7 @@
 #define MIN_FRAME_SPEED      1
 
 
+#define animIdle 0
 #define animKick  1
 #define animHit1 2
 #define animUcut 3
@@ -34,9 +35,14 @@ typedef struct player{
     int score;
     int health;
     int currentFrame;
+    int currentAnim; // which animation is currenty active
+    int lastAnim;
     int framesCounter;
     int frame_start;
     int frame_end;
+    int keynothingtime; // when key is down this is zero (used to disable animations..)
+    int lastFiretime;
+    int lastFireAnim;
 }player;
 
 static struct player p[MAX_PLAYERS];
@@ -58,7 +64,7 @@ Rectangle frameRec = { 0.0f, 0.0f, (float)96, (float)96 };
 
 
 int frame_start = 0;
-int frame_end = 3;
+int frame_end = 0;
 
 int frame_kickstart = 1;
 int frame_kickend = 3;
@@ -81,13 +87,16 @@ int frame_damageend = 77;
 int frame_flyingstart = 92;
 int frame_flyingend = 93;
 
+int frame_idlestart = 1;
+int frame_idleend = 1;
 
 
 // this sets the frame to start and sets start and end position(loop)
 void setanimation(int anim);
 void drawplayers();
-void updateplayers();
+void updateplayer(int player);
 void setplayeranimation(int player, int anim);
+void playercontrols(int player);
 
 Texture2D scarfy;
 Texture2D backg;
@@ -122,7 +131,7 @@ int main(void)
     p[0].facing=1;
     p[0].position.y = 370;
     p[0].position.x = 320;
-    setplayeranimation(0,animWalk);
+    setplayeranimation(0,animIdle);
 
     //other sprites - 
     int mod=0;
@@ -130,7 +139,8 @@ int main(void)
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         
-        updateplayers();
+        playercontrols(0);
+        updateplayer(0);
 
         /*
         // Update
@@ -210,7 +220,8 @@ int main(void)
                                             (Vector2){0,0},0,WHITE);
             DrawText("(c) Scarfy sprite by Eiden Marsal", screenWidth - 200, screenHeight - 20, 10, GRAY);
             */
-            DrawText("Cursor LEFT/RIGHT/UP/DOWN", 0, 0, 30, RED);
+            DrawRectangle(0,2,screenWidth,23,WHITE);
+            DrawText("Cursor LEFT/RIGHT/UP/DOWN Z(FIRE1)/X(FIRE2)", 0, 0, 30, BLACK);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -277,47 +288,65 @@ void drawplayers(){
 }
 
 void setplayeranimation(int player, int anim){
+    p[player].lastAnim = anim;
     switch(anim){
+            case animIdle:
+            p[player].frame_start = frame_idlestart;
+            p[player].frame_end = frame_idleend;
+            p[player].currentFrame = p[player].frame_start;    
+            break;
+
             case animKick:
             p[player].frame_start = frame_kickstart;
             p[player].frame_end = frame_kickend;
-            
+            p[player].currentFrame = p[player].frame_start;
             break;
             case animHit1:
             p[player].frame_start = frame_hit1start;
             p[player].frame_end = frame_hit1end;
+            p[player].currentFrame = p[player].frame_start;
             break;
 
             case animUcut:
             p[player].frame_start = frame_ucutstart;
             p[player].frame_end = frame_ucutend;
+            p[player].currentFrame = p[player].frame_start;
             break;
 
             case animHit2:
             p[player].frame_start = frame_hit2start;
             p[player].frame_end = frame_hit2end;
+            p[player].currentFrame = p[player].frame_start;
             break;
             case animWalk:
+            if(p[0].currentAnim!=animWalk){
             p[player].frame_start = frame_walkstart;
             p[player].frame_end = frame_walkend;
+            p[player].currentFrame = p[player].frame_start;            
+            }
             break;
             case animDamage:
             p[player].frame_start = frame_damagestart;
             p[player].frame_end = frame_damageend;
+            p[player].currentFrame = p[player].frame_start;
             break;
             case animFlying:
             p[player].frame_start = frame_flyingstart;
             p[player].frame_end = frame_flyingend;
+            p[player].currentFrame = p[player].frame_start;
+            
             break;
 
-
+    
     }
-    p[player].currentFrame = p[player].frame_start;
+    p[player].currentAnim = anim;
 }
 
-void updateplayers(){
-    // animation
-        p[0].framesCounter++;
+void updateplayer(int player){
+        // animation
+        p[player].lastFiretime++;
+        p[player].keynothingtime++;
+        p[player].framesCounter++;
 
         
 
@@ -334,20 +363,95 @@ void updateplayers(){
             frameRec.x = (float)((p[0].currentFrame)-ypos*15)*(float)96;
             
         }
-        // temp controls
-        if (IsKeyDown(KEY_RIGHT)){
+ 
+
+        // player movement
+        if(p[player].currentAnim == animWalk && p[player].keynothingtime>1){
+            setplayeranimation(player,animIdle);
+        }
+        if(p[player].currentAnim == animHit1 && p[player].keynothingtime>15){
+            setplayeranimation(player,animIdle);
+        }
+        if(p[player].currentAnim == animHit2 && p[player].keynothingtime>15){
+            setplayeranimation(player,animIdle);
+        }
+
+        if(p[player].currentAnim == animKick && p[player].keynothingtime>15){
+            setplayeranimation(player,animIdle);
+        }
+        
+        
+        
+        if(FIRE1){
+            if(p[player].lastFireAnim==animHit2){
+                setplayeranimation(player,animHit1);
+                p[player].lastFireAnim=animHit1;
+            }else{
+                setplayeranimation(player,animHit2);
+                p[player].lastFireAnim=animHit2;
+            }
+            FIRE1=false;
+        }
+        if(FIRE2){
+            setplayeranimation(player,animKick);
+            FIRE2=false;
+        }
+
+        if (RIGHT){
             p[0].facing = 1;
             p[0].position.x+=2;
+            RIGHT=false;
+            setplayeranimation(player,animWalk);
         }
-        else if (IsKeyDown(KEY_LEFT)){
+        else if (LEFT){
             p[0].facing=-1;
             p[0].position.x-=2;
+            LEFT=false;
+            setplayeranimation(player,animWalk);
+        }
+        if (DOWN){
+            p[0].position.y+=2;
+            DOWN=false;
+            setplayeranimation(player,animWalk);
+        }
+        else if (UP){
+            p[0].position.y-=2;
+            UP=false;
+            setplayeranimation(player,animWalk);
+        }
+    
+}
+
+void playercontrols(int player){
+        if (p[player].lastFiretime>30 && IsKeyDown(KEY_Z) && FIRE1==false && FIRE2==false){
+            FIRE1 = true;
+            p[player].lastFiretime=0;
+            p[player].keynothingtime = 0;
+        }
+        if (p[player].lastFiretime>30 && IsKeyDown(KEY_X) && FIRE1==false && FIRE2==false){
+            FIRE2 = true;
+            p[player].keynothingtime = 0;
+        }
+        
+        if (IsKeyDown(KEY_RIGHT)){
+            RIGHT = true;
+            LEFT = false;
+            p[player].keynothingtime = 0;
+        }
+        else if (IsKeyDown(KEY_LEFT)){
+            LEFT = true;            
+            RIGHT = false;
+            p[player].keynothingtime = 0;
         }
         if (IsKeyDown(KEY_DOWN)){
-            p[0].position.y+=2;
+            DOWN = true;
+            UP = false;
+            p[player].keynothingtime = 0;
         }
         else if (IsKeyDown(KEY_UP)){
-            p[0].position.y-=2;
+            UP = true;
+            DOWN = false;
+            p[player].keynothingtime = 0;
         }
     
 }
