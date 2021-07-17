@@ -76,7 +76,7 @@ int frame_ucutstart = 31;
 int frame_ucutend = 33;
 
 int frame_hit2start = 46;
-int frame_hit2end = 47;
+int frame_hit2end = 48;
 
 int frame_walkstart = 61;
 int frame_walkend = 62;
@@ -370,10 +370,12 @@ void updateplayer(int player){
             setplayeranimation(player,animIdle);
         }
         if(p[player].currentAnim == animHit1 && p[player].keynothingtime>15){
+            
             setplayeranimation(player,animIdle);
         }
         if(p[player].currentAnim == animHit2 && p[player].keynothingtime>15){
             setplayeranimation(player,animIdle);
+            
         }
 
         if(p[player].currentAnim == animKick && p[player].keynothingtime>15){
@@ -382,7 +384,7 @@ void updateplayer(int player){
         
         
         
-        if(FIRE1){
+        if(LEFT==false && RIGHT==false && UP==false && DOWN==false && FIRE1){
             if(p[player].lastFireAnim==animHit2){
                 setplayeranimation(player,animHit1);
                 p[player].lastFireAnim=animHit1;
@@ -392,29 +394,33 @@ void updateplayer(int player){
             }
             FIRE1=false;
         }
-        if(FIRE2){
+        if(LEFT==false && RIGHT==false && UP==false && DOWN==false && FIRE2){
             setplayeranimation(player,animKick);
             FIRE2=false;
         }
 
         if (RIGHT){
+            p[player].lastFiretime=50;
             p[0].facing = 1;
             p[0].position.x+=2;
             RIGHT=false;
             setplayeranimation(player,animWalk);
         }
         else if (LEFT){
+            p[player].lastFiretime=50;
             p[0].facing=-1;
             p[0].position.x-=2;
             LEFT=false;
             setplayeranimation(player,animWalk);
         }
         if (DOWN){
+            p[player].lastFiretime=50;
             p[0].position.y+=2;
             DOWN=false;
             setplayeranimation(player,animWalk);
         }
         else if (UP){
+            p[player].lastFiretime=50;
             p[0].position.y-=2;
             UP=false;
             setplayeranimation(player,animWalk);
@@ -430,6 +436,7 @@ void playercontrols(int player){
         }
         if (p[player].lastFiretime>30 && IsKeyDown(KEY_X) && FIRE1==false && FIRE2==false){
             FIRE2 = true;
+            p[player].lastFiretime=0;
             p[player].keynothingtime = 0;
         }
         
