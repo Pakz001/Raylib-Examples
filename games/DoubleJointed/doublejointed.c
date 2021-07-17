@@ -23,6 +23,24 @@
 #define animDamage 6
 #define animFlying 7
 
+#define MAX_PLAYERS 1 
+
+typedef struct player{
+    bool active;
+    float facing; //-1 left, 1 right
+    Vector2 position;
+    int w;
+    int h;
+    int score;
+    int health;
+    int currentFrame;
+    int framesCounter;
+    int frame_start;
+    int frame_end;
+}player;
+
+static struct player p[MAX_PLAYERS];
+
 
 // controls for player (true/false) ,,add function to read keyboard/joypad/touchscreen
 bool LEFT;
@@ -35,6 +53,9 @@ bool FIRE2;
 // currentframe hold the current position of the cells (typewriter style)
 int currentFrame;
 int framesSpeed = 8;            // Number of spritesheet frames shown by second
+
+Rectangle frameRec = { 0.0f, 0.0f, (float)96, (float)96 };
+
 
 int frame_start = 0;
 int frame_end = 3;
@@ -64,6 +85,12 @@ int frame_flyingend = 93;
 
 // this sets the frame to start and sets start and end position(loop)
 void setanimation(int anim);
+void drawplayers();
+void updateplayers();
+void setplayeranimation(int player, int anim);
+
+Texture2D scarfy;
+Texture2D backg;
 
 int main(void)
 {
@@ -75,11 +102,13 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "raylib [texture] example - texture rectangle");
 
     // NOTE: Textures MUST be loaded after Window initialization (OpenGL context is required)
-    Texture2D scarfy = LoadTexture("resources/mrskelly.png");        // Texture loading
-    Texture2D backg = LoadTexture("resources/onedragon.png");
+    //Texture2D scarfy = LoadTexture("resources/mrskelly.png");        // Texture loading
+    //Texture2D backg = LoadTexture("resources/onedragon.png");
+    scarfy = LoadTexture("resources/mrskelly.png");        // Texture loading
+    backg = LoadTexture("resources/onedragon.png");
 
     Vector2 position = { 350.0f, 480.0f };
-    Rectangle frameRec = { 0.0f, 0.0f, (float)96, (float)96 };
+    //Rectangle frameRec = { 0.0f, 0.0f, (float)96, (float)96 };
     //int currentFrame = frame_kickstart;
 
     int framesCounter = 0;
@@ -88,13 +117,22 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
     //setanimation(animKick);
-    setanimation(animFlying);
+    //setanimation(animFlying);
+    
+    p[0].facing=1;
+    p[0].position.y = 370;
+    p[0].position.x = 320;
+    setplayeranimation(0,animWalk);
 
     //other sprites - 
     int mod=0;
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
+        
+        updateplayers();
+
+        /*
         // Update
         //----------------------------------------------------------------------------------
         framesCounter++;
@@ -135,6 +173,8 @@ int main(void)
         else if (IsKeyDown(KEY_LEFT)) position.x-=2;
         if (IsKeyDown(KEY_DOWN)) position.y+=2;
         else if (IsKeyDown(KEY_UP)) position.y-=2;
+        */
+
 
         //----------------------------------------------------------------------------------
 
@@ -145,6 +185,11 @@ int main(void)
             ClearBackground(RAYWHITE);
             DrawTexture(backg, 0, 0, WHITE);
             DrawTexture(scarfy, 15, 40, WHITE);
+
+
+            drawplayers();
+            
+            /*
             DrawRectangleLines(15, 40, scarfy.width, scarfy.height, LIME);
             DrawRectangleLines(15 + (int)frameRec.x, 40 + (int)frameRec.y, (int)frameRec.width, (int)frameRec.height, RED);
 
@@ -164,6 +209,8 @@ int main(void)
                                             (Rectangle){position.x,position.y,96,96},
                                             (Vector2){0,0},0,WHITE);
             DrawText("(c) Scarfy sprite by Eiden Marsal", screenWidth - 200, screenHeight - 20, 10, GRAY);
+            */
+            DrawText("Cursor LEFT/RIGHT/UP/DOWN", 0, 0, 30, RED);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -216,4 +263,91 @@ void setanimation(int anim){
 
     }
     currentFrame = frame_start;
+}
+
+void drawplayers(){
+    if(p[0].facing==1){
+    DrawTextureRec(scarfy, frameRec, (Vector2){p[0].position.x,p[0].position.y}, WHITE);  // Draw part of the texture
+    }else{
+    DrawTexturePro(scarfy,  (Rectangle){frameRec.x,frameRec.y,-96,96},// the -96 (-)means mirror on x axis
+                                    (Rectangle){p[0].position.x,p[0].position.y,96,96},
+                                    (Vector2){0,0},0,WHITE);
+    }
+    
+}
+
+void setplayeranimation(int player, int anim){
+    switch(anim){
+            case animKick:
+            p[player].frame_start = frame_kickstart;
+            p[player].frame_end = frame_kickend;
+            
+            break;
+            case animHit1:
+            p[player].frame_start = frame_hit1start;
+            p[player].frame_end = frame_hit1end;
+            break;
+
+            case animUcut:
+            p[player].frame_start = frame_ucutstart;
+            p[player].frame_end = frame_ucutend;
+            break;
+
+            case animHit2:
+            p[player].frame_start = frame_hit2start;
+            p[player].frame_end = frame_hit2end;
+            break;
+            case animWalk:
+            p[player].frame_start = frame_walkstart;
+            p[player].frame_end = frame_walkend;
+            break;
+            case animDamage:
+            p[player].frame_start = frame_damagestart;
+            p[player].frame_end = frame_damageend;
+            break;
+            case animFlying:
+            p[player].frame_start = frame_flyingstart;
+            p[player].frame_end = frame_flyingend;
+            break;
+
+
+    }
+    p[player].currentFrame = p[player].frame_start;
+}
+
+void updateplayers(){
+    // animation
+        p[0].framesCounter++;
+
+        
+
+        if (p[0].framesCounter >= (60/framesSpeed))
+        {
+            p[0].framesCounter = 0;
+            p[0].currentFrame++;
+
+            if (p[0].currentFrame > p[0].frame_end) p[0].currentFrame = p[0].frame_start;
+
+            int ypos = p[0].currentFrame/15;
+            frameRec.y = (float)(p[0].currentFrame/15)*(float)96;
+
+            frameRec.x = (float)((p[0].currentFrame)-ypos*15)*(float)96;
+            
+        }
+        // temp controls
+        if (IsKeyDown(KEY_RIGHT)){
+            p[0].facing = 1;
+            p[0].position.x+=2;
+        }
+        else if (IsKeyDown(KEY_LEFT)){
+            p[0].facing=-1;
+            p[0].position.x-=2;
+        }
+        if (IsKeyDown(KEY_DOWN)){
+            p[0].position.y+=2;
+        }
+        else if (IsKeyDown(KEY_UP)){
+            p[0].position.y-=2;
+        }
+    
 }
