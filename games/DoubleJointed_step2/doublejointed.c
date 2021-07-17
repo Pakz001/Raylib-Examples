@@ -479,7 +479,10 @@ void updateentity(int entity){
         }
  
 
-        // player movement
+        if(e[entity].currentAnim == animDamage){
+            setentityanimation(entity,animIdle);
+        }
+    
         if(e[entity].currentAnim == animWalk){
             setentityanimation(entity,animIdle);
         }
@@ -522,6 +525,23 @@ void updateplayer(int player){
             
         }
  
+        if(rectsoverlap(p[player].position.x,p[player].position.y,70,60,e[0].position.x,e[0].position.y+10,60,40)){
+        
+        if(p[0].currentFrame == frame_hit1end || p[0].currentFrame == frame_hit2end || p[0].currentFrame == frame_kickend){
+         
+            bool goahead=false;
+            if(p[player].facing==-1 && e[0].position.x<p[player].position.x){
+                goahead=true;
+            }
+            if(p[player].facing==1 && e[0].position.x>p[player].position.x){
+                goahead=true;
+            }
+
+            if(goahead)setentityanimation(0,animDamage);
+        }
+        
+        }
+
 
         // player movement
         if(p[player].currentAnim == animWalk && p[player].keynothingtime>1){
@@ -582,6 +602,8 @@ void updateplayer(int player){
             UP=false;
             setplayeranimation(player,animWalk);
         }
+        
+        
 }
 
 void playercontrols(int player){
