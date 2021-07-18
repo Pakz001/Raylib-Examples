@@ -155,16 +155,12 @@ int frame_idleend = 1;
 
 
 // this sets the frame to start and sets start and end position(loop)
-void setanimation(int anim);
-void drawplayers(bool shade); //no longer needed
 void updateplayer(int player);
 void setplayeranimation(int player, int anim);
 void playercontrols(int player);
-void drawentities(bool shade); //no longer needed
 void setentityanimation(int entity, int anim);
 void updateentity(int entity);
 void entityattack(int entity);
-void drawitems(); // no longer needed..
 void updateitems();
 void drawZordered(); //Draw every sprite z sorted infront/back from the feet
 // Our rectsoverlap function. Returns true/false.
@@ -311,67 +307,6 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
     return 0;
-}
-
-// no longer needed
-void drawitems(){
-    for(int i=0;i<MAX_ITEMS;i++){
-        if(it[i].active==false)continue;
-        DrawEllipse(it[i].position.x+47,it[i].shadey+106,16,8,(Color){0,0,0,96});
-        // get the head cell
-        it[i].frameRec.y = 0;
-
-        it[i].frameRec.x = 96*4;
-            
-        //DrawTextureRec(scarfy, it[0].frameRec, (Vector2){it[0].position.x,it[0].position.y}, WHITE);  // Draw part of the texture
-        DrawTexturePro(scarfy,  (Rectangle){it[i].frameRec.x,it[i].frameRec.y,-96,96},// the -96 (-)means mirror on x axis
-                                        (Rectangle){it[i].position.x+48,it[i].position.y+48,96,96},
-                                        (Vector2){96/2,96/2},it[i].angle,WHITE);
-    }
-}
-
-// no longer needed
-void drawentities(bool shade){
-    for(int i=0;i<MAX_ENTITIES;i++){
-        
-        if(e[i].facing==1){
-        if(shade){
-            if(e[i].currentAnim!=animFlying){
-                DrawEllipse(e[i].position.x+40,e[i].position.y+96,20,10,(Color){0,0,0,96});
-            }else{
-                DrawEllipse(e[i].position.x+40,e[i].shadey+96,20,10,(Color){0,0,0,96});
-            }
-        }
-        DrawTextureRec(scarfy, e[i].frameRec, (Vector2){e[i].position.x,e[i].position.y}, WHITE);  // Draw part of the texture
-        }else{
-        if(shade){
-            if(e[i].currentAnim!=animFlying){
-                DrawEllipse(e[i].position.x+48,e[i].position.y+96,20,10,(Color){0,0,0,96});
-            }else{
-                DrawEllipse(e[i].position.x+48,e[i].shadey+96,20,10,(Color){0,0,0,96});
-            }
-        }
-        DrawTexturePro(scarfy,  (Rectangle){e[i].frameRec.x,e[i].frameRec.y,-96,96},// the -96 (-)means mirror on x axis
-                                        (Rectangle){e[i].position.x,e[i].position.y,96,96},
-                                        (Vector2){0,0},0,WHITE);
-        }
-    }
-    
-}
-
-// no longer needed
-void drawplayers(bool shade){
-    if(p[0].facing==1){
-    if(shade)DrawEllipse(p[0].position.x+40,p[0].position.y+96,20,10,(Color){0,0,0,96});    
-    DrawTextureRec(scarfy, frameRec, (Vector2){p[0].position.x,p[0].position.y}, WHITE);  // Draw part of the texture
-    }else{
-    if(shade)DrawEllipse(p[0].position.x+48,p[0].position.y+96,20,10,(Color){0,0,0,96});
-    DrawTexturePro(scarfy,  (Rectangle){frameRec.x,frameRec.y,-96,96},// the -96 (-)means mirror on x axis
-                                    (Rectangle){p[0].position.x,p[0].position.y,96,96},
-                                    (Vector2){0,0},0,WHITE);
-    }
-    
-
 }
 
 
@@ -591,28 +526,7 @@ void updateentity(int entity){
             e[entity].frameRec.x = (float)((e[entity].currentFrame)-ypos*15)*(float)96;
             
         }
- 
-        
-        if(e[entity].currentAnim == animFlying){
-            //setentityanimation(entity,animNothing);
-        }    
-        if(e[entity].currentAnim == animDamage){
-            //setentityanimation(entity,animIdle);
-        }    
-        if(e[entity].currentAnim == animWalk){
-            //setentityanimation(entity,animIdle);
-        }
-        if(e[entity].currentAnim == animHit1){
-            
-            //setentityanimation(entity,animIdle);
-        }
-        if(e[entity].currentAnim == animHit2){
-            //setentityanimation(entity,animIdle);            
-        }
-        if(e[entity].currentAnim == animKick){
-            //setentityanimation(entity,animIdle);
-        }
-        
+         
         
         // states
         if(e[entity].state==stateDead)return;
