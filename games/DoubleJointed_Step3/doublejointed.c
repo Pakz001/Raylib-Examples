@@ -1022,12 +1022,17 @@ void drawZordered(){
     }
 }
 
+// Not build for 2 players yet p[x]
 void entityattack(int entity){
     if(e[entity].currentAnim!=animIdle)return;
     if(GetRandomValue(0,100)>1)return;
-    if(rectsoverlap(e[entity].position.x,e[entity].position.y+24,64,20,p[0].position.x,p[0].position.y+24,64,32)==true){
-        if(p[0].position.x<e[entity].position.x)e[entity].facing=-1;
-        if(p[0].position.x>e[entity].position.x)e[entity].facing=1;
+    // if close to player or headless then attack
+    if(rectsoverlap(e[entity].position.x,e[entity].position.y+24,64,20,p[0].position.x,p[0].position.y+24,64,32)==true || e[entity].mod==9){
+        // If the entity is not headless then he turns into the direction of the player.
+        if(e[entity].mod==5){
+            if(p[0].position.x<e[entity].position.x)e[entity].facing=-1;
+            if(p[0].position.x>e[entity].position.x)e[entity].facing=1;
+        }
         switch(GetRandomValue(0,3)){
             case 0:
             setentityanimation(entity,animHit1);
