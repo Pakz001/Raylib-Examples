@@ -312,9 +312,9 @@ int main(void)
             DrawRectangle(0,2,screenWidth,23,WHITE);
             DrawText("Cursor LEFT/RIGHT/UP/DOWN Z(FIRE1)/X(FIRE2)", 0, 0, 30, BLACK);
             //DrawText(FormatText("hitcombo %i",p[0].hitcombo), 0, 20, 30, BLACK);
-            DrawText(FormatText("ca : %i",e[0].currentFrame), 0, 20, 30, BLACK);
-            DrawText(FormatText("ca : %i",e[1].currentFrame), 0, 50, 30, BLACK);
-            DrawText(FormatText("debug: %i",debug),210,20,30,BLACK);
+            //DrawText(FormatText("ca : %i",e[0].currentFrame), 0, 20, 30, BLACK);
+            //DrawText(FormatText("ca : %i",e[1].currentFrame), 0, 50, 30, BLACK);
+            //DrawText(FormatText("debug: %i",debug),210,20,30,BLACK);
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
