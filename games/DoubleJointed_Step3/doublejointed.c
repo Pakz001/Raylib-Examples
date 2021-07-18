@@ -163,6 +163,7 @@ void playercontrols(int player);
 void drawentities(bool shade); //no longer needed
 void setentityanimation(int entity, int anim);
 void updateentity(int entity);
+void entityattack(int entity);
 void drawitems(); // no longer needed..
 void updateitems();
 void drawZordered(); //Draw every sprite z sorted infront/back from the feet
@@ -258,6 +259,9 @@ int main(void)
         updateentity(0);
         updateentity(1);
         updateentity(2);
+        entityattack(0);
+        entityattack(1);
+        entityattack(2);
 
         updateitems();
 
@@ -402,8 +406,14 @@ void setentityanimation(int entity, int anim){
             e[entity].frame_end = frame_hit1end+e[entity].mod;
             e[entity].currentFrame = e[entity].frame_start;
             e[entity].animLoop=false;
+            e[entity].animOneshot=true;            
+            break;
+            case animHit2:
+            e[entity].frame_start = frame_hit2start+e[entity].mod;
+            e[entity].frame_end = frame_hit2end+e[entity].mod;
+            e[entity].currentFrame = e[entity].frame_start;            
+            e[entity].animLoop=false;
             e[entity].animOneshot=true;
-            
             break;
 
             case animUcut:
@@ -415,14 +425,6 @@ void setentityanimation(int entity, int anim){
 
             break;
 
-            case animHit2:
-            e[entity].frame_start = frame_hit2start+e[entity].mod;
-            e[entity].frame_end = frame_hit2end+e[entity].mod;
-            e[entity].currentFrame = e[entity].frame_start;            
-            e[entity].animLoop=false;
-            e[entity].animOneshot=true;
-
-            break;
             case animWalk:
             e[entity].framesCounter = 8;
             e[entity].frame_start = frame_walkstart+e[entity].mod;
@@ -570,6 +572,7 @@ void updateentity(int entity){
                     e[entity].currentFrame = e[entity].frame_start;    
                 }
                 if(e[entity].animOneshot==true){
+                    
                     if(e[entity].currentAnim==animFlying){
                         e[entity].currentFrame = e[entity].frame_end;
                         //e[entity].currentAnim = animNothing;
@@ -613,6 +616,10 @@ void updateentity(int entity){
         
         // states
         if(e[entity].state==stateDead)return;
+        if(e[entity].currentAnim==animHit1)return;
+        if(e[entity].currentAnim==animHit2)return;
+        if(e[entity].currentAnim==animKick)return;
+        if(e[entity].currentAnim==animUcut)return;
         if(e[entity].state==stateIdle && GetRandomValue(0,60)==1){
             e[entity].state=stateChase;
         }
@@ -1016,6 +1023,31 @@ void drawZordered(){
                                             (Vector2){96/2,96/2},it[in].angle,WHITE);
         }
        
+        
+    }
+}
+
+void entityattack(int entity){
+    if(e[entity].currentAnim!=animIdle)return;
+    if(GetRandomValue(0,100)>1)return;
+    if(rectsoverlap(e[entity].position.x,e[entity].position.y+24,64,20,p[0].position.x,p[0].position.y+24,64,32)==true){
+        if(p[0].position.x<e[entity].position.x)e[entity].facing=-1;
+        if(p[0].position.x>e[entity].position.x)e[entity].facing=1;
+        switch(GetRandomValue(0,3)){
+            case 0:
+            setentityanimation(entity,animHit1);
+            //debug = GetRandomValue(0,100);
+            break;
+            case 1:
+            setentityanimation(entity,animHit2);
+            break;
+            case 2:
+            setentityanimation(entity,animKick);
+            break;
+            case 3:
+            setentityanimation(entity,animUcut);
+            break;
+        }
         
     }
 }
