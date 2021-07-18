@@ -3,7 +3,8 @@
 *   Double Jointed - Double Dragon parody.
 *   
 *   *Added zorder drawing function (needs more testing..) other sprite drawing functions can be removed
-*   
+*   // debugging phase sill in progress above...  
+*   Added oneshot and loop anims to entities.. fixed damage anims.
 *
 *   
 *
@@ -34,8 +35,8 @@
 
 #define MAX_SPRITES 1000
 #define MAX_PLAYERS 1 
-#define MAX_ENTITIES 2
-#define MAX_ITEMS 2
+#define MAX_ENTITIES 3
+#define MAX_ITEMS 3
 
 typedef struct item{
     bool active;
@@ -69,6 +70,8 @@ typedef struct entity{
     int damagedelay;
     int currentFrame;
     int currentAnim; // which animation is currenty active
+    bool animLoop;
+    bool animOneshot;
     int lastAnim;
     int framesCounter;
     int frame_start;
@@ -200,8 +203,10 @@ int main(void)
     //setanimation(animFlying);
     it[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
     it[1].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
+    it[2].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
 
-    e[0].state = stateChase;
+
+    e[0].state = stateIdle;
     e[0].frameSpeed = 8;
     e[0].health = 10;
     e[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
@@ -210,7 +215,7 @@ int main(void)
     e[0].position.x = 320;
     e[0].mod = 5;
     setentityanimation(0,animIdle);
-    e[1].state = stateChase;
+    e[1].state = stateIdle;
     e[1].frameSpeed = 8;
     e[1].health = 10;
     e[1].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
@@ -218,9 +223,16 @@ int main(void)
     e[1].position.y = 270;
     e[1].position.x = 320;
     e[1].mod = 5;
-
     setentityanimation(1,animIdle);
-    
+    e[2].state = stateIdle;
+    e[2].frameSpeed = 8;
+    e[2].health = 10;
+    e[2].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
+    e[2].facing=1;
+    e[2].position.y = 370;
+    e[2].position.x = 220;
+    e[2].mod = 5;
+    setentityanimation(2,animIdle);    
     
     p[0].facing=1;
     p[0].position.y = 370;
@@ -245,6 +257,8 @@ int main(void)
         updateplayer(0);
         updateentity(0);
         updateentity(1);
+        updateentity(2);
+
         updateitems();
 
 
@@ -277,8 +291,8 @@ int main(void)
             DrawRectangle(0,2,screenWidth,23,WHITE);
             DrawText("Cursor LEFT/RIGHT/UP/DOWN Z(FIRE1)/X(FIRE2)", 0, 0, 30, BLACK);
             //DrawText(FormatText("hitcombo %i",p[0].hitcombo), 0, 20, 30, BLACK);
-            DrawText(FormatText("ca : %i",e[0].currentAnim), 0, 20, 30, BLACK);
-            DrawText(FormatText("ca : %i",e[1].currentAnim), 0, 50, 30, BLACK);
+            DrawText(FormatText("ca : %i",e[0].currentFrame), 0, 20, 30, BLACK);
+            DrawText(FormatText("ca : %i",e[1].currentFrame), 0, 50, 30, BLACK);
             DrawText(FormatText("debug: %i",debug),210,20,30,BLACK);
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -371,46 +385,68 @@ void setentityanimation(int entity, int anim){
             e[entity].frame_start = frame_idlestart+e[entity].mod;
             e[entity].frame_end = frame_idleend+e[entity].mod;
             e[entity].currentFrame = e[entity].frame_start;    
+            e[entity].animLoop=true;
+            e[entity].animOneshot=false;
             break;
 
             case animKick:
             e[entity].frame_start = frame_kickstart+e[entity].mod;
             e[entity].frame_end = frame_kickend+e[entity].mod;
             e[entity].currentFrame = e[entity].frame_start;
+            e[entity].animLoop=false;
+            e[entity].animOneshot=true;
+
             break;
             case animHit1:
             e[entity].frame_start = frame_hit1start+e[entity].mod;
             e[entity].frame_end = frame_hit1end+e[entity].mod;
             e[entity].currentFrame = e[entity].frame_start;
+            e[entity].animLoop=false;
+            e[entity].animOneshot=true;
+            
             break;
 
             case animUcut:
             e[entity].frame_start = frame_ucutstart+e[entity].mod;
             e[entity].frame_end = frame_ucutend+e[entity].mod;
             e[entity].currentFrame = e[entity].frame_start;
+            e[entity].animLoop=false;
+            e[entity].animOneshot=true;
+
             break;
 
             case animHit2:
             e[entity].frame_start = frame_hit2start+e[entity].mod;
             e[entity].frame_end = frame_hit2end+e[entity].mod;
             e[entity].currentFrame = e[entity].frame_start;            
+            e[entity].animLoop=false;
+            e[entity].animOneshot=true;
+
             break;
             case animWalk:
             e[entity].framesCounter = 8;
             e[entity].frame_start = frame_walkstart+e[entity].mod;
             e[entity].frame_end = frame_walkend+e[entity].mod;
             e[entity].currentFrame = e[entity].frame_start;            
+            e[entity].animLoop=true;
+            e[entity].animOneshot=false;
+
             break;
             case animDamage:
             e[entity].frame_start = frame_damagestart+e[entity].mod;
             e[entity].frame_end = frame_damageend+e[entity].mod;
             e[entity].currentFrame = e[entity].frame_start;
+            e[entity].animLoop=false;
+            e[entity].animOneshot=true;
+            
             break;
             case animFlying:
             e[entity].framesCounter = 100;
             e[entity].frame_start = frame_flyingstart+e[entity].mod;
             e[entity].frame_end = frame_flyingend+e[entity].mod;
             e[entity].currentFrame = e[entity].frame_start;
+            e[entity].animLoop=false;
+            e[entity].animOneshot=true;
             
             break;
 
@@ -530,16 +566,21 @@ void updateentity(int entity){
             e[entity].currentFrame++;
 
             if (e[entity].currentFrame > e[entity].frame_end){
-                if(e[entity].currentAnim!=animDamage){ // Let all but animDamage loop
+                if(e[entity].animLoop==true){ 
                     e[entity].currentFrame = e[entity].frame_start;    
-                }else{//reset to idle when in animDamage(oneshot)
-                    setentityanimation(entity,animIdle);
+                }
+                if(e[entity].animOneshot==true){
+                    if(e[entity].currentAnim==animFlying){
+                        e[entity].currentFrame = e[entity].frame_end;
+                        //e[entity].currentAnim = animNothing;
+                    }else{
+                        setentityanimation(entity,animIdle);    
+                    }
+
+                    
+                    
                 }
                 
-                if(e[entity].currentAnim==animFlying){
-                    e[entity].currentFrame = e[entity].frame_end;
-                    //e[entity].currentAnim = animNothing;
-                }
             }
             int ypos = e[entity].currentFrame/15;
             e[entity].frameRec.y = (float)(e[entity].currentFrame/15)*(float)96;
@@ -560,13 +601,13 @@ void updateentity(int entity){
         }
         if(e[entity].currentAnim == animHit1){
             
-            setentityanimation(entity,animIdle);
+            //setentityanimation(entity,animIdle);
         }
         if(e[entity].currentAnim == animHit2){
-            setentityanimation(entity,animIdle);            
+            //setentityanimation(entity,animIdle);            
         }
         if(e[entity].currentAnim == animKick){
-            setentityanimation(entity,animIdle);
+            //setentityanimation(entity,animIdle);
         }
         
         
@@ -898,7 +939,7 @@ void drawZordered(){
     totalsprites=position;
     //bubble sort - infinitly loop through the list and move lower value one position up and the one there one down.
     //exit when one loop is done without a modification.
-    bool exit;
+    bool exit=false;
     while(exit==false){
         exit=true;
         for(int i=1;i<totalsprites;i++){
