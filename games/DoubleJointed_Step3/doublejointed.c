@@ -1,12 +1,12 @@
 /*******************************************************************************************
 *
-*   Double Jointed - Double Dragon parody.
+*   Double Jointed - Double Dragon parody. - beat 'em up game
 *   
 *   *Added zorder drawing function (needs more testing..) other sprite drawing functions can be removed
 *   // debugging phase sill in progress above...  
 *   Added oneshot and loop anims to entities.. fixed damage anims.
 *
-*   
+*      
 *
 ********************************************************************************************/
 
