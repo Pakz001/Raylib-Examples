@@ -2,7 +2,7 @@
 *
 *   Double Jointed - Double Dragon parody.
 *   
-*   
+*   *Added zorder drawing function (needs more testing..) other sprite drawing functions can be removed
 *   
 *
 *   
@@ -153,14 +153,14 @@ int frame_idleend = 1;
 
 // this sets the frame to start and sets start and end position(loop)
 void setanimation(int anim);
-void drawplayers(bool shade);
+void drawplayers(bool shade); //no longer needed
 void updateplayer(int player);
 void setplayeranimation(int player, int anim);
 void playercontrols(int player);
-void drawentities(bool shade);
+void drawentities(bool shade); //no longer needed
 void setentityanimation(int entity, int anim);
 void updateentity(int entity);
-void drawitems();
+void drawitems(); // no longer needed..
 void updateitems();
 void drawZordered(); //Draw every sprite z sorted infront/back from the feet
 // Our rectsoverlap function. Returns true/false.
@@ -292,7 +292,7 @@ int main(void)
     return 0;
 }
 
-
+// no longer needed
 void drawitems(){
     for(int i=0;i<MAX_ITEMS;i++){
         if(it[i].active==false)continue;
@@ -309,6 +309,7 @@ void drawitems(){
     }
 }
 
+// no longer needed
 void drawentities(bool shade){
     for(int i=0;i<MAX_ENTITIES;i++){
         
@@ -337,6 +338,7 @@ void drawentities(bool shade){
     
 }
 
+// no longer needed
 void drawplayers(bool shade){
     if(p[0].facing==1){
     if(shade)DrawEllipse(p[0].position.x+40,p[0].position.y+96,20,10,(Color){0,0,0,96});    
@@ -850,6 +852,15 @@ void playercontrols(int player){
 }
 
 
+//
+// What this function does is create a list of every y position of each sprite on the screen. This list gets
+// sorted(bubble sort) so that the first sprite to be drawn is the upper most sprite. The last sprite on the list
+// is the sprite that is on the lowest position on the screen.
+// This is done because if a sprite is drawn ontop of another we need to know if he is infront or behind it. Knowing
+// the feet position is a good way of this. If two sprites are close by, the one which is lower(at the feet) needs
+// to be drawn infront(I think anyways, testing still for bugs)
+// There might be problems later on so any weirdness with drawing wil be needed to be fixed here(different sprite sizes(standing/laying/items))
+//
 void drawZordered(){
 
     int totalsprites; // how many sprites
