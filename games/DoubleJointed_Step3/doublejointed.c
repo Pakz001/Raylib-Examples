@@ -22,6 +22,7 @@
 #define stateIdle 4
 #define stateSawplayer 5
 #define stateDead 6
+#define statemoveto 7 // for scattering if they are clumped up together.
 
 #define animIdle 0
 #define animKick  1
@@ -611,6 +612,7 @@ void updateentity(int entity){
             e[entity].state=stateChase;
         }
 
+        
         Vector2 oldpos=e[entity].position;
         if(p[0].enemyattheleft==entity && e[entity].currentAnim==animFlying)p[0].enemyattheleft=-1;
         if(p[0].enemyattheleft==entity && e[entity].mod==9)p[0].enemyattheleft=-1;
@@ -680,6 +682,42 @@ void updateentity(int entity){
                 //e[entity].state=stateIdle;
             }
         }
+        
+        // Scatter if clumped up together.
+        
+        for(int i=0;i<MAX_ENTITIES;i++){
+            if(e[entity].state!=stateIdle)continue;
+            if(i==entity)continue;
+            if(distance(e[entity].position.x,e[entity].position.y,e[i].position.x,e[i].position.y)<80){
+                e[entity].state=statemoveto;
+                e[entity].target.x = e[entity].position.x+GetRandomValue(-50,50);
+                e[entity].target.y = e[entity].position.y+GetRandomValue(-50,50);
+                if(e[entity].target.x<48)e[entity].target.x+=48;
+                if(e[entity].target.x>1000-48)e[entity].target.x-=48;
+                if(e[entity].target.y<148)e[entity].target.y+=48;
+                if(e[entity].target.y>600-48)e[entity].target.y-=48;
+                setentityanimation(entity,animWalk);
+
+            }
+        }
+        
+        
+        // Move to state
+        if(e[entity].state==statemoveto){
+            if(e[entity].position.x>e[entity].target.x)e[entity].position.x--;
+            if(e[entity].position.x<e[entity].target.x)e[entity].position.x++;
+            if(e[entity].position.y>e[entity].target.y)e[entity].position.y--;
+            if(e[entity].position.y<e[entity].target.y)e[entity].position.y++;
+            if(distance(e[entity].position.x,e[entity].position.y,e[entity].target.x,e[entity].target.y)<4){
+                e[entity].state = stateIdle;
+            }
+
+        }
+        
+        
+        
+        
+        // If we have not moved then revert back to the idle state.
         if(e[entity].position.x==oldpos.x && e[entity].position.y==oldpos.y){
             
             if(e[entity].currentAnim!=animDamage)setentityanimation(entity,animIdle);
