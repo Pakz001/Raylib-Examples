@@ -32,6 +32,7 @@
 #define animFlying 7
 #define animNothing 8
 
+#define MAX_SPRITES 1000
 #define MAX_PLAYERS 1 
 #define MAX_ENTITIES 2
 #define MAX_ITEMS 2
@@ -101,6 +102,7 @@ typedef struct player{
     int keynothingtime; // when key is down this is zero (used to disable animations..)
     int lastFiretime;
     int lastFireAnim;
+    
 }player;
 
 static struct player p[MAX_PLAYERS];
@@ -160,6 +162,7 @@ void setentityanimation(int entity, int anim);
 void updateentity(int entity);
 void drawitems();
 void updateitems();
+void drawZordered(); //Draw every sprite z sorted infront/back from the feet
 // Our rectsoverlap function. Returns true/false.
 static bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2);
 float distance(float x1,float y1,float x2,float y2);
@@ -255,23 +258,25 @@ int main(void)
             //DrawTexture(scarfy, 15, 40, WHITE);
 
 
-            drawplayers(true);
-            drawentities(true);
-            drawitems();
+            drawZordered();
+            //drawplayers(true);
+            //drawentities(true);
+            //drawitems();
 
             // spceial case if player is near enemy check if he is below than draw infront.
-            for(int i=0;i<MAX_ENTITIES;i++){
-            if(rectsoverlap(p[0].position.x,p[0].position.y,96,96,e[i].position.x,e[i].position.y,96,96)){
-                if(p[0].position.y>e[i].position.y){
-                    drawplayers(false);
-                }
-            }
-            }
+            //for(int i=0;i<MAX_ENTITIES;i++){
+            //if(rectsoverlap(p[0].position.x,p[0].position.y,96,96,e[i].position.x,e[i].position.y,96,96)){
+            //    if(p[0].position.y>e[i].position.y){
+            //        drawplayers(false);
+            //    }
+            //}
+            //}
             
             DrawRectangle(0,2,screenWidth,23,WHITE);
             DrawText("Cursor LEFT/RIGHT/UP/DOWN Z(FIRE1)/X(FIRE2)", 0, 0, 30, BLACK);
             //DrawText(FormatText("hitcombo %i",p[0].hitcombo), 0, 20, 30, BLACK);
-            if(e[0].currentAnim==animNothing)DrawText("0",0,40,30,RED);
+            //DrawText(FormatText("0 : %i",e[0].currentFrame), 0, 20, 30, BLACK);
+            //DrawText(FormatText("1 : %i",e[1].currentFrame), 0, 50, 30, BLACK);
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
@@ -605,6 +610,7 @@ void updateentity(int entity){
                 for(int i=0;i<MAX_ENTITIES;i++){
                     if(i==entity)continue;
                     if(e[i].state!=stateChase)continue;
+                    if(e[i].mod==9)continue;
                     if(distance(e[i].position.x,e[i].position.y,e[entity].position.x,e[entity].position.y)<48){
                         if(e[i].position.x>e[entity].position.x)e[i].position.x+=2;
                         if(e[i].position.x<e[entity].position.x)e[i].position.x-=2;
@@ -844,6 +850,114 @@ void playercontrols(int player){
 }
 
 
+void drawZordered(){
+
+    int totalsprites; // how many sprites
+    int sortedlist[MAX_SPRITES][3]; // max of 1000 sprites ( 1 = player, 2 = entity, 3 = items)(playerid, entityid, itemid)
+    int position=0;
+    for(int i=0;i<MAX_PLAYERS;i++){
+        sortedlist[position][0]=1;
+        sortedlist[position][1]=i;
+        sortedlist[position][2]=p[i].position.y+96;
+        position++;
+    }
+    for(int i=0;i<MAX_ENTITIES;i++){
+        sortedlist[position][0]=2;
+        sortedlist[position][1]=i;
+        sortedlist[position][2]=e[i].position.y+96;
+        //102/98 - special case - sprites are lying down so they have different bottom potision
+        if(e[i].currentFrame==102 || e[i].currentFrame==98)sortedlist[position][2]-=32;
+        position++;
+    }
+    for(int i=0;i<MAX_ITEMS;i++){
+        sortedlist[position][0]=3;
+        sortedlist[position][1]=i;
+        sortedlist[position][2]=it[i].position.y+48;
+        position++;
+    }
+    totalsprites=position;
+    //bubble sort - infinitly loop through the list and move lower value one position up and the one there one down.
+    //exit when one loop is done without a modification.
+    bool exit;
+    while(exit==false){
+        exit=true;
+        for(int i=1;i<totalsprites;i++){
+            if(sortedlist[i][2]<sortedlist[i-1][2]){
+                int temp[3];
+                temp[0]=sortedlist[i-1][0];
+                temp[1]=sortedlist[i-1][1];
+                temp[2]=sortedlist[i-1][2];
+                sortedlist[i-1][0]=sortedlist[i][0];
+                sortedlist[i-1][1]=sortedlist[i][1];
+                sortedlist[i-1][2]=sortedlist[i][2];
+                sortedlist[i][0]=temp[0];
+                sortedlist[i][1]=temp[1];
+                sortedlist[i][2]=temp[2];
+                exit=false;
+            }
+        }
+    }
+    //
+    // Here we draw everything z ordered
+    //
+    for(int i=0;i<totalsprites;i++){
+        if(sortedlist[i][0]==1){//draw player
+            int pn = sortedlist[i][1];
+            if(p[pn].facing==1){
+                DrawEllipse(p[pn].position.x+40,p[pn].position.y+96,20,10,(Color){0,0,0,96});    
+                DrawTextureRec(scarfy, frameRec, (Vector2){p[pn].position.x,p[pn].position.y}, WHITE);  // Draw part of the texture                
+                }else{
+                DrawEllipse(p[pn].position.x+48,p[pn].position.y+96,20,10,(Color){0,0,0,96});
+                DrawTexturePro(scarfy,  (Rectangle){frameRec.x,frameRec.y,-96,96},// the -96 (-)means mirror on x axis
+                                                (Rectangle){p[pn].position.x,p[pn].position.y,96,96},
+                                                (Vector2){0,0},0,WHITE);
+            }
+       
+        }
+        if(sortedlist[i][0]==2){//draw entities
+            int en = sortedlist[i][1];
+            bool shade=true;
+            if(e[en].facing==1){
+            if(shade){
+                if(e[en].currentAnim!=animFlying){
+                    DrawEllipse(e[en].position.x+40,e[en].position.y+96,20,10,(Color){0,0,0,96});
+                }else{
+                    DrawEllipse(e[en].position.x+40,e[en].shadey+96,20,10,(Color){0,0,0,96});
+                }
+            }
+            DrawTextureRec(scarfy, e[en].frameRec, (Vector2){e[en].position.x,e[en].position.y}, WHITE);  // Draw part of the texture
+            }else{
+            if(shade){
+                if(e[en].currentAnim!=animFlying){
+                    DrawEllipse(e[en].position.x+48,e[en].position.y+96,20,10,(Color){0,0,0,96});
+                }else{
+                    DrawEllipse(e[en].position.x+48,e[en].shadey+96,20,10,(Color){0,0,0,96});
+                }
+            }
+            DrawTexturePro(scarfy,  (Rectangle){e[en].frameRec.x,e[en].frameRec.y,-96,96},// the -96 (-)means mirror on x axis
+                                            (Rectangle){e[en].position.x,e[en].position.y,96,96},
+                                            (Vector2){0,0},0,WHITE);
+            }
+ 
+        }
+        if(sortedlist[i][0]==3){//Draw items
+            int in = sortedlist[i][1];
+            if(it[in].active==false)continue;
+            DrawEllipse(it[in].position.x+47,it[in].shadey+106,16,8,(Color){0,0,0,96});
+            // get the head cell
+            it[in].frameRec.y = 0;
+
+            it[in].frameRec.x = 96*4;
+                
+            //DrawTextureRec(scarfy, it[0].frameRec, (Vector2){it[0].position.x,it[0].position.y}, WHITE);  // Draw part of the texture
+            DrawTexturePro(scarfy,  (Rectangle){it[in].frameRec.x,it[in].frameRec.y,-96,96},// the -96 (-)means mirror on x axis
+                                            (Rectangle){it[in].position.x+48,it[in].position.y+48,96,96},
+                                            (Vector2){96/2,96/2},it[in].angle,WHITE);
+        }
+       
+        
+    }
+}
 
 // Rectangles overlap
 bool rectsoverlap(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2){
