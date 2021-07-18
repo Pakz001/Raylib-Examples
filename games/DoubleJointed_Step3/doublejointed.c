@@ -170,6 +170,8 @@ float distance(float x1,float y1,float x2,float y2);
 Texture2D scarfy;
 Texture2D backg;
 
+int debug;
+
 int main(void)
 {
     // Initialization
@@ -275,8 +277,9 @@ int main(void)
             DrawRectangle(0,2,screenWidth,23,WHITE);
             DrawText("Cursor LEFT/RIGHT/UP/DOWN Z(FIRE1)/X(FIRE2)", 0, 0, 30, BLACK);
             //DrawText(FormatText("hitcombo %i",p[0].hitcombo), 0, 20, 30, BLACK);
-            //DrawText(FormatText("0 : %i",e[0].currentFrame), 0, 20, 30, BLACK);
-            //DrawText(FormatText("1 : %i",e[1].currentFrame), 0, 50, 30, BLACK);
+            DrawText(FormatText("ca : %i",e[0].currentAnim), 0, 20, 30, BLACK);
+            DrawText(FormatText("ca : %i",e[1].currentAnim), 0, 50, 30, BLACK);
+            DrawText(FormatText("debug: %i",debug),210,20,30,BLACK);
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
@@ -390,7 +393,7 @@ void setentityanimation(int entity, int anim){
             case animHit2:
             e[entity].frame_start = frame_hit2start+e[entity].mod;
             e[entity].frame_end = frame_hit2end+e[entity].mod;
-            e[entity].currentFrame = e[entity].frame_start;
+            e[entity].currentFrame = e[entity].frame_start;            
             break;
             case animWalk:
             e[entity].framesCounter = 8;
@@ -520,14 +523,19 @@ void updateentity(int entity){
         }
 
         
-
+        // actual animation system for the entities
         if (e[entity].framesCounter >= (60/e[entity].frameSpeed))
         {
             e[entity].framesCounter = 0;
             e[entity].currentFrame++;
 
             if (e[entity].currentFrame > e[entity].frame_end){
-                e[entity].currentFrame = e[entity].frame_start;
+                if(e[entity].currentAnim!=animDamage){ // Let all but animDamage loop
+                    e[entity].currentFrame = e[entity].frame_start;    
+                }else{//reset to idle when in animDamage(oneshot)
+                    setentityanimation(entity,animIdle);
+                }
+                
                 if(e[entity].currentAnim==animFlying){
                     e[entity].currentFrame = e[entity].frame_end;
                     //e[entity].currentAnim = animNothing;
@@ -545,7 +553,7 @@ void updateentity(int entity){
             //setentityanimation(entity,animNothing);
         }    
         if(e[entity].currentAnim == animDamage){
-            setentityanimation(entity,animIdle);
+            //setentityanimation(entity,animIdle);
         }    
         if(e[entity].currentAnim == animWalk){
             //setentityanimation(entity,animIdle);
@@ -627,7 +635,7 @@ void updateentity(int entity){
                       
                 }
                 //
-                if(e[entity].currentAnim!=animWalk)setentityanimation(entity,animWalk);
+                if(e[entity].currentAnim!=animWalk && e[entity].currentAnim!=animDamage)setentityanimation(entity,animWalk);
             }
             
             if(rectsoverlap(p[0].position.x,p[0].position.y,96,96,e[entity].position.x,e[entity].position.y,48,48)==false){
@@ -638,7 +646,8 @@ void updateentity(int entity){
             }
         }
         if(e[entity].position.x==oldpos.x && e[entity].position.y==oldpos.y){
-            setentityanimation(entity,animIdle);
+            
+            if(e[entity].currentAnim!=animDamage)setentityanimation(entity,animIdle);
         }
 
         
@@ -708,7 +717,7 @@ void updateplayer(int player){
                             }else{
                                 p[player].hitcombo=0;
                                 e[entity].health=0;
-                                setentityanimation(entity,animDamage);
+                                setentityanimation(entity,animDamage);                                
                                 //
                                 if(e[entity].mod==5){
                                     e[entity].mod = 9;
