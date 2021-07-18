@@ -41,6 +41,10 @@
 typedef struct item{
     bool active;
     float facing;
+    bool blinking;
+    int blinkingtime;
+    int blinkingcnt;
+    bool visible; // sprite is drawn or not drawn.
     Vector2 position;
     int currentFrame;
     Rectangle frameRec;
@@ -96,6 +100,7 @@ typedef struct player{
     Vector2 position;
     int w;
     int h;
+    int enemyweareatattacking;
     int enemyattheright; // only 1 enemy at every side (integer of entity number)
     int enemyattheleft;
     int hitcombo;
@@ -203,11 +208,11 @@ int main(void)
 
     //setanimation(animKick);
     //setanimation(animFlying);
-    it[0].active=true;
+    it[0].active=false;
     it[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
-    it[1].active=true;
+    it[1].active=false;
     it[1].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
-    it[2].active=true;
+    it[2].active=false;
     it[2].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
 
 
@@ -244,7 +249,9 @@ int main(void)
     e[2].position.x = 220;
     e[2].mod = 5;
     setentityanimation(2,animIdle);    
-    
+
+    p[0].active=true;
+    p[0].enemyweareatattacking=-1;
     p[0].facing=1;
     p[0].position.y = 370;
     p[0].position.x = 320;
@@ -480,8 +487,33 @@ void updateitems(){
             it[i].incy+=.42;
             it[i].position.x+=it[i].incx;
             if(it[i].incy<8)it[i].position.y+=it[i].incy;
+        }else{
+            if(it[i].blinking==false){
+                it[i].blinking=true;
+                it[i].blinkingtime=0;
+                it[i].blinkingcnt=0;
+            }
+            
         }
+               // For the blinking of the entity
+        
+        if(it[i].blinking==true)it[i].blinkingtime++;
+        if(it[i].blinkingtime<150 && it[i].blinking==true){                    
+            it[i].blinkingcnt++;
+            if(it[i].blinkingcnt>10){
+                
+                it[i].blinkingcnt=0;
+                if(it[i].visible==true){
+                    it[i].visible=false;
+                }else{
+                    it[i].visible=true;                    
+                }
+            }            
+        }
+        if(it[i].blinking && it[i].blinkingtime>150)it[i].active=false;
+
     }
+ 
 }
 
 void updateentity(int entity){
@@ -663,7 +695,7 @@ void updateplayer(int player){
         p[player].lastFiretime++;
         p[player].keynothingtime++;
         p[player].framesCounter++;
-
+        p[player].enemyweareatattacking=-1;
         
 
         if (p[0].framesCounter >= (60/framesSpeed))
@@ -686,6 +718,7 @@ void updateplayer(int player){
         // Is he nearby
         for(int entity=0;entity<MAX_ENTITIES;entity++){
             if(e[entity].damagedelay>0)e[entity].damagedelay-=1;
+            if(p[player].enemyweareatattacking!=entity && p[player].enemyweareatattacking!=-1)continue;
             if(rectsoverlap(p[player].position.x,p[player].position.y,70,60,e[entity].position.x,e[entity].position.y+10,60,40)){
                 // Are we on the final damaging frame.        
                 if(p[0].currentFrame == frame_hit1end || p[0].currentFrame == frame_hit2end || p[0].currentFrame == frame_kickend || p[0].currentFrame == frame_ucutend){
@@ -700,6 +733,7 @@ void updateplayer(int player){
                     
                     // We have hit 'em
                     if(goahead && e[entity].damagedelay==0){
+                        p[player].enemyweareatattacking=entity;
                         //
                         
                         e[entity].damagedelay=10;
@@ -725,6 +759,7 @@ void updateplayer(int player){
                                 if(e[entity].mod==5){                                    
                                     e[entity].mod = 9;
                                     it[entity].active=true;
+                                    it[entity].visible=true;
                                     it[entity].shadey=e[entity].position.y;
                                     it[entity].incx=5;
                                     it[entity].incy=-5;
@@ -970,6 +1005,7 @@ void drawZordered(){
         if(sortedlist[i][0]==3){//Draw items
             int in = sortedlist[i][1];
             if(it[in].active==false)continue;
+            if(it[in].visible==false)continue;
             DrawEllipse(it[in].position.x+47,it[in].shadey+106,16,8,(Color){0,0,0,96});
             // get the head cell
             it[in].frameRec.y = 0;
