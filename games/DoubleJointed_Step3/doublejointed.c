@@ -60,6 +60,11 @@ typedef struct entity{
     int w;
     int h;
     float health;
+    bool blinking;
+    int blinkingtime;
+    int blinkingcnt;
+    bool visible; // sprite is drawn or not drawn.
+    
     bool flying; // for when nocked flying
     float flyingincx;
     float flyingincy;
@@ -198,12 +203,17 @@ int main(void)
 
     //setanimation(animKick);
     //setanimation(animFlying);
+    it[0].active=true;
     it[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
+    it[1].active=true;
     it[1].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
+    it[2].active=true;
     it[2].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
 
 
+    e[0].active=true;
     e[0].state = stateIdle;
+    e[0].visible=true;
     e[0].frameSpeed = 8;
     e[0].health = 10;
     e[0].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
@@ -212,7 +222,9 @@ int main(void)
     e[0].position.x = 320;
     e[0].mod = 5;
     setentityanimation(0,animIdle);
+    e[1].active=true;
     e[1].state = stateIdle;
+    e[1].visible=true;
     e[1].frameSpeed = 8;
     e[1].health = 10;
     e[1].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
@@ -221,7 +233,9 @@ int main(void)
     e[1].position.x = 320;
     e[1].mod = 5;
     setentityanimation(1,animIdle);
+    e[2].active=true;
     e[2].state = stateIdle;
+    e[2].visible=true;
     e[2].frameSpeed = 8;
     e[2].health = 10;
     e[2].frameRec = (Rectangle){ 0.0f, 0.0f, (float)96, (float)96 };
@@ -449,7 +463,8 @@ void setplayeranimation(int player, int anim){
 
 void updateitems(){
     for(int i=0;i<MAX_ITEMS;i++){
-        if(it[i].incx!=0){
+        if(it[i].active==false)continue;
+        if(it[i].incx!=0){            
             
             if(it[i].incx>0){
                 it[i].incx-=.05;
@@ -471,6 +486,7 @@ void updateitems(){
 
 void updateentity(int entity){
         // animation
+        if(e[entity].active!=true)return;
         if(e[entity].currentAnim==animNothing)return;
         
         e[entity].lastFiretime++;
@@ -492,8 +508,31 @@ void updateentity(int entity){
                 e[entity].flyingincy+=.42;
                 e[entity].position.x+=e[entity].flyingincx;
                 if(e[entity].flyingincy<8)e[entity].position.y+=e[entity].flyingincy;
-            }   
+            }else{
+                if(e[entity].blinking==false){
+                    e[entity].blinking=true;
+                    e[entity].blinkingtime=0;
+                    e[entity].blinkingcnt=0;
+                }
+            }                
         }
+        // For the blinking of the entity
+        
+        if(e[entity].blinking==true)e[entity].blinkingtime++;
+        if(e[entity].blinkingtime<150 && e[entity].blinking==true){                    
+            e[entity].blinkingcnt++;
+            if(e[entity].blinkingcnt>10){
+                
+                e[entity].blinkingcnt=0;
+                if(e[entity].visible==true){
+                    e[entity].visible=false;
+                }else{
+                    e[entity].visible=true;                    
+                }
+            }            
+        }
+        if(e[entity].blinking && e[entity].blinkingtime>150)e[entity].active=false;
+
 
         
         // actual animation system for the entities
@@ -527,6 +566,8 @@ void updateentity(int entity){
             
         }
          
+        
+        
         
         // states
         if(e[entity].state==stateDead)return;
@@ -681,7 +722,7 @@ void updateplayer(int player){
                                 e[entity].health=0;
                                 setentityanimation(entity,animDamage);                                
                                 //
-                                if(e[entity].mod==5){
+                                if(e[entity].mod==5){                                    
                                     e[entity].mod = 9;
                                     it[entity].active=true;
                                     it[entity].shadey=e[entity].position.y;
@@ -844,6 +885,7 @@ void drawZordered(){
         position++;
     }
     for(int i=0;i<MAX_ENTITIES;i++){
+        if(e[i].active==false)continue;
         sortedlist[position][0]=2;
         sortedlist[position][1]=i;
         sortedlist[position][2]=e[i].position.y+96;
@@ -852,6 +894,7 @@ void drawZordered(){
         position++;
     }
     for(int i=0;i<MAX_ITEMS;i++){
+        if(it[i].active==false)continue;
         sortedlist[position][0]=3;
         sortedlist[position][1]=i;
         sortedlist[position][2]=it[i].position.y+48;
@@ -896,8 +939,10 @@ void drawZordered(){
             }
        
         }
-        if(sortedlist[i][0]==2){//draw entities
+        if(sortedlist[i][0]==2){//draw entities            
             int en = sortedlist[i][1];
+            if(e[en].active==false)continue;
+            if(e[en].visible==false)continue;
             bool shade=true;
             if(e[en].facing==1){
             if(shade){
