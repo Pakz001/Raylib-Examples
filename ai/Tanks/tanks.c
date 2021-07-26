@@ -1,11 +1,24 @@
+// Scoring <max bullets , no collision between tanks / 
+
 
 #include "raylib.h"
 #include <math.h>
 
 #define MAXCOMMANDS 10
 #define MAXENTITIES 10
+#define MAXBULLETS 256
 
 Texture2D sprites;
+
+typedef struct bullet{
+    bool active;
+    Vector2 position;
+    Vector2 inc;
+    int countdown;
+}bullet;
+
+static struct bullet bul[MAXBULLETS];
+
 
 typedef struct entity{
     bool active;
@@ -35,13 +48,16 @@ static struct entity ent[MAXENTITIES];
 void updateentities();
 void drawentities();
 void inientity(int entity,int x, int y);
+void updatebullets();
+void drawbullets();
+void shootbullet(Vector2 position,int angle);
 
 int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
     const int screenWidth = 800;
-    const int screenHeight = 450;
+    const int screenHeight = 600;
 
     InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
     sprites = LoadTexture("resources/sprites.png");
@@ -63,7 +79,7 @@ int main(void)
         //----------------------------------------------------------------------------------
         
         updateentities();
-        
+        updatebullets();
         
 
         // Draw
@@ -76,6 +92,7 @@ int main(void)
 
 
         drawentities();
+        drawbullets();
 
         DrawText(FormatText("%i",debug), 100, 20, 20, BLACK);
 
@@ -90,6 +107,44 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
     return 0;
+}
+
+void shootbullet(Vector2 position, int angle){
+    for(int i=0;i<MAXBULLETS;i++){
+        if(bul[i].active==false){
+            bul[i].active = true;
+            bul[i].position = position;
+            bul[i].inc.x = cos(angle*DEG2RAD)*3;
+            bul[i].inc.y = sin(angle*DEG2RAD)*3;
+            bul[i].position.x += cos(angle*DEG2RAD)*16;
+            bul[i].position.y += sin(angle*DEG2RAD)*16;
+
+            bul[i].countdown = 256;
+            return;
+        }
+    }
+}
+
+void updatebullets(){
+    for(int i=0;i<MAXBULLETS;i++){
+        if(bul[i].active==false)continue;        
+        bul[i].position.x += bul[i].inc.x;
+        bul[i].position.y += bul[i].inc.y;
+        bul[i].countdown--;
+        if(bul[i].countdown<0)bul[i].active=false;
+
+    }
+}
+
+void drawbullets(){
+    for(int i=0;i<MAXBULLETS;i++){
+        if(bul[i].active==false)continue;
+        DrawTexturePro(sprites,  (Rectangle){32,0,16,16},// the -96 (-)means mirror on x axis
+                                        (Rectangle){bul[i].position.x-16,bul[i].position.y-16,32,32},
+                                        (Vector2){0,0},0,WHITE);
+
+    }
+    
 }
 
 void inientity(int entity,int x, int y){
@@ -110,11 +165,15 @@ void inientity(int entity,int x, int y){
     ent[entity].maxcommand2 = MAXCOMMANDS;
     for(int i=0;i<ent[entity].maxcommand;i++){
         ent[entity].command[i]=GetRandomValue(1,3);
-        ent[entity].value[i]=GetRandomValue(10,100);
+        ent[entity].value[i]=GetRandomValue(10,10);
     }
     for(int i=0;i<ent[entity].maxcommand2;i++){
         ent[entity].command2[i]=GetRandomValue(2,3);
         ent[entity].value2[i]=GetRandomValue(10,100);
+        if(GetRandomValue(0,10)==1){
+            ent[entity].command2[i]=4;
+        }
+
         
     }
 
@@ -123,11 +182,11 @@ void inientity(int entity,int x, int y){
 void drawentities(){
     for(int i=0;i<MAXENTITIES;i++){
         DrawTexturePro(sprites,  (Rectangle){0,0,16,16},// the -96 (-)means mirror on x axis
-                                        (Rectangle){ent[i].position.x,ent[i].position.y,64,64},
-                                        (Vector2){32,32},ent[i].angle,WHITE);
+                                        (Rectangle){ent[i].position.x,ent[i].position.y,32,32},
+                                        (Vector2){16,16},ent[i].angle,WHITE);
         DrawTexturePro(sprites,  (Rectangle){16,0,16,16},// the -96 (-)means mirror on x axis
-                                        (Rectangle){ent[i].position.x,ent[i].position.y,64,64},
-                                        (Vector2){32,32},ent[i].angle2,WHITE);
+                                        (Rectangle){ent[i].position.x,ent[i].position.y,32,32},
+                                        (Vector2){16,16},ent[i].angle2,WHITE);
     }
 }
 
@@ -145,7 +204,7 @@ void updateentities(){
             ent[i].pos=0;
             for(int ii=0;i<ent[i].maxcommand;i++){
                 ent[i].command[ii]=GetRandomValue(1,3);
-                ent[i].value[ii]=GetRandomValue(10,100);
+                ent[i].value[ii]=GetRandomValue(10,10);
             }
         }
         if(ent[i].pos2==ent[i].maxcommand2){
@@ -154,6 +213,9 @@ void updateentities(){
             for(int ii=0;i<ent[i].maxcommand2;i++){
                 ent[i].command2[ii]=GetRandomValue(2,3);
                 ent[i].value2[ii]=GetRandomValue(10,100);
+                if(GetRandomValue(0,10)==1){
+                    ent[i].command2[ii]=4;
+                }
                 
             }
         }
@@ -241,6 +303,10 @@ void updateentities(){
                         ent[i].valuecount2=-1;
                     }
                 break;
+                case 4://shoot
+                    shootbullet(ent[i].position,ent[i].angle2);
+                    ent[i].pos2++;
+                    ent[i].valuecount2=-1;
             }
         }
 
