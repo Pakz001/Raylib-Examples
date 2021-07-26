@@ -46,11 +46,13 @@ static struct entity ent[MAXENTITIES];
 
 
 void updateentities();
+void entitiescollision();
 void drawentities();
 void inientity(int entity,int x, int y);
 void updatebullets();
 void drawbullets();
 void shootbullet(Vector2 position,int angle);
+float distance(float x1,float y1,float x2,float y2);
 
 int main(void)
 {
@@ -65,8 +67,15 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
 
+    int x=200;
+    int y=200;
     for(int i=0;i<MAXENTITIES;i++){
-        inientity(i,GetRandomValue(200,400),GetRandomValue(200,400));
+        inientity(i,x,y);
+        x+=64;
+        if(x>500){
+            y+=64;
+            x=200;
+        }
     }
 
     int debug=0;
@@ -79,6 +88,7 @@ int main(void)
         //----------------------------------------------------------------------------------
         
         updateentities();
+        entitiescollision();
         updatebullets();
         
 
@@ -164,8 +174,8 @@ void inientity(int entity,int x, int y){
     ent[entity].maxcommand = MAXCOMMANDS;
     ent[entity].maxcommand2 = MAXCOMMANDS;
     for(int i=0;i<ent[entity].maxcommand;i++){
-        ent[entity].command[i]=GetRandomValue(1,3);
-        ent[entity].value[i]=GetRandomValue(10,10);
+        ent[entity].command[i]=GetRandomValue(1,4);
+        ent[entity].value[i]=GetRandomValue(0,10);
     }
     for(int i=0;i<ent[entity].maxcommand2;i++){
         ent[entity].command2[i]=GetRandomValue(2,3);
@@ -181,6 +191,7 @@ void inientity(int entity,int x, int y){
 
 void drawentities(){
     for(int i=0;i<MAXENTITIES;i++){
+        if(ent[i].active==false)continue;
         DrawTexturePro(sprites,  (Rectangle){0,0,16,16},// the -96 (-)means mirror on x axis
                                         (Rectangle){ent[i].position.x,ent[i].position.y,32,32},
                                         (Vector2){16,16},ent[i].angle,WHITE);
@@ -190,10 +201,64 @@ void drawentities(){
     }
 }
 
+void entitiescollision(){
+    for(int i=0;i<MAXENTITIES;i++){
+    for(int j=0;j<MAXENTITIES;j++){
+        if(i==j)continue;
+            if(distance(ent[i].position.x,ent[i].position.y,ent[j].position.x,ent[j].position.y)<36){
+                //ent[i].active=false;
+                int cnt=999;
+                float angle=ent[i].angle*DEG2RAD;
+                int x=ent[i].position.x;
+                int y=ent[i].position.y;
+                while(distance(x,y,ent[j].position.x,ent[j].position.y)<46){
+                    x+=cos(angle)*2;
+                    y+=sin(angle)*2;
+                    cnt--;
+                    if(cnt<0)break;
+                }
+                if(cnt>0){
+                    ent[i].command[0]=1;
+                    ent[i].value[0]=50;
+                    ent[i].command[1]=2;
+                    ent[i].value[1]=30;
+                    ent[i].pos=0;
+                    ent[i].valuecount=-1;
+
+                }
+                if(cnt<0){
+                    x = ent[i].position.x;
+                    y = ent[i].position.y;
+                    angle=ent[i].angle*DEG2RAD;
+                    cnt=999;
+                    while(distance(x,y,ent[j].position.x,ent[j].position.y)<46){
+                        x-=cos(angle)*2;
+                        y-=sin(angle)*2;
+                        cnt--;
+                        if(cnt<0)break;
+                    }
+                    if(cnt>0){
+                        ent[i].command[0]=4;
+                        ent[i].value[0]=50;                   
+                        ent[i].command[1]=3;
+                        ent[i].value[1]=50;
+                        ent[i].pos=0;
+                        ent[i].valuecount=-1;
+                        
+                    }   
+                }
+                
+                    
+                
+            }
+    }
+    }
+}
+
 void updateentities(){
  
     for(int i=0;i<MAXENTITIES;i++){
-
+        if(ent[i].active==false)continue;
 
 
 
@@ -203,8 +268,8 @@ void updateentities(){
         if(ent[i].pos==ent[i].maxcommand){
             ent[i].pos=0;
             for(int ii=0;i<ent[i].maxcommand;i++){
-                ent[i].command[ii]=GetRandomValue(1,3);
-                ent[i].value[ii]=GetRandomValue(10,10);
+                ent[i].command[ii]=GetRandomValue(1,4);
+                ent[i].value[ii]=GetRandomValue(0,10);
             }
         }
         if(ent[i].pos2==ent[i].maxcommand2){
@@ -239,6 +304,21 @@ void updateentities(){
                         ent[i].valuecount=-1;
                     }
                 break;
+                case 4://Backwards
+                    if(ent[i].valuecount==-1){
+                        ent[i].valuecount=ent[i].value[ent[i].pos];
+                    }
+                    if(ent[i].valuecount>0){
+                        ent[i].valuecount--;
+                        ent[i].position.x -= cos(ent[i].angle*DEG2RAD)*1;
+                        ent[i].position.y -= sin(ent[i].angle*DEG2RAD)*1;                        
+                    }
+                    if(ent[i].valuecount==0){
+                        ent[i].pos++;
+                        ent[i].valuecount=-1;
+                    }
+                break;
+
                 case 2://left
                     if(ent[i].valuecount==-1){
                         ent[i].valuecount=ent[i].value[ent[i].pos];
@@ -322,4 +402,9 @@ void updateentities(){
 
     
  
+}
+
+// Manhattan Distance (less precise)
+float distance(float x1,float y1,float x2,float y2){
+    return (float)abs(x2-x1)+abs(y2-y1);
 }
