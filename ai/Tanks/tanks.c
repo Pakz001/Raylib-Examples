@@ -46,7 +46,9 @@ typedef struct entity{
 static struct entity ent[MAXENTITIES];
 
 
+void getrandomcommands(int entity);
 void updateentities();
+void advancedcollision();
 void entitiescollision();
 void drawentities();
 void inientity(int entity,int x, int y);
@@ -102,7 +104,8 @@ int main(void)
         //----------------------------------------------------------------------------------
         
         updateentities();
-        entitiescollision();
+        //entitiescollision();
+        advancedcollision();
         updatebullets();
         //if(GetRandomValue(0,20)==1)shootbullet((Vector2){320,200},GetRandomValue(0,360));
         
@@ -220,6 +223,43 @@ void drawentities(){
     }
 }
 
+//
+// This function checks collision with each of the entities. It works by taking the current command and running it to its end.
+// WIth forward and Backwards movement. If in this command we wil hit a other entity we scrap the entire command chain and
+// build a new.
+//
+void advancedcollision(){
+    for(int i=0;i<MAXENTITIES;i++){
+    for(int j=0;j<MAXENTITIES;j++){
+        if(i==j)continue;
+        if(ent[i].command[ent[i].pos]==1){
+            Vector2 pos = ent[i].position;
+            for(int z=0;z<ent[i].value[ent[i].pos]-ent[i].valuecount;z++){
+                pos.x+=cos(ent[i].angle*DEG2RAD)*1;
+                pos.y+=sin(ent[i].angle*DEG2RAD)*1;
+                if(distance(pos.x,pos.y,ent[j].position.x,ent[j].position.y)<36){
+                    getrandomcommands(i);
+                    continue;
+                }
+            }
+        }
+        if(ent[i].command[ent[i].pos]==4){
+            Vector2 pos = ent[i].position;
+            for(int z=0;z<ent[i].value[ent[i].pos]-ent[i].valuecount;z++){
+                pos.x-=cos(ent[i].angle*DEG2RAD)*1;
+                pos.y-=sin(ent[i].angle*DEG2RAD)*1;
+                if(distance(pos.x,pos.y,ent[j].position.x,ent[j].position.y)<36){
+                    getrandomcommands(i);
+                    
+                    continue;
+                }
+            }
+        }
+        
+    }}
+
+}
+
 void entitiescollision(){
     for(int i=0;i<MAXENTITIES;i++){
     for(int j=0;j<MAXENTITIES;j++){
@@ -258,8 +298,8 @@ void updateentities(){
                 ent[i].value[ii]=GetRandomValue(0,10);
             }
             
-                ent[i].command[0]=1;
-                ent[i].value[0]=GetRandomValue(60,260);
+            ent[i].command[0]=1;
+            ent[i].value[0]=GetRandomValue(10,60);
             
         }
         if(ent[i].pos2>=ent[i].maxcommand2){
@@ -393,6 +433,29 @@ void updateentities(){
 
     
  
+}
+
+//
+// This function gives the entity a new set of commands. This for the body and the turret.
+//
+void getrandomcommands(int entity){
+        ent[entity].pos=0;
+        for(int ii=0;ii<ent[entity].maxcommand;ii++){
+            ent[entity].command[ii]=GetRandomValue(1,4);
+            ent[entity].value[ii]=GetRandomValue(0,10);
+        }
+                
+        
+        ent[entity].pos2=0;
+        for(int ii=0;ii<ent[entity].maxcommand2;ii++){
+            ent[entity].command2[ii]=GetRandomValue(2,3);
+            ent[entity].value2[ii]=GetRandomValue(10,100);
+            if(GetRandomValue(0,10)==1){
+                ent[entity].command2[ii]=4;
+            }
+        }
+            
+
 }
 
 // Manhattan Distance (less precise)
