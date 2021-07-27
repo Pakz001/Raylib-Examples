@@ -7,9 +7,18 @@
 #define MAXCOMMANDS 10
 #define MAXENTITIES 10
 #define MAXBULLETS 256
+#define MAXDECALS 256
 
 Texture2D sprites;
 Texture2D tiles;
+
+typedef struct decal{
+    bool active;
+    Vector2 position;
+    int tilesindex;
+}decal;
+
+static struct decal dec[MAXDECALS];
 
 typedef struct bullet{
     bool active;
@@ -62,6 +71,8 @@ float angledifference(float angle1, float angle2);
 void drawmap();
 void drawtile(int tile, int x, int y);
 void createmap();
+void drawdecals();
+void inidecals();
 
 int debug;
 
@@ -80,6 +91,7 @@ int main(void)
     tiles = LoadTexture("resources/tiles.png");
 
     createmap();
+    inidecals();
 
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -129,6 +141,7 @@ int main(void)
 
 
         drawmap();
+        drawdecals();
         drawentities();
         drawbullets();
 
@@ -146,6 +159,38 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
     return 0;
+}
+
+// Set up some decals, these are the holes left by explosions.
+void inidecals(){
+    // i<64 = the amount of holes in the ground.
+    for(int i=0;i<64;i++){
+        if(dec[i].active==true)continue;
+        dec[i].active=true;
+        dec[i].position.x=GetRandomValue(16,screenWidth);
+        dec[i].position.y=GetRandomValue(16,screenHeight);
+        if(map[(int)dec[i].position.x/32][(int)dec[i].position.y/32]==8){
+            dec[i].tilesindex = 29;
+            if(GetRandomValue(0,10)<5)dec[i].tilesindex++;
+        }else{
+            dec[i].tilesindex = 27;
+            if(GetRandomValue(0,10)<5)dec[i].tilesindex++;
+        }
+    }
+}
+
+void drawdecals(){
+    for(int i=0;i<MAXDECALS;i++){
+        if(dec[i].active==false)continue;
+        // Get the tile x , y position.
+        int ty = dec[i].tilesindex / 9;    
+        int tx = dec[i].tilesindex-(ty*9);
+        
+        DrawTexturePro(tiles,  (Rectangle){tx*16,ty*16,16,16},// the -96 (-)means mirror on x axis
+                                        (Rectangle){dec[i].position.x,dec[i].position.y,32,32},
+                                        (Vector2){0,0},0,WHITE);
+        
+    }
 }
 
 void createmap(){
@@ -209,7 +254,6 @@ void drawtile(int tile, int x, int y){
     // Get the tile x , y position.
     int ty = tile / 9;    
     int tx = tile-(ty*9);;
-    debug = tx;
     
     DrawTexturePro(tiles,  (Rectangle){tx*16,ty*16,16,16},// the -96 (-)means mirror on x axis
                                     (Rectangle){x,y,32,32},
