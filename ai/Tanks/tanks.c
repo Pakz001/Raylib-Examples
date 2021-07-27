@@ -9,6 +9,7 @@
 #define MAXBULLETS 256
 
 Texture2D sprites;
+Texture2D tiles;
 
 typedef struct bullet{
     bool active;
@@ -58,19 +59,28 @@ void shootbullet(Vector2 position,float angle);
 float distance(float x1,float y1,float x2,float y2);
 float getangle(float x1,float y1,float x2,float y2);
 float angledifference(float angle1, float angle2);
-
+void drawmap();
+void drawtile(int tile, int x, int y);
+void createmap();
 
 int debug;
+
+const int screenWidth = 800;
+const int screenHeight = 600;
+
+int map[150][150] = {0};
 
 int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 600;
 
     InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
     sprites = LoadTexture("resources/sprites.png");
+    tiles = LoadTexture("resources/tiles.png");
+
+    createmap();
+
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
@@ -118,7 +128,7 @@ int main(void)
 
 
 
-
+        drawmap();
         drawentities();
         drawbullets();
 
@@ -130,11 +140,80 @@ int main(void)
 
     // De-Initialization
     UnloadTexture(sprites);
+    UnloadTexture(tiles);
     //--------------------------------------------------------------------------------------
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;
+}
+
+void createmap(){
+    // Generate a kind of basic map
+    for(int y=0;y<screenHeight/32;y++){
+    for(int x=0;x<screenWidth/32;x++){
+        map[x][y]=9;
+
+    }}
+    for(int y=0;y<10;y++){
+    for(int x=0;x<10;x++){
+        map[x][y]=11;
+    }}
+    for(int y=0;y<50;y++){
+    for(int x=0;x<5;x++){
+        map[x][y]=11;
+    }}
+    for(int y=0;y<5;y++){
+    for(int x=0;x<50;x++){
+        map[x][y]=11;
+    }}
+    
+    // Auto tile it!
+    for(int y=1;y<50;y++){
+    for(int x=1;x<50;x++){
+        if(map[x][y]==11){
+            if(map[x+1][y]==11 && map[x][y+1]==11 && map[x+1][y+1]==9){
+                map[x+1][y+1]=4;
+            }
+        }
+        if(map[x][y]==11){
+            if(map[x+1][y]==9 && map[x][y+1]==9 && map[x+1][y+1]==9){
+                map[x+1][y+1]=21;//31;
+            }
+        }
+        
+    }}
+    for(int y=1;y<50;y++){
+    for(int x=1;x<50;x++){
+        if(map[x][y]==11){
+            if(map[x][y+1]==9){
+                map[x][y+1]=5;
+            }
+            if(map[x+1][y]==9){
+                map[x+1][y]=12;
+            }
+        }
+    }}
+
+}
+
+void drawmap(){
+    for(int y=0;y<screenHeight/32;y++){
+    for(int x=0;x<screenWidth/32;x++){
+        drawtile(map[x][y],x*32,y*32);
+    }
+    }
+}
+void drawtile(int tile, int x, int y){
+    // Get the tile x , y position.
+    int ty = tile / 9;    
+    int tx = tile-(ty*9);;
+    debug = tx;
+    
+    DrawTexturePro(tiles,  (Rectangle){tx*16,ty*16,16,16},// the -96 (-)means mirror on x axis
+                                    (Rectangle){x,y,32,32},
+                                    (Vector2){0,0},0,WHITE);
+
 }
 
 void shootbullet(Vector2 position, float angle){
