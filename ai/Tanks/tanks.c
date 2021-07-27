@@ -293,9 +293,13 @@ void inientity(int entity,int x, int y){
 void drawentities(){
     for(int i=0;i<MAXENTITIES;i++){
         if(ent[i].active==false)continue;
+        // Draw a little shadow below the sprite.
+        DrawEllipse(ent[i].position.x-3,ent[i].position.y+3,14,14,(Color){0,0,0,100});
+        // Draw the tank
         DrawTexturePro(sprites,  (Rectangle){0,0,16,16},// the -96 (-)means mirror on x axis
                                         (Rectangle){ent[i].position.x,ent[i].position.y,32,32},
                                         (Vector2){16,16},ent[i].angle,WHITE);
+        // Draw the turret
         DrawTexturePro(sprites,  (Rectangle){16,0,16,16},// the -96 (-)means mirror on x axis
                                         (Rectangle){ent[i].position.x,ent[i].position.y,32,32},
                                         (Vector2){16,16},ent[i].angle2,WHITE);
