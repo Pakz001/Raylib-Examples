@@ -132,7 +132,7 @@ int main(void)
         drawentities();
         drawbullets();
 
-        DrawText(FormatText("%i",debug), 0, 0, 20, BLACK);
+        //DrawText(FormatText("%i",debug), 0, 0, 20, BLACK);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -150,7 +150,7 @@ int main(void)
 
 void createmap(){
     // Generate a kind of basic map
-    for(int y=0;y<screenHeight/32;y++){
+    for(int y=0;y<screenHeight/32+1;y++){
     for(int x=0;x<screenWidth/32;x++){
         map[x][y]=9;
 
@@ -198,10 +198,11 @@ void createmap(){
 }
 
 void drawmap(){
-    for(int y=0;y<screenHeight/32;y++){
+    for(int y=0;y<screenHeight/32+1;y++){
     for(int x=0;x<screenWidth/32;x++){
         drawtile(map[x][y],x*32,y*32);
     }
+    
     }
 }
 void drawtile(int tile, int x, int y){
@@ -249,7 +250,7 @@ void updatebullets(){
 
 void drawbullets(){
     for(int i=0;i<MAXBULLETS;i++){
-        if(bul[i].active==false)continue;
+        if(bul[i].active==false)continue;        
         DrawTexturePro(sprites,  (Rectangle){32,0,16,16},// the -96 (-)means mirror on x axis
                                         (Rectangle){bul[i].position.x-16,bul[i].position.y-16,32,32},
                                         (Vector2){0,0},0,WHITE);
