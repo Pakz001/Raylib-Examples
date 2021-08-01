@@ -1,6 +1,7 @@
 /*******************************************************************************************
+* I started this racing game experiment on the iphone and with appgamekit mobile during todays f1's forumula 1 race.
+* 
 *
-
 * Trying to figure out how to do a racing game using lanes...
 *
 * I made a array of vector2d's, this in a circle as the racetrack.
@@ -94,7 +95,11 @@ void drawtrack(){
     }
     }
 }
-
+//
+// We have a array of [lanes][nodes] = vector2d
+// We create it by just making a circle in 360 steps. The cars wil go from node to node and loop this.
+//
+//
 void maketrack(){
     float x = 0.0f;
     float y = 0.0f;
@@ -111,6 +116,12 @@ void maketrack(){
     }
 }
 
+//
+// Here the magic should happen(i think) Move towards the next node/. 
+// If close to the target node then next node.
+//
+// Lane magic code should be added here.
+//
 void updatebots(){
     for(int i=0;i<MAXBOTS;i++){
         float l=edistance(      bot[i].position.x,
@@ -135,7 +146,10 @@ void updatebots(){
             if(l<20)close=true;
         }
         if(close==false){
-            if(bot[i].lane>0)bot[i].lane--;
+            if(bot[i].lane>0){
+                bot[i].lane--;
+                bot[i].pos+=8;
+            }
         }
         // if overtake and only 2 close by
         int cnt=0;
@@ -150,7 +164,7 @@ void updatebots(){
         if(cnt==1){
             if(bot[i].lane==0){
                 bot[i].lane++;
-                bot[i].pos++;
+                bot[i].pos+=8;
             }
         }
     }    
