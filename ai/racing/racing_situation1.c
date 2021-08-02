@@ -91,6 +91,7 @@ int main(void)
 
         drawtrack();
         drawbots();
+        //debug = bot[0].lanelockcnt;
         DrawText(FormatText("%i",debug), 0, 0, 20, BLACK);
 
         EndDrawing();
@@ -155,6 +156,7 @@ void updatebots(){
         float an = atan2(bot[i].position.y-track[bot[i].lane][bot[i].pos].y,bot[i].position.x-track[bot[i].lane][bot[i].pos].x);
         bot[i].position.x-=cos(an)*bot[i].speed;
         bot[i].position.y-=sin(an)*bot[i].speed;
+
         // Switch lane logic
         bool close=false;
         for(int j=0;j<MAXBOTS;j++){
@@ -163,15 +165,18 @@ void updatebots(){
                                     bot[i].position.y,
                                     bot[j].position.x,
                                     bot[j].position.y);
-            if(l<20)close=true;
+            if(l<32)close=true;
         }
         if(bot[i].lanelockcnt==0 && close==false){
             if(bot[i].lane>0){
                 bot[i].lane--;
                 bot[i].pos+=2;
-                bot[i].lanelockcnt=20;
+                bot[i].lanelockcnt=5;
             }
         }
+      
+        
+        
         if(bot[i].lanelockcnt==0)crowdedgoinside(i);
         if(bot[i].lanelockcnt==0)overtake(i);
         // if overtake and only 2 close by
@@ -193,11 +198,12 @@ void updatebots(){
     }    
 }
 
+// simulate ahead // if collide then find next open lane
 void overtake(int b){
     Vector2 temp = bot[b].position;
     int lane= bot[b].lane;
     int pos = bot[b].pos;
-    // go ahead a bit
+    bool collision=false;
     for(int z=0;z<10;z++){
         float l=edistance(      temp.x,
                                 temp.y,
@@ -210,28 +216,30 @@ void overtake(int b){
         float an = atan2(temp.y-track[lane][pos].y,temp.x-track[lane][pos].x);
         temp.x-=cos(an)*bot[b].speed;
         temp.y-=sin(an)*bot[b].speed;
+        for(int j=0;j<MAXBOTS;j++){
+            if(j==b)continue;
+            if(edistance(temp.x,temp.y,bot[j].position.x,bot[j].position.y)<4){
+                collision=true;
+                break;
+            }
+        }
+        if(collision==true)break;
         
     }
-    // is there anything slower there.
-    bool con=false;
-    for(int i=0;i<MAXBOTS;i++){        
-        if(i==b)continue;
-        if(edistance(bot[i].position.x,bot[i].position.y,temp.x,temp.y)<20){            
-            if(bot[i].speed<bot[b].speed)con=true;
-            
-            break;            
-        }       
-    }
-    // simulate ahead from each lane from inside to outside for free passage.
-    if(con==false)return;
+    if(collision==false)return;
     
+    //debug=GetRandomValue(0,1000);
+    //debug = GetRandomValue(0,1000);
     //debug = GetRandomValue(0,100);
     for(lane=0;lane<MAXLANES;lane++){
-    temp = bot[b].position;
+    
     pos = bot[b].pos;
+    //temp = bot[b].position;
+    temp = track[lane][pos];
+    
     bool col=false;
     // go ahead a bit
-    for(int z=0;z<10;z++){
+    for(int z=0;z<16;z++){
         float l=edistance(      temp.x,
                                 temp.y,
                                 track[lane][pos].x,
@@ -245,17 +253,18 @@ void overtake(int b){
         temp.y-=sin(an)*bot[b].speed;
         for(int i=0;i<MAXBOTS;i++){
             if(i==b)continue;
-            if(edistance(bot[i].position.x,bot[i].position.y,temp.x,temp.y)<5){
+            if(edistance(bot[i].position.x,bot[i].position.y,temp.x,temp.y)<10){
                 col=true;                
-                
+                break;
             }
         }
     }
     if(col==false){
-        //debug=GetRandomValue(0,100);
+        
+        //bot[b].speed=0;
         bot[b].lane=lane;
         
-        bot[b].lanelockcnt=20;
+        bot[b].lanelockcnt=16;
         return;
     }
     }
@@ -263,10 +272,12 @@ void overtake(int b){
     
 }
 
+
 // If there are a couple of bots clumped together(collision area) and the bot tested here is in the most
 // inside position and if it can go futher inside then switch to a more inside lane.
 //
 void crowdedgoinside(int b){
+    
     if(bot[b].lane==0)return;
     int lanepos = bot[b].lane;
     int cnt=0;
@@ -280,6 +291,8 @@ void crowdedgoinside(int b){
     }
     if(cnt>0 && bot[b].lane>0){
         bot[b].lane--;
+        
+        //bot[b].lanelockcnt=10;
     }
 }
 
