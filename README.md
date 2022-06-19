@@ -1,4 +1,5 @@
-# Raylib-Examples
+# Raylib-Examples ( Learn how to code games by studying examples )
+
 My collection of raylib examples. ( https://www.raylib.com/index.html )
 
 For Raylib Version of 4 april 2020 ( Notepad++ windows installer version )
