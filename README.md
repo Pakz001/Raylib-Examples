@@ -39,11 +39,11 @@ Youtube video's of some of the game projects in the repo here :<br>
 
 <br>Video link (youtube) of the Platformer game template(drones)<br>
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=l3vXFRYScUY" target="_blank">
- <img src="http://img.youtube.com/vi/l3vXFRYScUY/mqdefault.jpg" alt="Watch the video" width="60%" border="10" />
+ <img src="http://img.youtube.com/vi/l3vXFRYScUY/mqdefault.jpg" alt="Watch the video" width="60%" border="10" /></a>
 <br>
 <br>Video link (youtube) of the Dungeon with dangerous spiders game example.<br>
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=aM3AuqjwdB0" target="_blank">
- <img src="http://img.youtube.com/vi/aM3AuqjwdB0/mqdefault.jpg" alt="Watch the video" width="60%" border="10" />
+ <img src="http://img.youtube.com/vi/aM3AuqjwdB0/mqdefault.jpg" alt="Watch the video" width="60%" border="10" /></a>
 <br>
 
 
