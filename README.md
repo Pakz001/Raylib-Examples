@@ -34,6 +34,18 @@ Each example in here is a standalone .c file. I myself just copy and paste the o
 Possibly a .h file like raymath.h sometimes is not found, this happens with certain examples in the official examples. You can copy that .h files from the /src files into the folder with the example that needs it. That seemed to have worked for me.
 
 The pico8 inspired sprite and map editor in the spriteeditor folder exports the current image as a c array into the clipboard buffer that can then be pasted inside your code. I use this myself. The 'c' key inside the editor is used for this(in the sprite editor section.) (New version should read 8x8 sprite arrays back into the editor with the 'p' key)(save all(f5)loadall(f6)(tab=switch between spriteview and map view.)
+<br>
+Youtube video's of some of the game projects in the repo here :<br>
+
+<br>Video link (youtube) of the Platformer game template(drones)<br>
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=l3vXFRYScUY" target="_blank">
+ <img src="http://img.youtube.com/vi/l3vXFRYScUY/mqdefault.jpg" alt="Watch the video" width="60%" border="10" />
+<br>
+<br>Video link (youtube) of the Dungeon with dangerous spiders game example.<br>
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=aM3AuqjwdB0" target="_blank">
+ <img src="http://img.youtube.com/vi/aM3AuqjwdB0/mqdefault.jpg" alt="Watch the video" width="60%" border="10" />
+<br>
+
 
 <br><br>
 My other hobby : https://soundcloud.com/pakz001
